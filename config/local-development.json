@@ -1,0 +1,8 @@
+{
+  "logging" : {
+     "level" : {
+       "/" : "info",
+       "@alt-javascript/decorates/test/decoratesSpec" : "info"
+     }
+  }
+}
