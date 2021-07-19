@@ -27,17 +27,21 @@ module.exports = function (configArg,loggerFactoryArg,loggerRegistryArg) {
         throw new Error ('Unable to detect config, is \'config\' declared or provided?');
     }
 
-    let outerLoggerRegistry = null;
+    let _loggerRegistry = null;
     if (!(typeof loggerRegistry == 'undefined')){
-        outerLoggerRegistry = loggerRegistry;
+        _loggerRegistry = loggerRegistry;
     }
-    let _loggerRegistry = outerLoggerRegistry || loggerRegistryArg || new LoggerRegistry();
+    if (browser && window?.loggerRegistry){
+        _config = window.loggerRegistry;
+    }
 
-    let outerLoggerFactory = null;
+    _loggerRegistry = _loggerRegistry || loggerRegistryArg || new LoggerRegistry();
+
+    let _loggerFactory = null;
     if (!(typeof loggerFactory == 'undefined')){
-        outerLoggerFactory = loggerFactory;
+        _loggerFactory = loggerFactory;
     }
-    let _loggerFactory = outerLoggerFactory || loggerFactoryArg || new LoggerFactory(_config,_loggerRegistry,ConfigurableLogger.DEFAULT_CONFIG_PATH);
+    _loggerFactory = _loggerFactory || loggerFactoryArg || new LoggerFactory(_config,_loggerRegistry,ConfigurableLogger.DEFAULT_CONFIG_PATH);
 
     let _globalref = null;
     if (browser){
