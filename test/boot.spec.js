@@ -1,10 +1,10 @@
 const {assert} = require('chai');
 const config = require('config');
+const altConfig = require('@alt-javascript/config').config;
 const {EphemeralConfig,ValueResolvingConfig} = require('@alt-javascript/config');
 const {boot} = require('..');
 const {CachingLoggerFactory,LoggerFactory,LoggerRegistry,ConfigurableLogger} = require('@alt-javascript/logger');
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec',config);
-
 
 before(async () => {
   logger.verbose(`before spec setup started`);
@@ -87,5 +87,14 @@ describe('boot function', () => {
     assert.equal(logger.provider.console.cache.length, 1, 'logger.provider.console.cache.length === 1');
     assert.isTrue(logger.provider.console.cache[0].includes('"level":"debug","message":"message"'),'logger.provider.console.cache[0].includes(\'"level":"debug","message":"message"\')');
     global.boot = undefined;
+  });
+
+  it('boot - config works', () => {
+    let configValue = config.get('spec');
+    let altValue = altConfig.get('spec','default');
+
+    logger.debug('message');
+    assert.equal(configValue, '${module}/test/boot_spec', 'configValue === \'${module}/test/boot_spec\'');
+    assert.equal(altValue, '@alt-javascript/boot/test/boot_spec', 'configValue === \'@alt-javascript/boot/test/boot_spec\'');
   });
 });

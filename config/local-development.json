@@ -1,6 +1,8 @@
 {
   "module" : "@alt-javascript/boot",
+  "spec" : "${module}/test/boot_spec",
   "logging" : {
+    "format" : "json",
      "level" : {
        "/" : "info",
        "@alt-javascript/boot/test/boot_spec" : "info",
