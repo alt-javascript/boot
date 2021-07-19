@@ -48,13 +48,25 @@ const {LoggerFactory, WinstonLoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
 const winstonLoggerFactory = new WinstonLoggerFactory(config,winston,{/*my winston options*/})
 boot(config, winstonLoggerFactory);
+```
 
+The in your application modules, you only need.
+
+`MyModule.js`
+```javascript
 // LoggerFactory.getLogger will now bind to the global root context loggerFactory, 
 // configured with booted winstonLoggerFactory.
 const logger = LoggerFactory.getLogger('@myorg/mypackage/MyModule');
-logger.info('Hello World!')
+logger.info('Hello from MyModule!')
 ```
 
+`MyOtherModule.js`
+```javascript
+// LoggerFactory.getLogger will now bind to the global root context loggerFactory, 
+// configured with booted winstonLoggerFactory.
+const logger = LoggerFactory.getLogger('@myorg/mypackage/MyOtherModule');
+logger.info('Hello from MyOtherModule!')
+```
 <a name="license">License</a>
 -----------------------------
 
