@@ -1,8 +1,10 @@
 {
+  "module" : "@alt-javascript/boot",
   "logging" : {
      "level" : {
        "/" : "info",
-       "@alt-javascript/decorates/test/decoratesSpec" : "info"
+       "@alt-javascript/boot/test/boot_spec" : "info",
+       "@alt-javascript/boot/test/boot_spec/local-development" : "debug"
      }
   }
 }

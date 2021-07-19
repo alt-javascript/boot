@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "author": "Craig Parravicini",
   "keywords": [],
@@ -29,7 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@alt-javascript/config": "^1.0.2",
-    "@alt-javascript/logger": "^1.0.11",
+    "@alt-javascript/logger": "^1.1.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

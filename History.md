@@ -1,4 +1,4 @@
-0.0.1 / pending
+1.0.0 / pending
 ==================
 
 * Initial npm publish  - @craigparra
