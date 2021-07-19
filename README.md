@@ -41,6 +41,7 @@ logger.info('Hello World!')
 To boot and use [winston](https://www.npmjs.com/package/winston) as the logging transport, 
 boot a WinstonLoggerFactory instead.
 
+`MyApp.js`
 ```javascript
 const config = require('@alt-javascript/config');
 const winston = require('winston');
@@ -54,16 +55,21 @@ The in your application modules, you only need.
 
 `MyModule.js`
 ```javascript
+const {LoggerFactory} = require('@alt-javascript/logger');
+
 // LoggerFactory.getLogger will now bind to the global root context loggerFactory, 
-// configured with booted winstonLoggerFactory.
+// configured with booted winstonLoggerFactory from MyApp.js.
+
 const logger = LoggerFactory.getLogger('@myorg/mypackage/MyModule');
 logger.info('Hello from MyModule!')
 ```
 
 `MyOtherModule.js`
 ```javascript
-// LoggerFactory.getLogger will now bind to the global root context loggerFactory, 
-// configured with booted winstonLoggerFactory.
+const {LoggerFactory} = require('@alt-javascript/logger');
+
+// Shared logging config, different file.
+
 const logger = LoggerFactory.getLogger('@myorg/mypackage/MyOtherModule');
 logger.info('Hello from MyOtherModule!')
 ```
