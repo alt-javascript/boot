@@ -1,5 +1,5 @@
-An Extensible Config & Logging Application Bootstrap
-====================================================
+An Extensible Config & Logging Application Bootstrap Function
+=============================================================
 
 [![NPM](https://nodei.co/npm/@alt-javascript/boot.svg?downloads=true&downloadRank=true)](https://nodei.co/npm/@alt-javascript/boot/)
 <br/>
