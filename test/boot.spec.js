@@ -1,9 +1,9 @@
 const {assert} = require('chai');
 const config = require('config');
 const altConfig = require('@alt-javascript/config').config;
-const {EphemeralConfig,ValueResolvingConfig} = require('@alt-javascript/config');
+const {EphemeralConfig,ConfigFactory,ValueResolvingConfig} = require('@alt-javascript/config');
 const {boot} = require('..');
-const {CachingLoggerFactory,LoggerFactory,LoggerRegistry,ConfigurableLogger} = require('@alt-javascript/logger');
+const {CachingLoggerFactory,LoggerFactory,LoggerRegistry} = require('@alt-javascript/logger');
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec',config);
 
 before(async () => {
@@ -36,6 +36,14 @@ describe('boot function', () => {
   });
   it('boot - config ', () => {
     const config = new EphemeralConfig({});
+    boot(config);
+    assert.instanceOf(global.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
+    assert.instanceOf(global.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
+    assert.instanceOf(global.boot.contexts.root.loggerRegistry,LoggerRegistry,'global.boot.contexts.root.loggerRegistry instanceof loggerRegistry');
+    global.boot = undefined;
+  });
+  it('boot - config with ValueResolvingConfig ', () => {
+    const config = ConfigFactory.getConfig(new EphemeralConfig({})) ;
     boot(config);
     assert.instanceOf(global.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
     assert.instanceOf(global.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');

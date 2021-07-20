@@ -16,7 +16,7 @@ module.exports = function (configArg,loggerFactoryArg,loggerRegistryArg) {
     _config = configArg || _config;
 
     if (_config){
-        if (_config instanceof ValueResolvingConfig || _config.constructor?.name !== 'ValueResolvingConfig'){
+        if (!(_config instanceof ValueResolvingConfig) && (_config.constructor?.name !== 'ValueResolvingConfig')){
             if (browser){
                 _config = ConfigFactory.getConfig(new EphemeralConfig(_config));
             } else {
