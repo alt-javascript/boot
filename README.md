@@ -1,5 +1,5 @@
-An Extensible Config & Logging Application Bootstrap
-====================================================
+An Extensible Config & Logging Application Bootstrap Function
+=============================================================
 
 [![NPM](https://nodei.co/npm/@alt-javascript/boot.svg?downloads=true&downloadRank=true)](https://nodei.co/npm/@alt-javascript/boot/)
 <br/>
@@ -20,8 +20,8 @@ to negate the need for requiring  and injecting the application config in every 
 <a name="usage">Usage</a>
 -------------------------
 
-To use the module, simply import the substituted package as you would with the popular
-[config](https://www.npmjs.com/package/config) package
+To use the module, simply import the substituted config package as you would with the popular
+[config](https://www.npmjs.com/package/config) package, and `boot` it
 
 ```javascript
 const config = require('@alt-javascript/config');
@@ -51,7 +51,7 @@ const winstonLoggerFactory = new WinstonLoggerFactory(config,winston,{/*my winst
 boot(config, winstonLoggerFactory);
 ```
 
-The in your application modules, you only need.
+Then in your application modules, you only need.
 
 `MyModule.js`
 ```javascript
