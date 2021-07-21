@@ -20,11 +20,12 @@ to negate the need for requiring  and injecting the application config in every 
 <a name="usage">Usage</a>
 -------------------------
 
-To use the module, simply import the substituted config package as you would with the popular
-[config](https://www.npmjs.com/package/config) package, and `boot` it
+To use the module, substitute the named {config} module export, in place of the popular
+[config](https://www.npmjs.com/package/config) default, and `boot` it &ndash; note, we use a named export for config, 
+because the module exports other useful classes as well.
 
 ```javascript
-const config = require('@alt-javascript/config');
+const {config} = require('@alt-javascript/config');
 const {LoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
 
@@ -43,7 +44,7 @@ boot a WinstonLoggerFactory instead.
 
 `MyApp.js`
 ```javascript
-const config = require('@alt-javascript/config');
+const {config} = require('@alt-javascript/config');
 const winston = require('winston');
 const {LoggerFactory, WinstonLoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
