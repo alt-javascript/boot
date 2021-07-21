@@ -3,7 +3,7 @@ const config = require('config');
 const altConfig = require('@alt-javascript/config').config;
 const {EphemeralConfig,ConfigFactory,ValueResolvingConfig} = require('@alt-javascript/config');
 const {boot} = require('..');
-const {CachingLoggerFactory,LoggerFactory,LoggerRegistry} = require('@alt-javascript/logger');
+const {CachingLoggerFactory,LoggerFactory,LoggerCategoryCache} = require('@alt-javascript/logger');
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec',config);
 
 before(async () => {
@@ -36,18 +36,18 @@ describe('boot function', () => {
   });
   it('boot - config ', () => {
     const config = new EphemeralConfig({});
-    boot(config);
+    boot({config:config});
     assert.instanceOf(global.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
     assert.instanceOf(global.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
-    assert.instanceOf(global.boot.contexts.root.loggerRegistry,LoggerRegistry,'global.boot.contexts.root.loggerRegistry instanceof loggerRegistry');
+    assert.instanceOf(global.boot.contexts.root.loggerCategoryCache,LoggerCategoryCache,'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
   });
   it('boot - config with ValueResolvingConfig ', () => {
     const config = ConfigFactory.getConfig(new EphemeralConfig({})) ;
-    boot(config);
+    boot({config:config});
     assert.instanceOf(global.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
     assert.instanceOf(global.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
-    assert.instanceOf(global.boot.contexts.root.loggerRegistry,LoggerRegistry,'global.boot.contexts.root.loggerRegistry instanceof loggerRegistry');
+    assert.instanceOf(global.boot.contexts.root.loggerCategoryCache,LoggerCategoryCache,'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
   });
 
@@ -57,7 +57,7 @@ describe('boot function', () => {
     boot();
     assert.instanceOf(global.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
     assert.instanceOf(global.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
-    assert.instanceOf(global.boot.contexts.root.loggerRegistry,LoggerRegistry,'global.boot.contexts.root.loggerRegistry instanceof loggerRegistry');
+    assert.instanceOf(global.boot.contexts.root.loggerCategoryCache,LoggerCategoryCache,'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
     global.config = undefined;
   });
@@ -68,16 +68,16 @@ describe('boot function', () => {
     boot();
     assert.instanceOf(global.window.boot.contexts.root.config,ValueResolvingConfig,'global.boot.contexts.root.config instanceof ValueResolvingConfig');
     assert.instanceOf(global.window.boot.contexts.root.loggerFactory,LoggerFactory,'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
-    assert.instanceOf(global.window.boot.contexts.root.loggerRegistry,LoggerRegistry,'global.boot.contexts.root.loggerRegistry instanceof loggerRegistry');
+    assert.instanceOf(global.window.boot.contexts.root.loggerCategoryCache,LoggerCategoryCache,'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
     global.window = undefined;
   });
 
   it('boot - LoggerFactory detects boot root context', () => {
     const config = new EphemeralConfig({logging:{level:{'/': 'info'}}});
-    const cachingLoggerFactory = new CachingLoggerFactory(config, new LoggerRegistry());
+    const cachingLoggerFactory = new CachingLoggerFactory(config, new LoggerCategoryCache());
 
-    boot(config,cachingLoggerFactory);
+    boot({config:config,loggerFactory:cachingLoggerFactory});
     const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec')
 
     logger.info('message');
@@ -87,8 +87,8 @@ describe('boot function', () => {
   });
 
   it('boot - uses config local-development', () => {
-    const cachingLoggerFactory = new CachingLoggerFactory(config, new LoggerRegistry());
-    boot(config,cachingLoggerFactory);
+    const cachingLoggerFactory = new CachingLoggerFactory(config, new LoggerCategoryCache());
+    boot({config:config,loggerFactory:cachingLoggerFactory});
     const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec/local-development')
 
     logger.debug('message');

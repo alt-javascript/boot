@@ -1,3 +1,9 @@
+1.0.3 / 2021-07-21
+==================
+
+* Breaking change to boot function parameter to pass a context object, oh well early days - @craigparra
+* Refactor loggerRegistry to LoggerCategoryCache - @craigparra
+  
 1.0.2 / 2021-07-21
 ==================
 

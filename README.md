@@ -29,7 +29,7 @@ const {config} = require('@alt-javascript/config');
 const {LoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
 
-boot(config);
+boot({config:config});
 
 config.get('key');
 config.get('nested.key');
@@ -49,7 +49,7 @@ const winston = require('winston');
 const {LoggerFactory, WinstonLoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
 const winstonLoggerFactory = new WinstonLoggerFactory(config,winston,{/*my winston options*/})
-boot(config, winstonLoggerFactory);
+boot({config:config, loggerFactory:winstonLoggerFactory});
 ```
 
 Then in your application modules, you only need.
