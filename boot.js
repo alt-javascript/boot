@@ -6,6 +6,7 @@ module.exports = function (context) {
     let configArg = context?.config;
     let loggerFactoryArg = context?.loggerFactory;
     let loggerCategoryCacheArg = context?.loggerFactory;
+    let fetchArg = context?.fetch;
 
     let browser = !(typeof window == 'undefined');
 
@@ -47,6 +48,12 @@ module.exports = function (context) {
     }
     _loggerFactory = _loggerFactory || loggerFactoryArg || new LoggerFactory(_config,_loggerCategoryCache,ConfigurableLogger.DEFAULT_CONFIG_PATH);
 
+    let _fetch = null;
+    if (!(typeof fetch == 'undefined')){
+        _fetch = fetch;
+    }
+    _fetch = _fetch || fetchArg;
+
     let _globalref = null;
     if (browser){
         _globalref = window;
@@ -56,5 +63,6 @@ module.exports = function (context) {
     _globalref.boot = {contexts: {root:{config:_config}}};
     _globalref.boot.contexts.root.loggerCategoryCache = _loggerCategoryCache;
     _globalref.boot.contexts.root.loggerFactory = _loggerFactory;
+    _globalref.boot.contexts.root.fetch = _fetch;
 
 }

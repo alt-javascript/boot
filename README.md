@@ -14,8 +14,9 @@ An opinionated application config and logging bootstrap that streamlines the use
 -  [@alt-javascript/logger](https://www.npmjs.com/package/@alt-javascript/logger)
 
 
-The boot function binds a global root context with configured LoggerFactory 
-to negate the need for requiring  and injecting the application config in every module.
+The boot function binds a global root context with configured LoggerFactory
+to negate the need for requiring  and injecting the application config in every module, and optionally the `node-fetch`
+implementation for config pulled from a service url.
    
 <a name="usage">Usage</a>
 -------------------------
@@ -29,7 +30,7 @@ const {config} = require('@alt-javascript/config');
 const {LoggerFactory} = require('@alt-javascript/logger');
 const {boot} = require('@alt-javascript/boot');
 
-boot({config:config});
+boot({config});
 
 config.get('key');
 config.get('nested.key');
