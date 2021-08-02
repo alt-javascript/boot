@@ -3,9 +3,9 @@ An Extensible Config & Logging Application Bootstrap Function
 
 [![NPM](https://nodei.co/npm/@alt-javascript/boot.svg?downloads=true&downloadRank=true)](https://nodei.co/npm/@alt-javascript/boot/)
 <br/>
-![Language Badge](https://img.shields.io/github/languages/top/craigparra/alt-boot)
+![Language Badge](https://img.shields.io/github/languages/top/alt-javascript/boot)
 ![Package Badge](https://img.shields.io/npm/v/@alt-javascript/boot) <br/>
-[release notes](https://github.com/craigparra/alt-boot/blob/main/History.md)
+[release notes](https://github.com/alt-javascript/boot/blob/main/History.md)
 
 <a name="intro">Introduction</a>
 --------------------------------

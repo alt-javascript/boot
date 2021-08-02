@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "keywords": [
@@ -14,10 +14,10 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "homepage": "https://github.com/craigparra/alt-boot#readme",
+  "homepage": "https://github.com/alt-javascript/boot#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/craigparra/alt-boot"
+    "url": "https://github.com/alt-javascript/boot"
   },
   "main": "index.js",
   "scripts": {
