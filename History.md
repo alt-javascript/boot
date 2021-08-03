@@ -1,8 +1,12 @@
+1.0.8 / 2021-08-02
+==================
+
+* Added Boot class, root and test functions - @craigparra
+
 1.0.7 / 2021-08-01
 ==================
 
 * Update docs - @craigparra
-
 
 1.0.4 / 2021-07-27
 ==================
