@@ -1,4 +1,4 @@
-1.0.10 / 2021-08-02
+1.0.10 / 2021-08-05
 ==================
 
 * Export Boot class correctly - @craigparra
