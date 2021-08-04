@@ -3,7 +3,7 @@ const config = require('config');
 const altConfig = require('@alt-javascript/config').config;
 const { EphemeralConfig, ConfigFactory, ValueResolvingConfig } = require('@alt-javascript/config');
 const { CachingLoggerFactory, LoggerFactory, LoggerCategoryCache } = require('@alt-javascript/logger');
-const { boot } = require('..');
+const { boot, root } = require('..');
 
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec', config);
 
@@ -108,4 +108,14 @@ describe('boot function', () => {
     assert.equal(configValue, '${module}/test/boot_spec', 'configValue === \'${module}/test/boot_spec\'');
     assert.equal(altValue, '@alt-javascript/boot/test/boot_spec', 'configValue === \'@alt-javascript/boot/test/boot_spec\'');
   });
+
+  it('root - gets global value', () => {
+    const ephemeralConfig = new EphemeralConfig({});
+    const defaultValue = 'defualt';
+    boot({ config: ephemeralConfig });
+    assert.equal(root('config'), global.boot.contexts.root.config, 'root(\'config\') == global.boot.contexts.root.config');
+    assert.equal(root('default',defaultValue), defaultValue, 'root(\'default\',defaultValue) == defaultValue');
+    global.boot = undefined;
+  });
+
 });

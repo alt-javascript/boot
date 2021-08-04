@@ -1,5 +1,8 @@
 const { config } = require('@alt-javascript/config');
+const { test } = require('../..');
 const { LoggerFactory } = require('@alt-javascript/logger');
+
+test({ config });
 
 const logger = LoggerFactory.getLogger('@alt-javascript/logger/test/fixtures/index', config);
 
