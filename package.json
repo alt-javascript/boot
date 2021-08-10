@@ -35,7 +35,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/cdi": "^1.0.0",
+    "@alt-javascript/cdi": "^1.0.1",
     "@alt-javascript/config": "^1.0.5",
     "@alt-javascript/logger": "^1.1.5",
     "lodash": "^4.17.21"

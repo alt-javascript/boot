@@ -1,4 +1,3 @@
-const { ApplicationContext } = require('@alt-javascript/cdi');
 const Boot = require('./Boot');
 
 module.exports = class Application {
@@ -7,6 +6,9 @@ module.exports = class Application {
     if (!Boot.root('config')) {
       Boot.boot(options);
     }
+
+    const ApplicationContext = require('@alt-javascript/cdi/ApplicationContext');
+
     options.config = options?.config || Boot.root('config');
     let applicationContext = options?.applicationContext || options;
     if (applicationContext.constructor.name !== 'ApplicationContext') {
