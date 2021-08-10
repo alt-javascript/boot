@@ -1,6 +1,6 @@
 const { config } = require('@alt-javascript/config');
-const { test } = require('../..');
 const { LoggerFactory } = require('@alt-javascript/logger');
+const { test } = require('../..');
 
 test({ config });
 

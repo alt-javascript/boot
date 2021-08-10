@@ -114,8 +114,7 @@ describe('boot function', () => {
     const defaultValue = 'defualt';
     boot({ config: ephemeralConfig });
     assert.equal(root('config'), global.boot.contexts.root.config, 'root(\'config\') == global.boot.contexts.root.config');
-    assert.equal(root('default',defaultValue), defaultValue, 'root(\'default\',defaultValue) == defaultValue');
+    assert.equal(root('default', defaultValue), defaultValue, 'root(\'default\',defaultValue) == defaultValue');
     global.boot = undefined;
   });
-
 });

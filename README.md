@@ -10,18 +10,47 @@ An Extensible Config & Logging Application Bootstrap Function
 <a name="intro">Introduction</a>
 --------------------------------
 An opinionated application config and logging bootstrap that streamlines the use of the
-- [@alt-javascript/config](https://www.npmjs.com/package/@alt-javascript/config), and
--  [@alt-javascript/logger](https://www.npmjs.com/package/@alt-javascript/logger)
+- [@alt-javascript/config](https://www.npmjs.com/package/@alt-javascript/config),
+- [@alt-javascript/logger](https://www.npmjs.com/package/@alt-javascript/logger), and
+- [@alt-javascript/cdi](https://www.npmjs.com/package/@alt-javascript/cdi)
 
+The `Application` class implements a familiar application context and dependency injection
+(cdi) implementation, supporting simple singleton and prototype component factory definitions, with a choice of
+manual or auto wiring (injection) of property references and config placeholders.
 
-The boot function binds a global root context with configured LoggerFactory
+The `Application` class extends the standalone `boot` function, which binds a global root context with configured LoggerFactory
 to negate the need for requiring  and injecting the application config in every module, and optionally the `node-fetch`
 implementation for config pulled from a service url.
-   
+
+The `config`, `loggerFactory`, `LoggerCategoryCache` are registered as injectable singleton components, and the `logger`
+is an injectable prototype.  See the [@alt-javascript/cdi](https://www.npmjs.com/package/@alt-javascript/cdi) package for more
+detail on how the dependency injection works.
+
 <a name="usage">Usage</a>
 -------------------------
 
-To use the module, substitute the named {config} module export, in place of the popular
+The following example bootstraps an Application with an EmphemeraConfig (but could easily be a regular config 
+or alt-javascript/config instance), with a basic config context component definition.
+
+```javascript
+    const ephemeralConfig = new EphemeralConfig(
+    {
+        context: {
+            SimpleClass: {
+                require: './test/service/SimpleClass',
+            },
+        },
+    },
+);
+
+const applicationContext = Application.run({ config: ephemeralConfig });
+
+const simpleClass = applicationContext.get('simpleClass');
+assert.exists(simpleClass, 'simpleClass exists');
+
+```
+
+To use the module boot function standalone, substitute the named {config} module export, in place of the popular
 [config](https://www.npmjs.com/package/config) default, and `boot` it &ndash; note, we use a named export for config, 
 because the module exports other useful classes as well.
 

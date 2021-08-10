@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "keywords": [
@@ -35,6 +35,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@alt-javascript/cdi": "^1.0.0",
     "@alt-javascript/config": "^1.0.5",
     "@alt-javascript/logger": "^1.1.5",
     "lodash": "^4.17.21"
