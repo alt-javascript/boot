@@ -1,12 +1,13 @@
 const Boot = require('./Boot');
 
 module.exports = class Application {
-  static run(optionsArg) {
+  static async run(optionsArg) {
     const options = optionsArg;
     if (!Boot.root('config')) {
       Boot.boot(options);
     }
 
+    // eslint-disable-next-line global-require
     const ApplicationContext = require('@alt-javascript/cdi/ApplicationContext');
 
     options.config = options?.config || Boot.root('config');
