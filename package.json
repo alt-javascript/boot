@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "keywords": [
