@@ -1,3 +1,10 @@
+2.0.0 / 2022-03-11
+==================
+
+* Migrate to ESM module standard - @craigparra
+* Browser native support EMS bundles - @craigparra
+* GitHub workflow - @craigparra
+  
 1.0.16 / 2021-10-08
 ==================
 
