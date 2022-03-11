@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 import Boot from './Boot.js';
 
 export default class Application {

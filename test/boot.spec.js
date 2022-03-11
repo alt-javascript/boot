@@ -1,7 +1,9 @@
 /* eslint-disable import/extensions */
 import { assert } from 'chai';
 import config from 'config';
-import { config as altConfig, EphemeralConfig, ConfigFactory, ValueResolvingConfig } from '@alt-javascript/config';
+import {
+  config as altConfig, EphemeralConfig, ConfigFactory, ValueResolvingConfig,
+} from '@alt-javascript/config';
 import { CachingLoggerFactory, LoggerFactory, LoggerCategoryCache } from '@alt-javascript/logger';
 import { boot, root } from '../index.js';
 
