@@ -1,6 +1,8 @@
 import { ValueResolvingConfig, ConfigFactory, EphemeralConfig } from '@alt-javascript/config/index-browser.js';
 import { LoggerCategoryCache, LoggerFactory, ConfigurableLogger, CachingLoggerFactory } from '@alt-javascript/logger';
 
+/* eslint-disable import/extensions */
+
 class Boot {
   static getGlobalRef() {
     let $globalref = null;
@@ -139,8 +141,8 @@ class Application {
 
 /* eslint-disable import/extensions */
 
-let boot = Boot.boot;
-let root = Boot.root;
-let test = Boot.test;
+const { boot } = Boot;
+const { root } = Boot;
+const { test } = Boot;
 
 export { Application, Boot, boot, root, test };

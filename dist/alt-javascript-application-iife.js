@@ -1,4 +1,6 @@
-var alt = (function (indexBrowser_js, logger) {
+var Application = (function (indexBrowser_js, logger) {
+
+  /* eslint-disable import/extensions */
 
   class Boot {
     static getGlobalRef() {

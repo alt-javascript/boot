@@ -20,7 +20,7 @@ export default [
     output: {
       file: 'dist/alt-javascript-application-iife.js',
       format: 'iife',
-      name: 'alt',
+      name: 'Application',
       strict: false,
       externalLiveBindings: false,
       freeze: false,
