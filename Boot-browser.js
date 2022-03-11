@@ -1,4 +1,4 @@
-import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config';
+import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config/index-browser.js';
 import {
   CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
 } from '@alt-javascript/logger';

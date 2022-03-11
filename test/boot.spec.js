@@ -1,9 +1,9 @@
-const { assert } = require('chai');
-const config = require('config');
-const altConfig = require('@alt-javascript/config').config;
-const { EphemeralConfig, ConfigFactory, ValueResolvingConfig } = require('@alt-javascript/config');
-const { CachingLoggerFactory, LoggerFactory, LoggerCategoryCache } = require('@alt-javascript/logger');
-const { boot, root } = require('..');
+/* eslint-disable import/extensions */
+import { assert } from 'chai';
+import config from 'config';
+import { config as altConfig, EphemeralConfig, ConfigFactory, ValueResolvingConfig } from '@alt-javascript/config';
+import { CachingLoggerFactory, LoggerFactory, LoggerCategoryCache } from '@alt-javascript/logger';
+import { boot, root } from '../index.js';
 
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec', config);
 

@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "1.0.16",
+  "version": "2.0.0",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "keywords": [
@@ -20,24 +20,31 @@
     "url": "https://github.com/alt-javascript/boot"
   },
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint": "npx eslint \"./*.js\" \"./test/**/*.js\" --fix",
     "test": "npm run test:unit",
     "test:unit": "npm run test:tdd",
-    "test:tdd": "mocha --require test/fixtures",
+    "test:tdd": "mocha --require test/fixtures/index.js",
     "test:bdd": "npm run cucumber",
-    "coverage": "npm run nyc",
-    "mocha": "mocha --require test/fixtures",
+    "coverage": "npm run c8",
+    "mocha": "mocha --require test/fixtures/index.js",
     "cucumber": "npx run-script-os",
     "cucumber:windows": ".\\node_modules\\.bin\\cucumber-js.cmd features\\*.feature --publish-quiet",
     "cucumber:macos:nix:default": "./node_modules/.bin/cucumber-js features\\*.feature --publish-quiet",
-    "nyc": "nyc --reporter=json-summary --reporter=text-summary --reporter=lcov npm run test"
+    "c8": "c8 --reporter=json-summary --reporter=text-summary --reporter=lcov npm run test",
+    "bundle": "rollup -c",
+    "minify-iife": "terser dist/alt-javascript-application-iife.js -c  ",
+    "minify-esm": "terser dist/alt-javascript-boot-esm.js -c  ",
+    "build-iife": "npm run minify-iife -- -o dist/alt-javascript-application-iife-min.js --source-map",
+    "build-esm": "npm run minify-esm -- -o dist/alt-javascript-boot-esm-min.js --source-map",
+    "build": "npm run bundle && npm run build-iife && npm run build-esm"
   },
   "license": "MIT",
   "dependencies": {
     "@alt-javascript/cdi": "^1.0.7",
-    "@alt-javascript/config": "^1.0.12",
-    "@alt-javascript/logger": "^1.1.10",
+    "@alt-javascript/config": "^2.0.0",
+    "@alt-javascript/logger": "^2.0.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
@@ -46,12 +53,14 @@
     "chai": "^4.3.4",
     "config": "^3.3.6",
     "cucumber": "^7.0.0-rc.0",
+    "c8": "^7.11.0",
     "eslint": "^7.30.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-cucumber": "^1.4.0",
     "eslint-plugin-import": "^2.23.4",
     "mocha": "^9.0.3",
-    "nyc": "^15.1.0",
-    "run-script-os": "^1.1.6"
+    "run-script-os": "^1.1.6",
+    "rollup": "^2.69.2",
+    "terser": "^5.12.0"
   }
 }

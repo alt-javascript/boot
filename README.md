@@ -55,9 +55,9 @@ To use the module boot function standalone, substitute the named {config} module
 because the module exports other useful classes as well.
 
 ```javascript
-const {config} = require('@alt-javascript/config');
-const {LoggerFactory} = require('@alt-javascript/logger');
-const {boot} = require('@alt-javascript/boot');
+import {config} from '@alt-javascript/config';
+import {LoggerFactory} from '@alt-javascript/logger';
+import {boot} from '@alt-javascript/boot';
 
 boot({config});
 
@@ -74,10 +74,10 @@ boot a WinstonLoggerFactory instead.
 
 `MyApp.js`
 ```javascript
-const {config} = require('@alt-javascript/config');
-const winston = require('winston');
-const {LoggerFactory, WinstonLoggerFactory} = require('@alt-javascript/logger');
-const {boot} = require('@alt-javascript/boot');
+import {config} from '@alt-javascript/config';
+import winston from 'winston';
+import {LoggerFactory, WinstonLoggerFactory} from '@alt-javascript/logger';
+import {boot} from '@alt-javascript/boot';
 const winstonLoggerFactory = new WinstonLoggerFactory(config,winston,{/*my winston options*/})
 boot({config:config, loggerFactory:winstonLoggerFactory});
 ```
@@ -86,7 +86,7 @@ Then in your application modules, you only need.
 
 `MyModule.js`
 ```javascript
-const {LoggerFactory} = require('@alt-javascript/logger');
+import {LoggerFactory} from '@alt-javascript/logger';
 
 // LoggerFactory.getLogger will now bind to the global root context loggerFactory, 
 // configured with booted winstonLoggerFactory from MyApp.js.
@@ -97,13 +97,55 @@ logger.info('Hello from MyModule!')
 
 `MyOtherModule.js`
 ```javascript
-const {LoggerFactory} = require('@alt-javascript/logger');
+import {LoggerFactory} from '@alt-javascript/logger';
 
 // Shared logging config, different file.
 
 const logger = LoggerFactory.getLogger('@myorg/mypackage/MyOtherModule');
 logger.info('Hello from MyOtherModule!')
 ```
+
+### Browser
+
+The module is also able to be used directly in the browser, in combination with the config module.
+You can either import the LoggerFactory globally as an IIFE (Immediately Invoked Function Expression),
+as follows:
+
+```html
+   <script src="https://cdn.jsdelivr.net/npm/@alt-javascript/boot/dist/alt-javascript-boot-iife.js"></script>
+   <script>
+       var config = ConfigFactory.getConfig({
+           logging : {
+               format : 'json',
+               level : {
+                   '/' : 'info',
+                   '/MyPage': 'info'
+               }
+           }
+           "http://127+0+0+1:8080" : {
+               logging : {
+                   format : 'json',
+                   level : {
+                       '/' : 'info',
+                       '/MyPage' : 'debug'
+                   }
+               }             
+           }
+
+       })
+       var logger = LoggerFactory.getLogger('/MyPage',config);
+       logger.debug('Hello World');
+   </script>
+```
+
+Or import the ES6 module bundle from a module, as follows:
+
+```javascript
+import { boot } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/logger/dist/alt-javascript-config-esm.js'
+
+//...as above
+```
+
 <a name="license">License</a>
 -----------------------------
 

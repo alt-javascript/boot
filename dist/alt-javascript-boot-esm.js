@@ -1,9 +1,7 @@
-import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config';
-import {
-  CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
-} from '@alt-javascript/logger';
+import { ValueResolvingConfig, ConfigFactory, EphemeralConfig } from '@alt-javascript/config/index-browser.js';
+import { LoggerCategoryCache, LoggerFactory, ConfigurableLogger, CachingLoggerFactory } from '@alt-javascript/logger';
 
-export default class Boot {
+class Boot {
   static getGlobalRef() {
     let $globalref = null;
     if (Boot.detectBrowser()) {
@@ -116,3 +114,33 @@ export default class Boot {
     return value || defaultValue;
   }
 }
+
+/* eslint-disable import/extensions */
+
+class Application {
+  static async run(optionsArg) {
+    const options = optionsArg;
+    if (!Boot.root('config')) {
+      Boot.boot(options);
+    }
+
+    // eslint-disable-next-line global-require
+    const ApplicationContext = await import('@alt-javascript/cdi/ApplicationContext');
+
+    options.config = options?.config || Boot.root('config');
+    let applicationContext = options?.applicationContext || options;
+    if (applicationContext.constructor.name !== 'ApplicationContext') {
+      applicationContext = new ApplicationContext(options);
+    }
+    applicationContext.lifeCycle();
+    return applicationContext;
+  }
+}
+
+/* eslint-disable import/extensions */
+
+let boot = Boot.boot;
+let root = Boot.root;
+let test = Boot.test;
+
+export { Application, Boot, boot, root, test };

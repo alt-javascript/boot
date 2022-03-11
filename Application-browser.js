@@ -1,4 +1,5 @@
-import Boot from './Boot.js';
+/* eslint-disable import/extensions */
+import Boot from './Boot-browser.js';
 
 export default class Application {
   static async run(optionsArg) {
