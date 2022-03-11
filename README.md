@@ -37,7 +37,7 @@ or alt-javascript/config instance), with a basic config context component defini
     {
         context: {
             SimpleClass: {
-                require: './test/service/SimpleClass',
+                Reference: SimpleClass,
             },
         },
     },
