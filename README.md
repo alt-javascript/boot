@@ -149,6 +149,6 @@ import { boot } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/logger/dist/a
 <a name="license">License</a>
 -----------------------------
 
-May be freely distributed under the [MIT license](https://raw.githubusercontent.com/craigparra/alt-logger/master/LICENSE).
+May be freely distributed under the [MIT license](https://raw.githubusercontent.com/alt-javascript/boot/main/LICENSE).
 
 Copyright (c) 2021 Craig Parravicini    
