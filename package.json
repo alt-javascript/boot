@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "keywords": [
@@ -12,7 +12,8 @@
     "context"
   ],
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "homepage": "https://github.com/alt-javascript/boot#readme",
   "repository": {
@@ -40,25 +41,27 @@
     "build-esm": "npm run minify-esm -- -o dist/alt-javascript-boot-esm-min.js --source-map",
     "build": "npm run bundle && npm run build-iife && npm run build-esm"
   },
+  "overrides": {
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.0.4"
+  },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/cdi": "^1.0.7",
-    "@alt-javascript/config": "^2.0.0",
-    "@alt-javascript/logger": "^2.0.0",
-    "lodash": "^4.17.21"
+    "@alt-javascript/cdi": "^2.0.3",
+    "@alt-javascript/config": "^2.0.3",
+    "@alt-javascript/logger": "^2.0.6"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^7.3.1",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.4",
-    "config": "^3.3.6",
-    "cucumber": "^7.0.0-rc.0",
+    "config": "^4.4.1",
     "c8": "^7.11.0",
     "eslint": "^7.30.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-cucumber": "^1.4.0",
     "eslint-plugin-import": "^2.23.4",
-    "mocha": "^9.0.3",
+    "mocha": "^11.0.0",
     "run-script-os": "^1.1.6",
     "rollup": "^2.69.2",
     "terser": "^5.12.0"
