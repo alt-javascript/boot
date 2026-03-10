@@ -1,11 +1,7 @@
-2.0.1 / 2026-03-10
+2.0.0 / 2026-03-10
 ==================
 
 * Update config, logger, cdi - @craigparra
-
-2.0.0 / 2022-03-11
-==================
-
 * Migrate to ESM module standard - @craigparra
 * Browser native support EMS bundles - @craigparra
 * GitHub workflow - @craigparra
