@@ -1,5 +1,5 @@
 /* eslint-disable import/extensions */
-import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config/index-browser.js';
+import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config/browser/index.js';
 import {
   CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
 } from '@alt-javascript/logger';
