@@ -135,3 +135,27 @@ describe('Config Object Specification', () => {
     assert.throws(() => { config2.get('unknown'); }, Error, 'Config path unknown returned no value.');
   });
 });
+
+describe('EphemeralConfig Falsy Values', () => {
+  it('returns false for nested path', () => {
+    const cfg = new EphemeralConfig({ feature: { enabled: false } });
+    assert.strictEqual(cfg.get('feature.enabled'), false);
+  });
+
+  it('returns 0 for nested path', () => {
+    const cfg = new EphemeralConfig({ limits: { retries: 0 } });
+    assert.strictEqual(cfg.get('limits.retries'), 0);
+  });
+
+  it('returns empty string for nested path', () => {
+    const cfg = new EphemeralConfig({ db: { prefix: '' } });
+    assert.strictEqual(cfg.get('db.prefix'), '');
+  });
+
+  it('has() returns true for falsy values', () => {
+    const cfg = new EphemeralConfig({ flag: false, count: 0, name: '' });
+    assert.isTrue(cfg.has('flag'));
+    assert.isTrue(cfg.has('count'));
+    assert.isTrue(cfg.has('name'));
+  });
+});

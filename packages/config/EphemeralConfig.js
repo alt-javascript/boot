@@ -17,7 +17,7 @@ export default class EphemeralConfig {
     for (let i = 0; i < pathSteps.length && root !== null && root !== undefined; i++) {
       root = root?.[pathSteps[i]];
     }
-    if (root) {
+    if (root !== null && root !== undefined) {
       return root;
     }
     if ((typeof defaultValue !== 'undefined')) {
