@@ -1,0 +1,17 @@
+{
+  "key": "value",
+  "logging" : {
+     "level" : {
+       "/" : "info",
+       "@alt-javascript/logger" : "info",
+       "@alt-javascript/logger/Logger" : "info",
+       "@alt-javascript/logger/LoggerLevel" : "error",
+       "@alt-javascript/logger/LoggerFactory" : "debug",
+       "@alt-javascript/logger/test/console_spec" : "info",
+       "@alt-javascript/logger/test/console_spec/verbose" : "verbose",
+       "@alt-javascript/logger/test/winston_spec" : "info",
+       "@alt-javascript/logger/test/winston_spec/verbose" : "verbose",
+       "@alt-javascript/logger/test/fixtures/index" : "info"
+     }
+  }
+}

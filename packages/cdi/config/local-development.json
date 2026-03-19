@@ -1,0 +1,17 @@
+{
+  "logging" : {
+    "format" : "text",
+    "^^^ set a format to json for JSON output" : "doco",
+    "level": {
+      "/" : "info",
+      "@alt-javascript/cdi" : "verbose",
+      "^^^ set a path level to enable log lines at that folder, down to file/module" : "doco"
+    },
+    "test" : {
+      "fixtures" : {
+        "quiet" : false,
+        "^^^ set quiet to false to see logs in unit tests" : "doco"
+      }
+    }
+  }
+}

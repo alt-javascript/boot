@@ -1,0 +1,19 @@
+{
+  "name": "@alt-javascript/altjs",
+  "version": "3.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces",
+    "test:boot": "npm test -w packages/boot",
+    "test:cdi": "npm test -w packages/cdi",
+    "test:config": "npm test -w packages/config",
+    "test:logger": "npm test -w packages/logger",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",
+  "license": "ISC"
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@alt-javascript/config",
+  "version": "3.0.0-alpha.0",
+  "description": "An extensible wrapper of the popular config package, supporting placeholder resolution, encrypted values and url fetch.",
+  "author": "Craig Parravicini",
+  "keywords": [
+    "config",
+    "property",
+    "properties",
+    "placeholder",
+    "variable",
+    "expansion"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "lint": "npx eslint \"./*.js\" \"./test/**/*.js\" --fix",
+    "test": "npm run test:unit",
+    "test:unit": "npm run test:tdd",
+    "test:tdd": "mocha --require test/fixtures/index.js",
+    "coverage": "c8 --reporter=json-summary --reporter=text-summary --reporter=lcov npm run test"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@alt-javascript/common": "3.0.0-alpha.0",
+    "@alt-javascript/jasypt": "^1.0.0"
+  },
+  "devDependencies": {
+    "@alt-javascript/boot": "3.0.0-alpha.0",
+    "@alt-javascript/logger": "3.0.0-alpha.0",
+    "c8": "^7.11.0",
+    "chai": "^4.3.4",
+    "config": "^4.4.1",
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "mocha": "^11.7.5",
+    "node-fetch": "^2.6.1"
+  }
+}

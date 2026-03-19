@@ -1,0 +1,15 @@
+{
+  "name": "@alt-javascript/common",
+  "version": "3.0.0-alpha.0",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "description": "Shared kernel for the alt-javascript framework — global-ref resolution, environment detection, utilities",
+  "scripts": {
+    "test": "echo 'no tests yet'"
+  },
+  "license": "ISC",
+  "keywords": ["alt-javascript", "common", "shared", "utilities"]
+}
