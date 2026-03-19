@@ -27,7 +27,8 @@
   "license": "MIT",
   "dependencies": {
     "@alt-javascript/common": "3.0.0-alpha.0",
-    "@alt-javascript/jasypt": "^1.0.0"
+    "@alt-javascript/jasypt": "^1.0.0",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@alt-javascript/boot": "3.0.0-alpha.0",

@@ -9,6 +9,7 @@ import JasyptDecryptor from './JasyptDecryptor.js';
 import ParenthesisSelector from './ParenthesisSelector.js';
 import PrefixSelector from './PrefixSelector.js';
 import URLResolver from './URLResolver.js';
+import ProfileConfigLoader from './ProfileConfigLoader.js';
 
 export default class ConfigFactory {
   static detectFetch(fetchArg) {
@@ -41,5 +42,20 @@ export default class ConfigFactory {
 
     placeHolderResolver.reference = valueResolvingConfig;
     return valueResolvingConfig;
+  }
+
+  /**
+   * Load config using Spring-aligned profile-aware property sources.
+   *
+   * Uses NODE_ACTIVE_PROFILES, file-based config (JSON/YAML/properties),
+   * process.env with relaxed binding, and layered precedence.
+   *
+   * Returns a PropertySourceChain with the same has()/get() contract.
+   *
+   * @param {object} [options] - see ProfileConfigLoader.load() for options
+   * @returns {PropertySourceChain}
+   */
+  static loadConfig(options = {}) {
+    return ProfileConfigLoader.load(options);
   }
 }
