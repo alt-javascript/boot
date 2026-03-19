@@ -24,3 +24,7 @@ export {
   anyOf,
   evaluateConditions,
 } from './Conditions.js';
+export {
+  createProxy,
+  matchMethod,
+} from './Aop.js';

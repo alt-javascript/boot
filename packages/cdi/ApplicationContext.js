@@ -66,9 +66,9 @@ export default class ApplicationContext {
     this.injectSingletonDependencies();
     this.detectBeanPostProcessors();
     this.postProcessBeforeInitialization();
+    this.detectEventListeners();
     this.initialiseSingletons();
     this.postProcessAfterInitialization();
-    this.detectEventListeners();
     this.registerSingletonDestroyers();
     this.publishContextRefreshedEvent();
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
@@ -199,6 +199,7 @@ export default class ApplicationContext {
     $component.factoryFunction = component.factoryFunction;
     $component.factoryArgs = component.factoryArgs;
     $component.wireFactory = component.wireFactory;
+    $component.constructorArgs = componentArg.constructorArgs || component.constructorArgs;
     // TODO - dynamic import (async)
     if (component.require) {
       try {
@@ -264,7 +265,18 @@ export default class ApplicationContext {
       const component = this.components[keys[i]];
       if (component.scope === Scopes.SINGLETON && !component.instance) {
         if (component.isClass) {
-          component.instance = new component.Reference();
+          if (component.constructorArgs && Array.isArray(component.constructorArgs)) {
+            const resolvedArgs = component.constructorArgs.map((arg) => {
+              if (typeof arg === 'string' && this.components[arg]) {
+                return this.get(arg);
+              }
+              return arg;
+            });
+            component.instance = new component.Reference(...resolvedArgs);
+            this.logger.verbose(`Created singleton (${component.name}) with constructor args [${component.constructorArgs.join(', ')}]`);
+          } else {
+            component.instance = new component.Reference();
+          }
         } else if (typeof component.factory === 'function') {
           let args = component.factoryArgs;
           if (!Array.isArray(args)) {
@@ -390,6 +402,12 @@ export default class ApplicationContext {
     for (let i = 0; i < keys.length; i++) {
       const component = this.components[keys[i]];
       if (component.scope === Scopes.SINGLETON) {
+        // Aware interface: inject ApplicationContext reference
+        if (typeof component.instance?.setApplicationContext === 'function') {
+          component.instance.setApplicationContext(this);
+          this.logger.verbose(`Called setApplicationContext on singleton (${component.name})`);
+        }
+
         if (typeof component.instance.init === 'function') {
           component.instance.init();
         } else if (typeof component.init === 'string') {
