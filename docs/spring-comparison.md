@@ -11,7 +11,7 @@ A guide for developers coming from Spring Framework / Spring Boot. This maps Spr
 | `@Autowired` (field) | `null` property matching | Property name matches component name → injected |
 | `@Autowired` (constructor) | `constructorArgs: ['beanName']` | String args resolved from context |
 | `@Value("${path}")` | `Property` + placeholder resolution | `new Property({ config: 'db.host' })` |
-| `@Profile` | `profiles: ['dev']` on component def | Same concept, different syntax |
+| `@Profile` | `profiles: ['dev']` on component def, or `conditionalOnProfile('dev')` | Same concept, two syntaxes |
 | `@Primary` | `primary: true` on component def | Same behavior |
 | `@DependsOn` | `dependsOn: ['beanName']` | Topological sort, same semantics |
 | `@Conditional` | `condition: conditionalOnProperty(...)` | Function-based, composable with `allOf`/`anyOf` |

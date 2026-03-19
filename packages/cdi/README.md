@@ -152,12 +152,19 @@ const defs = scan([MyService]);
 ## Conditional Beans
 
 ```javascript
-import { conditionalOnProperty, conditionalOnMissingBean, allOf } from '@alt-javascript/cdi';
+import { conditionalOnProperty, conditionalOnProfile, conditionalOnMissingBean, allOf } from '@alt-javascript/cdi';
 
 {
   Reference: RedisCache,
   name: 'cache',
   condition: conditionalOnProperty('cache.type', 'redis'),
+}
+
+// Analogous to Spring's @Profile — profiles auto-detected from NODE_ACTIVE_PROFILES
+{
+  Reference: ProdDataSource,
+  name: 'dataSource',
+  condition: conditionalOnProfile('production'),
 }
 ```
 

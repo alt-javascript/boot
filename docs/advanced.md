@@ -91,10 +91,46 @@ import {
   conditionalOnMissingBean,
   conditionalOnBean,
   conditionalOnClass,
+  conditionalOnProfile,
   allOf,
   anyOf,
   evaluateConditions,
 } from '@alt-javascript/cdi';
+```
+
+### conditionalOnProfile
+
+Analogous to Spring's `@Profile` annotation:
+
+```javascript
+// Active only in production
+{
+  Reference: ProdDataSource,
+  name: 'dataSource',
+  condition: conditionalOnProfile('production'),
+}
+
+// Active when test profile is NOT active
+{
+  Reference: RealEmailService,
+  name: 'emailService',
+  condition: conditionalOnProfile('!test'),
+}
+
+// Active when either dev or staging is active
+{
+  Reference: DebugService,
+  name: 'debugService',
+  condition: conditionalOnProfile('dev', 'staging'),
+}
+```
+
+Supports positive profiles, negated profiles (`!name`), and combinations. Multiple positive profiles use OR logic (any match). Multiple negations use AND logic (all must hold).
+
+Profiles are read from `NODE_ACTIVE_PROFILES` environment variable automatically, or passed explicitly to `ApplicationContext`:
+
+```bash
+NODE_ACTIVE_PROFILES=production,metrics node app.js
 ```
 
 ### conditionalOnProperty

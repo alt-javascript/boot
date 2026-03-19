@@ -81,6 +81,7 @@ import {
   conditionalOnMissingBean,
   conditionalOnBean,
   conditionalOnClass,
+  conditionalOnProfile,
   allOf,
   anyOf,
   evaluateConditions,
@@ -90,12 +91,13 @@ import {
 | Function | Description |
 |---|---|
 | `conditionalOnProperty(path, value?, matchIfMissing?)` | Config property check |
+| `conditionalOnProfile(...profiles)` | Active profile check (supports `!negation`) |
 | `conditionalOnMissingBean(name)` | Bean not registered |
 | `conditionalOnBean(name)` | Bean is registered |
 | `conditionalOnClass(classRef)` | Class available |
 | `allOf(...conditions)` | AND composition |
 | `anyOf(...conditions)` | OR composition |
-| `evaluateConditions(defs, config, components?)` | Filter definitions |
+| `evaluateConditions(defs, config, components?, profiles?)` | Filter definitions |
 
 ### BeanPostProcessor
 
