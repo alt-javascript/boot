@@ -3,6 +3,7 @@ import Logger from './Logger.js';
 import LoggerLevel from './LoggerLevel.js';
 import JSONFormatter from './JSONFormatter.js';
 
+/** Logger implementation that writes to the console (process.stdout/stderr or console object). */
 export default class ConsoleLogger extends Logger {
   constructor(category, level, levels, meta, formatter, consoleArg) {
     super(category, level, levels);

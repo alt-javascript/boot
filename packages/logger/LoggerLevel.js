@@ -1,3 +1,4 @@
+/** Logger level constants and utilities (fatal=0 through debug=5). */
 export default {
   ENUMS: {
     fatal: 0, error: 1, warn: 2, info: 3, verbose: 4, debug: 5,

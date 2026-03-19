@@ -1,3 +1,8 @@
+/**
+ * Lightweight config backed by a plain JavaScript object.
+ * Supports dot-notation paths (e.g. 'a.b.c') and falsy values (0, false, '').
+ * Used as the default config in tests and as the storage layer for PropertySourceChain.
+ */
 export default class EphemeralConfig {
   constructor(object, path) {
     const self = this;

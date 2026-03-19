@@ -1,3 +1,4 @@
+/** Console replacement that captures log output in an array. Used by CachingLoggerFactory for tests. */
 export default class CachingConsole {
   static DEFAULT_SIZE = 1000;
 

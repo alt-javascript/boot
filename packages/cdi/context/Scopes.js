@@ -1,3 +1,4 @@
+/** Available component scopes. */
 export default class Scopes {
     static SINGLETON = 'singleton';
     static SERVICE = 'singleton';

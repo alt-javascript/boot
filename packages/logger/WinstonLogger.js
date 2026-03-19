@@ -2,6 +2,7 @@
 import Logger from './Logger.js';
 import LoggerLevel from './LoggerLevel.js';
 
+/** Logger implementation backed by Winston (optional dependency). */
 export default class WinstonLogger extends Logger {
   // category, level, levels, meta, formatter, consoleArg
   constructor(category, level, levels, meta, winston, options) {

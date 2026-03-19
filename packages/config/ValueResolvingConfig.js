@@ -1,6 +1,13 @@
 /* eslint-disable import/extensions */
 import DelegatingConfig from './DelegatingConfig.js';
 
+/**
+ * Config that resolves placeholders, encrypted values, and URL fetches.
+ * Wraps a delegate config (typically node-config or EphemeralConfig) with
+ * a chain of resolvers (PlaceHolderResolver, JasyptDecryptor, URLResolver).
+ *
+ * Placeholder syntax: ${path:defaultValue}
+ */
 export default class ValueResolvingConfig extends DelegatingConfig {
   constructor(config, resolver, path, async) {
     super(config, path);

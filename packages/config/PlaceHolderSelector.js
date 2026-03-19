@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import Selector from './Selector.js';
 
+/** Selects values containing ${...} placeholder syntax for resolution. */
 export default class PlaceHolderSelector extends Selector {
   // eslint-disable-next-line class-methods-use-this
   matches(value) {

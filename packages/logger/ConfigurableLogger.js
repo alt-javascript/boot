@@ -2,6 +2,7 @@
 import DelegatingLogger from './DelegatingLogger.js';
 import Logger from './Logger.js';
 
+/** Logger that reads its level from config at a configurable path (default: 'logging'). */
 export default class ConfigurableLogger extends DelegatingLogger {
   static DEFAULT_CONFIG_PATH = 'logging.level';
 

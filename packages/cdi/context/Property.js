@@ -1,3 +1,4 @@
+/** Property definition — binds a config value to a component property via placeholder resolution. */
 const Property = class Property {
   constructor(options) {
     this.name = options?.name;

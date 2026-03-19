@@ -6,6 +6,7 @@ import LoggerCategoryCache from './LoggerCategoryCache.js';
 import JSONFormatter from './JSONFormatter.js';
 import PlainTextFormatter from './PlainTextFormatter.js';
 
+/** Factory for creating loggers — auto-detects config from global boot context or explicit args. */
 export default class LoggerFactory {
     static loggerCategoryCache = new LoggerCategoryCache();
 

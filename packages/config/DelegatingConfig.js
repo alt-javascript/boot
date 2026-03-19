@@ -2,6 +2,11 @@
 import { isPlainObject } from '@alt-javascript/common';
 import EphemeralConfig from './EphemeralConfig.js';
 
+/**
+ * Config wrapper that delegates to an underlying config source.
+ * Transparently wraps plain objects in EphemeralConfig.
+ * Base class for ValueResolvingConfig.
+ */
 export default class DelegatingConfig {
   constructor(config, path) {
     if (isPlainObject(config)) {

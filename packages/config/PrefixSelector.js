@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import Selector from './Selector.js';
 
+/** Selects values starting with a given prefix (e.g. 'enc.', 'url.'). */
 export default class PrefixSelector extends Selector {
   constructor(prefix) {
     super();

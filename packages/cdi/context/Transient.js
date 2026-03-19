@@ -2,6 +2,7 @@
 import Component from './Component.js';
 import Scopes from './Scopes.js';
 
+/** Transient-scoped component — alias for prototype scope. */
 export default class Transient extends Component {
     constructor(optionsArg) {
         let options = (optionsArg?.Reference

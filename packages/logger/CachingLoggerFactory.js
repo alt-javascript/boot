@@ -4,6 +4,7 @@ import CachingConsole from './CachingConsole.js';
 import ConsoleLogger from './ConsoleLogger.js';
 import LoggerFactory from './LoggerFactory.js';
 
+/** Logger factory that uses CachingConsole — captures log output in memory. Used in test fixtures. */
 export default class CachingLoggerFactory extends LoggerFactory {
   static getLogger(category, configArg, configPath, cache) {
     const $configArg = (typeof category === 'object' ? category : configArg);

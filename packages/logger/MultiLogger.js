@@ -2,6 +2,7 @@
 import Logger from './Logger.js';
 import LoggerLevel from './LoggerLevel.js';
 
+/** Logger that fans out to multiple logger instances — write to console and file simultaneously. */
 export default class MultiLogger extends Logger {
   constructor(loggers, category, level, levels, meta) {
     super(category, level, levels, meta);

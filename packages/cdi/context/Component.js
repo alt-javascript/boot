@@ -1,3 +1,12 @@
+/**
+ * Base component definition. Wraps a class reference or factory with metadata
+ * (name, scope, properties, lifecycle hooks, AOP config).
+ *
+ * Usually created via convenience subclasses: Singleton, Prototype, Service, Transient.
+ *
+ * @example
+ * new Component({ Reference: MyClass, name: 'myClass', scope: 'singleton' })
+ */
 export default class Component {
     constructor(options) {
         this.Reference = options?.Reference || (options.factory || options.wireFactory ? null : options );

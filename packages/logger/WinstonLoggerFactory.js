@@ -3,6 +3,7 @@ import ConfigurableLogger from './ConfigurableLogger.js';
 import LoggerFactory from './LoggerFactory.js';
 import WinstonLogger from './WinstonLogger.js';
 
+/** Factory for creating Winston-backed loggers. */
 export default class WinstonLoggerFactory {
   static getLogger(category, config, winston, options, configPath, cache) {
     // constructor(category, level, levels, meta, winston, options)

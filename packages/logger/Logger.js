@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import LoggerLevel from './LoggerLevel.js';
 
+/** Base logger with level-gated logging methods (debug, verbose, info, warn, error, fatal). */
 export default class Logger {
   static DEFAULT_CATEGORY = 'ROOT'
 

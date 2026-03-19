@@ -1,3 +1,4 @@
+/** Logger that delegates all calls to a provider object — base for pluggable logger backends. */
 export default class DelegatingLogger {
   constructor(provider) {
     this.provider = provider;

@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import Resolver from './Resolver.js';
 
+/** Chains multiple resolvers, applying each in sequence to the config tree. */
 export default class DelegatingResolver extends Resolver {
   constructor(resolvers) {
     super();

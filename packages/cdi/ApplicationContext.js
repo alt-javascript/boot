@@ -11,12 +11,49 @@ import ApplicationEventPublisher from './events/ApplicationEventPublisher.js';
 import ContextRefreshedEvent from './events/ContextRefreshedEvent.js';
 import ContextClosedEvent from './events/ContextClosedEvent.js';
 
+/**
+ * Spring-inspired IoC application context for JavaScript.
+ *
+ * Manages the lifecycle of components (singletons and prototypes):
+ * parsing context definitions, creating instances, autowiring dependencies,
+ * running bean post-processors, publishing lifecycle events, and registering
+ * shutdown destroyers.
+ *
+ * Lifecycle phases (in order):
+ * 1. parseContexts — resolve context definitions from config and explicit contexts
+ * 2. registerEventPublisher — create the ApplicationEventPublisher singleton
+ * 3. createSingletons — instantiate all singleton components (with constructor arg resolution)
+ * 4. injectSingletonDependencies — autowire property-based and explicit dependencies
+ * 5. detectBeanPostProcessors — find BeanPostProcessor instances
+ * 6. postProcessBeforeInitialization — run pre-init hooks
+ * 7. detectEventListeners — find components with onApplicationEvent method
+ * 8. initialiseSingletons — call setApplicationContext() then init(), respecting dependsOn order
+ * 9. postProcessAfterInitialization — run post-init hooks
+ * 10. registerSingletonDestroyers — register stop() and destroy() for shutdown
+ * 11. publishContextRefreshedEvent — notify listeners context is ready
+ *
+ * @example
+ * const context = new Context([new Singleton(MyService)]);
+ * const appCtx = new ApplicationContext({ contexts: [context], config });
+ * await appCtx.start();
+ * const svc = appCtx.get('myService');
+ */
 export default class ApplicationContext {
   // eslint-disable-next-line
   static DEFAULT_CONTEXT_NAME = 'default';
 
   static DEFAULT_CONFIG_CONTEXT_PATH = 'context';
 
+  /**
+   * Create a new ApplicationContext.
+   *
+   * @param {object|Array<Context>} options - context array or options object
+   * @param {Array<Context>} [options.contexts] - component context definitions
+   * @param {string[]} [options.profiles] - active profiles for conditional component activation
+   * @param {string} [options.name='default'] - context name for logging
+   * @param {string} [options.configContextPath='context'] - config key containing context definitions
+   * @param {object} [options.config] - config object with has()/get() interface
+   */
   constructor(options) {
     const contexts = options?.contexts || options;
     if (Array.isArray(contexts)) {
@@ -46,18 +83,32 @@ export default class ApplicationContext {
     this.logger = LoggerFactory.getLogger('@alt-javascript/cdi/ApplicationContext', this.config);
   }
 
+  /**
+   * Start the application context — runs the full lifecycle (prepare + run).
+   *
+   * @param {object} [options]
+   * @param {boolean} [options.run=true] - if false, skips the run phase (no start()/run() calls on components)
+   */
   async start(options) {
     this.logger.verbose('Application context starting.');
     await this.lifeCycle(options);
     this.logger.verbose('Application context started.');
   }
 
+  /**
+   * Execute the full lifecycle: prepare phase then run phase.
+   * @param {object} [options] - passed through to run()
+   */
   async lifeCycle(options) {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle started.`);
     await this.prepare();
     return this.run(options);
   }
 
+  /**
+   * Prepare phase: parse contexts, create singletons, wire dependencies,
+   * run post-processors, initialise, and publish ContextRefreshedEvent.
+   */
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
@@ -74,6 +125,7 @@ export default class ApplicationContext {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
   }
 
+  /** Detect and load context component definitions from the config object. */
   detectConfigContext() {
     this.logger.verbose('Detecting config contexts started.');
     if (this.config) {
@@ -85,6 +137,7 @@ export default class ApplicationContext {
     this.logger.verbose('Detecting config contexts completed.');
   }
 
+  /** Register framework components (config, loggerFactory, loggerCategoryCache, logger, fetch) as context singletons. */
   detectGlobalContextComponents() {
     this.logger.verbose('Detecting global context components started.');
 
@@ -124,6 +177,7 @@ export default class ApplicationContext {
     this.logger.verbose('Detecting global context components completed.');
   }
 
+  /** Parse all context definitions: config-driven, explicit, and global framework components. */
   async parseContexts() {
     this.logger.verbose('Parsing configured contexts started.');
     this.detectConfigContext();
@@ -174,6 +228,11 @@ export default class ApplicationContext {
     this.logger.verbose('Processing context components completed');
   }
 
+  /**
+   * Parse a single component definition into the internal registry.
+   * Handles: profiles, conditions, primary resolution, scope detection, constructorArgs, dependsOn.
+   * @param {object} componentArg - raw component definition
+   */
   async parseContextComponent(componentArg) {
     let component = componentArg;
     if (component?.constructor?.name !== 'Component'
@@ -265,6 +324,10 @@ export default class ApplicationContext {
     }
   }
 
+  /**
+   * Create all singleton instances. Resolves constructor args from the context,
+   * with circular dependency detection via a creation stack.
+   */
   createSingletons() {
     this.logger.verbose('Creating singletons started');
     this._creationStack = [];
@@ -279,6 +342,12 @@ export default class ApplicationContext {
     this.logger.verbose('Creating singletons completed');
   }
 
+  /**
+   * Create a single singleton instance. Called recursively for constructor arg resolution.
+   * Detects circular constructor dependencies via _creationStack.
+   * @param {object} component - internal component record
+   * @throws {Error} if circular constructor dependency detected
+   */
   _createSingleton(component) {
     // Cycle detection for constructor injection
     if (this._creationStack.includes(component.name)) {
@@ -337,6 +406,13 @@ export default class ApplicationContext {
     return returnValue;
   }
 
+  /**
+   * Autowire a component's dependencies by matching null instance properties
+   * against registered component names (implicit autowiring), or properties
+   * marked with 'Autowired' string value (explicit autowiring).
+   * @param {object} instance - the component instance
+   * @param {object} component - internal component record
+   */
   autowireComponentDependencies(instance, component) {
     const insKeys = Object.keys(instance);
     for (let j = 0; j < insKeys.length; j++) {
@@ -411,6 +487,7 @@ export default class ApplicationContext {
     }
   }
 
+  /** Wire all singleton dependencies (autowire + explicit wiring). */
   injectSingletonDependencies() {
     this.logger.verbose('Injecting singletons dependencies started');
     const keys = Object.keys(this.components);
@@ -495,6 +572,10 @@ export default class ApplicationContext {
     return sorted;
   }
 
+  /**
+   * Initialise singletons in topological order (respecting dependsOn).
+   * Calls setApplicationContext() (aware interface) then init() on each singleton.
+   */
   initialiseSingletons() {
     this.logger.verbose('Initialising singletons started');
     const orderedKeys = this._topologicalSort();
@@ -516,6 +597,10 @@ export default class ApplicationContext {
     this.logger.verbose('Initialising singletons completed');
   }
 
+  /**
+   * Register a process-exit destroyer function.
+   * @param {Function} destroyer - called on process exit (SIGINT/SIGTERM)
+   */
   static registerDestroyer(destroyer) {
     if (typeof (process) !== 'undefined' && destroyer) {
       // process.on('exit', destroyer?.bind());
@@ -529,6 +614,7 @@ export default class ApplicationContext {
     }
   }
 
+  /** Register stop() and destroy() methods on singletons for ordered shutdown. */
   async registerSingletonDestroyers() {
     this.logger.verbose('Registering singleton destroyers started');
     const keys = Object.keys(this.components);
@@ -562,6 +648,7 @@ export default class ApplicationContext {
    * Auto-register ApplicationEventPublisher as a context-managed singleton
    * if not already provided by user configuration.
    */
+  /** Register the ApplicationEventPublisher as a context singleton. */
   registerEventPublisher() {
     if (!this.components.applicationEventPublisher) {
       this.eventPublisher = new ApplicationEventPublisher();
@@ -584,6 +671,7 @@ export default class ApplicationContext {
    * Find all singleton components whose instances are BeanPostProcessors.
    * Stores them in order for lifecycle hook invocation.
    */
+  /** Find BeanPostProcessor instances among registered singletons. */
   detectBeanPostProcessors() {
     this.beanPostProcessors = [];
     const keys = Object.keys(this.components);
@@ -648,6 +736,7 @@ export default class ApplicationContext {
    * Detect singletons with an onApplicationEvent method and subscribe them
    * to all events via the event publisher.
    */
+  /** Find singletons with onApplicationEvent() method and register them as event listeners. */
   detectEventListeners() {
     if (!this.eventPublisher) return;
     this.logger.verbose('Detecting event listeners started');
@@ -684,6 +773,11 @@ export default class ApplicationContext {
     this.logger.verbose(`Published ContextClosedEvent for ApplicationContext (${this.name})`);
   }
 
+  /**
+   * Run phase: call start() then run() on singletons that implement the lifecycle interface.
+   * @param {object} [options]
+   * @param {boolean} [options.run=true] - if false, skip the run phase entirely
+   */
   async run(options) {
     if (!(options) || options?.run) {
       this.logger.verbose(`ApplicationContext (${this.name}) lifecycle run phase started.`);
@@ -714,6 +808,19 @@ export default class ApplicationContext {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle completed.`);
   }
 
+  /**
+   * Retrieve a component instance by name.
+   *
+   * For singletons, returns the existing instance. For prototypes, creates a new
+   * instance on each call. If the component is not found, returns defaultValue or
+   * throws if no default is provided.
+   *
+   * @param {string} reference - component name
+   * @param {*} [defaultValue] - returned if component not found
+   * @param {*} [targetArgs] - arguments passed to prototype factory functions
+   * @returns {*} the component instance
+   * @throws {Error} if component not found and no defaultValue provided
+   */
   get(reference, defaultValue, targetArgs) {
     if (this.components[reference]) {
       this.logger.verbose(`Found component (${reference})`);

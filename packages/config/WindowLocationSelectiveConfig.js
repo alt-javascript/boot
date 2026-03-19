@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import DelegatingConfig from './DelegatingConfig.js';
 
+/** Browser config adapter that resolves window.location-based config paths. */
 export default class WindowLocationSelectiveConfig extends DelegatingConfig {
   // eslint-disable-next-line class-methods-use-this
   has(path) {

@@ -4,7 +4,31 @@ import {
 } from '@alt-javascript/logger';
 import { getGlobalRef, getGlobalRoot, detectBrowser } from '@alt-javascript/common';
 
+/**
+ * Application bootstrap utility.
+ *
+ * Detects the runtime environment (Node/browser), resolves config from global scope
+ * or explicit arguments, and initialises `global.boot.contexts.root` with
+ * {config, loggerFactory, loggerCategoryCache, fetch}.
+ *
+ * Entry points:
+ * - `Boot.boot(context)` — production bootstrap
+ * - `Boot.test(context)` — test bootstrap with CachingLoggerFactory (suppresses log noise)
+ * - `Boot.root(name)` — read from the global boot context
+ *
+ * @example
+ * import config from 'config';
+ * Boot.boot({ config });
+ * // global.boot.contexts.root is now populated
+ */
 export default class Boot {
+  /**
+   * Detect and resolve config from: explicit argument → global `config` → window.config.
+   * Wraps plain objects in ValueResolvingConfig automatically.
+   * @param {object} [context] - optional context with config property
+   * @returns {ValueResolvingConfig} resolved config
+   * @throws {Error} if no config can be detected
+   */
   static detectConfig(context) {
     const configArg = context && context.config;
     let $config = null;
@@ -33,6 +57,11 @@ export default class Boot {
     return $config;
   }
 
+  /**
+   * Bootstrap the application: detect config, create logger infrastructure,
+   * and populate the global boot context.
+   * @param {object} [context] - { config, loggerFactory, loggerCategoryCache, fetch }
+   */
   static boot(context) {
     const loggerFactoryArg = context && context.loggerFactory;
     const loggerCategoryCacheArg = context && context.loggerFactory;
@@ -77,6 +106,11 @@ export default class Boot {
     $globalref.boot.contexts.root.fetch = $fetch;
   }
 
+  /**
+   * Test bootstrap — uses CachingLoggerFactory to suppress log output during tests.
+   * Respects config key `logging.test.fixtures.quiet` (default: true).
+   * @param {object} [context] - { config }
+   */
   static test(context) {
     const $config = Boot.detectConfig(context);
     const loggerCategoryCache = new LoggerCategoryCache();
@@ -88,6 +122,12 @@ export default class Boot {
     }
   }
 
+  /**
+   * Read a value from the global boot root context.
+   * @param {string} name - property name (e.g. 'config', 'loggerFactory')
+   * @param {*} [defaultValue] - returned if not found
+   * @returns {*}
+   */
   static root(name, defaultValue) {
     const value = getGlobalRoot(name);
     return value || defaultValue;

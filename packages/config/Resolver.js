@@ -1,3 +1,4 @@
+/** Base resolver — walks object trees applying value transformations. */
 export default class Resolver {
   static isObject(value) {
     const type = typeof value;

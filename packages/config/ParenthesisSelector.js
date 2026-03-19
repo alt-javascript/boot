@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import Selector from './Selector.js';
 
+/** Selects values wrapped in parenthesis notation, e.g. ENC(encrypted-value). */
 export default class ParenthesisSelector extends Selector {
   constructor(prefix) {
     super();
