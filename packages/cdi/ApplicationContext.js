@@ -62,7 +62,9 @@ export default class ApplicationContext {
       this.contexts = (contexts ? [contexts] : []);
     }
     this.components = {};
-    this.profiles = options?.profiles;
+    this.profiles = options?.profiles
+        || (typeof (process) !== 'undefined' && process?.env?.NODE_ACTIVE_PROFILES)
+        || undefined;
     this.name = options?.name || ApplicationContext.DEFAULT_CONTEXT_NAME;
     this.configContextPath = options?.configContextPath
         || (typeof (process) !== 'undefined' && process?.env?.NODE_CONFIG_CONTEXT_PATH)
@@ -298,7 +300,8 @@ export default class ApplicationContext {
       // Evaluate condition if present (from componentArg, e.g. conditionalOnProperty)
       const condition = componentArg.condition;
       if (condition && typeof condition === 'function') {
-        const conditionResult = condition(this.config, this.components);
+        const activeProfiles = this.profiles?.split(',') || [];
+        const conditionResult = condition(this.config, this.components, activeProfiles);
         if (!conditionResult) {
           this.logger.verbose(`Condition failed for component (${$component.name}), skipping registration`);
           return;

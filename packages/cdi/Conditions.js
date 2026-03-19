@@ -80,8 +80,8 @@ export function conditionalOnClass(classRef) {
  * @returns {Function} combined condition predicate
  */
 export function allOf(...conditions) {
-  return function combinedCondition(config, components) {
-    return conditions.every((c) => c(config, components));
+  return function combinedCondition(config, components, activeProfiles) {
+    return conditions.every((c) => c(config, components, activeProfiles));
   };
 }
 
@@ -92,8 +92,45 @@ export function allOf(...conditions) {
  * @returns {Function} combined condition predicate
  */
 export function anyOf(...conditions) {
-  return function combinedCondition(config, components) {
-    return conditions.some((c) => c(config, components));
+  return function combinedCondition(config, components, activeProfiles) {
+    return conditions.some((c) => c(config, components, activeProfiles));
+  };
+}
+
+/**
+ * Register only if one or more profiles are active.
+ * Supports negation: '!test' means "register if 'test' is NOT active".
+ *
+ * Analogous to Spring's @Profile annotation.
+ *
+ * @param {...string} profileNames — profile names (prefix with ! for negation)
+ * @returns {Function} condition predicate(config, components, activeProfiles)
+ *
+ * @example
+ * // Active when 'production' profile is active
+ * { condition: conditionalOnProfile('production') }
+ *
+ * // Active when 'test' profile is NOT active
+ * { condition: conditionalOnProfile('!test') }
+ *
+ * // Active when 'dev' OR 'staging' profile is active
+ * { condition: conditionalOnProfile('dev', 'staging') }
+ */
+export function conditionalOnProfile(...profileNames) {
+  return function conditionOnProfile(config, components, activeProfiles) {
+    const active = activeProfiles || [];
+    const positive = profileNames.filter((p) => !p.startsWith('!'));
+    const negated = profileNames.filter((p) => p.startsWith('!')).map((p) => p.substring(1));
+
+    // All negations must hold (none of the negated profiles are active)
+    const negationsPass = negated.length === 0
+      || negated.every((n) => !active.includes(n));
+
+    // At least one positive profile must be active (if any specified)
+    const positivesPass = positive.length === 0
+      || positive.some((p) => active.includes(p));
+
+    return negationsPass && positivesPass;
   };
 }
 
@@ -103,13 +140,14 @@ export function anyOf(...conditions) {
  * @param {Array} componentDefs — component definitions with optional `condition`
  * @param {Object} config — config with has()/get()
  * @param {Object} [components={}] — existing registered components
+ * @param {string[]} [activeProfiles=[]] — active profile names
  * @returns {Array} filtered definitions
  */
-export function evaluateConditions(componentDefs, config, components = {}) {
+export function evaluateConditions(componentDefs, config, components = {}, activeProfiles = []) {
   return componentDefs.filter((def) => {
     if (!def.condition) return true;
     if (typeof def.condition === 'function') {
-      return def.condition(config, components);
+      return def.condition(config, components, activeProfiles);
     }
     return true;
   });

@@ -8,6 +8,7 @@ import {
   conditionalOnMissingBean,
   conditionalOnBean,
   conditionalOnClass,
+  conditionalOnProfile,
   allOf,
   anyOf,
   evaluateConditions,
@@ -204,6 +205,189 @@ describe('Conditions Specification', () => {
 
       const svc = appCtx.get('myService');
       assert.equal(svc.type, 'custom', 'custom should win over conditional default');
+    });
+  });
+
+  describe('conditionalOnProfile', () => {
+    it('passes when profile is active', () => {
+      const cond = conditionalOnProfile('production');
+      assert.isTrue(cond(null, null, ['production']));
+    });
+
+    it('fails when profile is not active', () => {
+      const cond = conditionalOnProfile('production');
+      assert.isFalse(cond(null, null, ['dev']));
+    });
+
+    it('passes when any of multiple profiles is active', () => {
+      const cond = conditionalOnProfile('dev', 'staging');
+      assert.isTrue(cond(null, null, ['staging']));
+    });
+
+    it('fails when none of multiple profiles is active', () => {
+      const cond = conditionalOnProfile('dev', 'staging');
+      assert.isFalse(cond(null, null, ['production']));
+    });
+
+    it('negated profile passes when profile is not active', () => {
+      const cond = conditionalOnProfile('!test');
+      assert.isTrue(cond(null, null, ['production']));
+    });
+
+    it('negated profile fails when profile is active', () => {
+      const cond = conditionalOnProfile('!test');
+      assert.isFalse(cond(null, null, ['test']));
+    });
+
+    it('mixed positive and negated profiles', () => {
+      const cond = conditionalOnProfile('production', '!test');
+      // production active, test not active → pass
+      assert.isTrue(cond(null, null, ['production']));
+      // production active, test also active → fail (negation fails)
+      assert.isFalse(cond(null, null, ['production', 'test']));
+      // neither production nor test active → fail (positive not met)
+      assert.isFalse(cond(null, null, ['dev']));
+    });
+
+    it('passes with no active profiles when only negations specified', () => {
+      const cond = conditionalOnProfile('!test');
+      assert.isTrue(cond(null, null, []));
+    });
+
+    it('composes with allOf', () => {
+      const cond = allOf(
+        conditionalOnProfile('production'),
+        conditionalOnProperty('feature.enabled', true),
+      );
+      const cfg = new EphemeralConfig({ feature: { enabled: true } });
+      assert.isTrue(cond(cfg, {}, ['production']));
+      assert.isFalse(cond(cfg, {}, ['dev']));
+    });
+  });
+
+  describe('conditionalOnProfile in ApplicationContext', () => {
+    it('registers component when profile matches', async () => {
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          condition: conditionalOnProfile('production'),
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg, profiles: 'production' });
+      await appCtx.start({ run: false });
+
+      const svc = appCtx.get('serviceA');
+      assert.exists(svc);
+    });
+
+    it('skips component when profile does not match', async () => {
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          condition: conditionalOnProfile('production'),
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg, profiles: 'dev' });
+      await appCtx.start({ run: false });
+
+      const svc = appCtx.get('serviceA', null);
+      assert.isNull(svc);
+    });
+
+    it('registers component with negated profile when profile is not active', async () => {
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          condition: conditionalOnProfile('!test'),
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg, profiles: 'production' });
+      await appCtx.start({ run: false });
+
+      const svc = appCtx.get('serviceA');
+      assert.exists(svc);
+    });
+  });
+
+  describe('NODE_ACTIVE_PROFILES auto-detection', () => {
+    let originalEnv;
+
+    beforeEach(() => {
+      originalEnv = process.env.NODE_ACTIVE_PROFILES;
+    });
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.NODE_ACTIVE_PROFILES;
+      } else {
+        process.env.NODE_ACTIVE_PROFILES = originalEnv;
+      }
+    });
+
+    it('reads profiles from NODE_ACTIVE_PROFILES when not passed explicitly', async () => {
+      process.env.NODE_ACTIVE_PROFILES = 'production';
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          profiles: ['production'],
+        },
+        {
+          Reference: ServiceB,
+          name: 'serviceB',
+          profiles: ['dev'],
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg });
+      await appCtx.start({ run: false });
+
+      assert.exists(appCtx.get('serviceA'));
+      assert.isNull(appCtx.get('serviceB', null));
+    });
+
+    it('explicit profiles option overrides NODE_ACTIVE_PROFILES', async () => {
+      process.env.NODE_ACTIVE_PROFILES = 'production';
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          profiles: ['dev'],
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg, profiles: 'dev' });
+      await appCtx.start({ run: false });
+
+      assert.exists(appCtx.get('serviceA'));
+    });
+
+    it('conditionalOnProfile works with NODE_ACTIVE_PROFILES', async () => {
+      process.env.NODE_ACTIVE_PROFILES = 'staging';
+      const cfg = new EphemeralConfig({});
+      const context = new Context([
+        {
+          Reference: ServiceA,
+          name: 'serviceA',
+          condition: conditionalOnProfile('staging'),
+        },
+        {
+          Reference: ServiceB,
+          name: 'serviceB',
+          condition: conditionalOnProfile('production'),
+        },
+      ]);
+      const appCtx = new ApplicationContext({ contexts: [context], config: cfg });
+      await appCtx.start({ run: false });
+
+      assert.exists(appCtx.get('serviceA'));
+      assert.isNull(appCtx.get('serviceB', null));
     });
   });
 });

@@ -20,6 +20,7 @@ export {
   conditionalOnMissingBean,
   conditionalOnBean,
   conditionalOnClass,
+  conditionalOnProfile,
   allOf,
   anyOf,
   evaluateConditions,
