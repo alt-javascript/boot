@@ -8,3 +8,19 @@ export {
   ContextRefreshedEvent,
   ContextClosedEvent,
 } from './events/index.js';
+export {
+  COMPONENT_META_KEY,
+  ComponentRegistry,
+  defaultRegistry,
+  scan,
+  discover,
+} from './AutoDiscovery.js';
+export {
+  conditionalOnProperty,
+  conditionalOnMissingBean,
+  conditionalOnBean,
+  conditionalOnClass,
+  allOf,
+  anyOf,
+  evaluateConditions,
+} from './Conditions.js';

@@ -233,6 +233,17 @@ export default class ApplicationContext {
     }
 
     if ($component.isActive) {
+      // Evaluate condition if present (from componentArg, e.g. conditionalOnProperty)
+      const condition = componentArg.condition;
+      if (condition && typeof condition === 'function') {
+        const conditionResult = condition(this.config, this.components);
+        if (!conditionResult) {
+          this.logger.verbose(`Condition failed for component (${$component.name}), skipping registration`);
+          return;
+        }
+        this.logger.verbose(`Condition passed for component (${$component.name})`);
+      }
+
       if (!this.components[$component.name]) {
         this.components[$component.name] = $component;
         this.logger.verbose(`Added application context component (${$component.name}) with ${$component.scope} scope`);
