@@ -2,32 +2,9 @@ import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javas
 import {
   CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
 } from '@alt-javascript/logger';
+import { getGlobalRef, getGlobalRoot, detectBrowser } from '@alt-javascript/common';
 
 export default class Boot {
-  static getGlobalRef() {
-    let $globalref = null;
-    if (Boot.detectBrowser()) {
-      $globalref = window;
-    } else {
-      $globalref = global;
-    }
-    return $globalref;
-  }
-
-  static getGlobalRoot(key) {
-    const $globalref = Boot.getGlobalRef();
-    let $key = ($globalref && $globalref.boot);
-    $key = $key && $key.contexts;
-    $key = $key && $key.root;
-    $key = $key && $key[`${key}`];
-    return $key;
-  }
-
-  static detectBrowser() {
-    const browser = !(typeof window === 'undefined');
-    return browser;
-  }
-
   static detectConfig(context) {
     const configArg = context && context.config;
     let $config = null;
@@ -35,7 +12,7 @@ export default class Boot {
       // eslint-disable-next-line no-undef
       $config = config;
     }
-    const browser = Boot.detectBrowser();
+    const browser = detectBrowser();
     if (browser && window?.config) {
       $config = window.config;
     }
@@ -61,7 +38,7 @@ export default class Boot {
     const loggerCategoryCacheArg = context && context.loggerFactory;
     const fetchArg = context && context.fetch;
 
-    const browser = !(typeof window === 'undefined');
+    const browser = detectBrowser();
 
     let $config = Boot.detectConfig(context);
 
@@ -92,7 +69,7 @@ export default class Boot {
     }
     $fetch = $fetch || fetchArg;
 
-    const $globalref = Boot.getGlobalRef();
+    const $globalref = getGlobalRef();
 
     $globalref.boot = { contexts: { root: { config: $config } } };
     $globalref.boot.contexts.root.loggerCategoryCache = $loggerCategoryCache;
@@ -112,7 +89,7 @@ export default class Boot {
   }
 
   static root(name, defaultValue) {
-    const value = Boot.getGlobalRoot(name);
+    const value = getGlobalRoot(name);
     return value || defaultValue;
   }
 }

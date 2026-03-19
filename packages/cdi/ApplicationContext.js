@@ -2,6 +2,7 @@
 import _ from 'lodash';
 import { LoggerFactory } from '@alt-javascript/logger';
 import { ConfigFactory } from '@alt-javascript/config';
+import { getGlobalRoot } from '@alt-javascript/common';
 import {
   Context, Component, Property, Scopes,
 } from './context/index.js';
@@ -11,30 +12,6 @@ export default class ApplicationContext {
   static DEFAULT_CONTEXT_NAME = 'default';
 
   static DEFAULT_CONFIG_CONTEXT_PATH = 'context';
-
-  static getGlobalRef() {
-    let $globalref = null;
-    if (ApplicationContext.detectBrowser()) {
-      $globalref = window;
-    } else {
-      $globalref = global;
-    }
-    return $globalref;
-  }
-
-  static getGlobalRoot(key) {
-    const $globalref = ApplicationContext.getGlobalRef();
-    let $key = ($globalref && $globalref.boot);
-    $key = $key && $key.contexts;
-    $key = $key && $key.root;
-    $key = $key && $key[`${key}`];
-    return $key;
-  }
-
-  static detectBrowser() {
-    const browser = !(typeof window === 'undefined');
-    return browser;
-  }
 
   constructor(options) {
     const contexts = options?.contexts || options;
@@ -101,21 +78,21 @@ export default class ApplicationContext {
   detectGlobalContextComponents() {
     this.logger.verbose('Detecting global context components started.');
 
-    if (!this.components.config && ApplicationContext.getGlobalRoot('config')) {
+    if (!this.components.config && getGlobalRoot('config')) {
       this.deriveContextComponent({
-        Reference: ApplicationContext.getGlobalRoot('config'),
+        Reference: getGlobalRoot('config'),
         name: 'config',
       });
     }
-    if (!this.components.loggerFactory && ApplicationContext.getGlobalRoot('loggerFactory')) {
+    if (!this.components.loggerFactory && getGlobalRoot('loggerFactory')) {
       this.deriveContextComponent({
-        Reference: ApplicationContext.getGlobalRoot('loggerFactory'),
+        Reference: getGlobalRoot('loggerFactory'),
         name: 'loggerFactory',
       });
     }
-    if (!this.components.loggerCategoryCache && ApplicationContext.getGlobalRoot('loggerCategoryCache')) {
+    if (!this.components.loggerCategoryCache && getGlobalRoot('loggerCategoryCache')) {
       this.deriveContextComponent({
-        Reference: ApplicationContext.getGlobalRoot('loggerCategoryCache'),
+        Reference: getGlobalRoot('loggerCategoryCache'),
         name: 'loggerCategoryCache',
       });
     }
@@ -127,9 +104,9 @@ export default class ApplicationContext {
         name: 'logger',
       });
     }
-    if (!this.components.fetch && ApplicationContext.getGlobalRoot('fetch')) {
+    if (!this.components.fetch && getGlobalRoot('fetch')) {
       this.deriveContextComponent({
-        Reference: ApplicationContext.getGlobalRoot('fetch'),
+        Reference: getGlobalRoot('fetch'),
         name: 'fetch',
       });
     }

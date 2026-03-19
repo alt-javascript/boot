@@ -1,4 +1,5 @@
 /* eslint-disable import/extensions */
+import { getGlobalRoot, detectBrowser } from '@alt-javascript/common';
 import ConfigurableLogger from './ConfigurableLogger.js';
 import ConsoleLogger from './ConsoleLogger.js';
 import LoggerCategoryCache from './LoggerCategoryCache.js';
@@ -8,40 +9,16 @@ import PlainTextFormatter from './PlainTextFormatter.js';
 export default class LoggerFactory {
     static loggerCategoryCache = new LoggerCategoryCache();
 
-    static getGlobalRef() {
-      let $globalref = null;
-      if (LoggerFactory.detectBrowser()) {
-        $globalref = window;
-      } else {
-        $globalref = global;
-      }
-      return $globalref;
-    }
-
-    static getGlobalRoot(key) {
-      const $globalref = LoggerFactory.getGlobalRef();
-      let $key = ($globalref && $globalref.boot);
-      $key = $key && $key.contexts;
-      $key = $key && $key.root;
-      $key = $key && $key[`${key}`];
-      return $key;
-    }
-
-    static detectBrowser() {
-      const browser = !(typeof window === 'undefined');
-      return browser;
-    }
-
     static detectConfig(configArg) {
       let $config = null;
       if (!(typeof config === 'undefined')) {
         // eslint-disable-next-line no-undef
         $config = config;
       }
-      if (LoggerFactory.getGlobalRoot('config')) {
-        $config = LoggerFactory.getGlobalRoot('config');
+      if (getGlobalRoot('config')) {
+        $config = getGlobalRoot('config');
       }
-      if (LoggerFactory.detectBrowser() && window?.config) {
+      if (detectBrowser() && window?.config) {
         $config = window.config;
       }
       $config = configArg || $config;
@@ -61,10 +38,10 @@ export default class LoggerFactory {
       if (!(typeof global === 'undefined') && global?.boot?.contexts?.root?.loggerFactory) {
         $loggerFactory = global.boot.contexts.root.loggerFactory;
       }
-      if (LoggerFactory.detectBrowser() && window?.loggerFactory) {
+      if (detectBrowser() && window?.loggerFactory) {
         $loggerFactory = window.loggerFactory;
       }
-      if (LoggerFactory.detectBrowser() && window?.boot?.contexts?.root?.loggerFactory) {
+      if (detectBrowser() && window?.boot?.contexts?.root?.loggerFactory) {
         $loggerFactory = window.boot.contexts.root.loggerFactory;
       }
       return $loggerFactory;
@@ -73,7 +50,7 @@ export default class LoggerFactory {
     static getFormatter(configArg) {
       let format = 'json';
       const $config = this.detectConfig(configArg);
-      if (LoggerFactory.detectBrowser()) {
+      if (detectBrowser()) {
         format = 'text';
       }
       if ($config.has('logging.format')) {
@@ -129,7 +106,7 @@ export default class LoggerFactory {
 
     getFormatter() {
       let format = 'json';
-      if (LoggerFactory.detectBrowser()) {
+      if (detectBrowser()) {
         format = 'text';
       }
       if (this.config.has('logging.format')) {
