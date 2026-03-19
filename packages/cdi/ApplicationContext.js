@@ -6,6 +6,10 @@ import { getGlobalRoot } from '@alt-javascript/common';
 import {
   Context, Component, Property, Scopes,
 } from './context/index.js';
+import BeanPostProcessor from './BeanPostProcessor.js';
+import ApplicationEventPublisher from './events/ApplicationEventPublisher.js';
+import ContextRefreshedEvent from './events/ContextRefreshedEvent.js';
+import ContextClosedEvent from './events/ContextClosedEvent.js';
 
 export default class ApplicationContext {
   // eslint-disable-next-line
@@ -57,10 +61,16 @@ export default class ApplicationContext {
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
+    this.registerEventPublisher();
     this.createSingletons();
     this.injectSingletonDependencies();
+    this.detectBeanPostProcessors();
+    this.postProcessBeforeInitialization();
     this.initialiseSingletons();
+    this.postProcessAfterInitialization();
+    this.detectEventListeners();
     this.registerSingletonDestroyers();
+    this.publishContextRefreshedEvent();
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
   }
 
@@ -241,7 +251,7 @@ export default class ApplicationContext {
     const keys = Object.keys(this.components);
     for (let i = 0; i < keys.length; i++) {
       const component = this.components[keys[i]];
-      if (component.scope === Scopes.SINGLETON) {
+      if (component.scope === Scopes.SINGLETON && !component.instance) {
         if (component.isClass) {
           component.instance = new component.Reference();
         } else if (typeof component.factory === 'function') {
@@ -409,10 +419,138 @@ export default class ApplicationContext {
         this.logger.verbose(`Registering singleton (${component.name}) destroyer`);
       }
     }
+    // Register context shutdown: publish ContextClosedEvent, then log completion
     ApplicationContext.registerDestroyer(() => {
+      this.publishContextClosedEvent();
       this.logger.verbose(`ApplicationContext (${this.name}) lifecycle completed.`);
     });
     this.logger.verbose('Registering singleton destroyers completed');
+  }
+
+  /**
+   * Auto-register ApplicationEventPublisher as a context-managed singleton
+   * if not already provided by user configuration.
+   */
+  registerEventPublisher() {
+    if (!this.components.applicationEventPublisher) {
+      this.eventPublisher = new ApplicationEventPublisher();
+      this.components.applicationEventPublisher = {
+        name: 'applicationEventPublisher',
+        scope: Scopes.SINGLETON,
+        isClass: false,
+        instance: this.eventPublisher,
+        properties: [],
+        profiles: [],
+        isActive: true,
+      };
+      this.logger.verbose('Registered applicationEventPublisher as context singleton');
+    } else {
+      this.eventPublisher = this.components.applicationEventPublisher.instance;
+    }
+  }
+
+  /**
+   * Find all singleton components whose instances are BeanPostProcessors.
+   * Stores them in order for lifecycle hook invocation.
+   */
+  detectBeanPostProcessors() {
+    this.beanPostProcessors = [];
+    const keys = Object.keys(this.components);
+    for (let i = 0; i < keys.length; i++) {
+      const component = this.components[keys[i]];
+      if (component.scope === Scopes.SINGLETON && component.instance instanceof BeanPostProcessor) {
+        this.beanPostProcessors.push(component);
+        this.logger.verbose(`Detected BeanPostProcessor (${component.name})`);
+      }
+    }
+  }
+
+  /**
+   * Call postProcessBeforeInitialization on all BeanPostProcessors for each
+   * singleton (except BeanPostProcessors themselves — they're already initialized).
+   */
+  postProcessBeforeInitialization() {
+    if (this.beanPostProcessors.length === 0) return;
+    this.logger.verbose('Post-process before initialization started');
+    const keys = Object.keys(this.components);
+    for (let i = 0; i < keys.length; i++) {
+      const component = this.components[keys[i]];
+      if (component.scope === Scopes.SINGLETON && !(component.instance instanceof BeanPostProcessor)) {
+        for (let j = 0; j < this.beanPostProcessors.length; j++) {
+          const bpp = this.beanPostProcessors[j];
+          const result = bpp.instance.postProcessBeforeInitialization(component.instance, component.name);
+          if (result !== undefined && result !== null) {
+            component.instance = result;
+          }
+          this.logger.verbose(`BeanPostProcessor (${bpp.name}) postProcessBeforeInitialization called for (${component.name})`);
+        }
+      }
+    }
+    this.logger.verbose('Post-process before initialization completed');
+  }
+
+  /**
+   * Call postProcessAfterInitialization on all BeanPostProcessors for each
+   * singleton (except BeanPostProcessors themselves).
+   */
+  postProcessAfterInitialization() {
+    if (this.beanPostProcessors.length === 0) return;
+    this.logger.verbose('Post-process after initialization started');
+    const keys = Object.keys(this.components);
+    for (let i = 0; i < keys.length; i++) {
+      const component = this.components[keys[i]];
+      if (component.scope === Scopes.SINGLETON && !(component.instance instanceof BeanPostProcessor)) {
+        for (let j = 0; j < this.beanPostProcessors.length; j++) {
+          const bpp = this.beanPostProcessors[j];
+          const result = bpp.instance.postProcessAfterInitialization(component.instance, component.name);
+          if (result !== undefined && result !== null) {
+            component.instance = result;
+          }
+          this.logger.verbose(`BeanPostProcessor (${bpp.name}) postProcessAfterInitialization called for (${component.name})`);
+        }
+      }
+    }
+    this.logger.verbose('Post-process after initialization completed');
+  }
+
+  /**
+   * Detect singletons with an onApplicationEvent method and subscribe them
+   * to all events via the event publisher.
+   */
+  detectEventListeners() {
+    if (!this.eventPublisher) return;
+    this.logger.verbose('Detecting event listeners started');
+    const keys = Object.keys(this.components);
+    for (let i = 0; i < keys.length; i++) {
+      const component = this.components[keys[i]];
+      if (component.scope === Scopes.SINGLETON
+          && component.instance
+          && typeof component.instance.onApplicationEvent === 'function') {
+        this.eventPublisher.on('*', (event) => component.instance.onApplicationEvent(event));
+        this.logger.verbose(`Registered event listener (${component.name}) via onApplicationEvent convention`);
+      }
+    }
+    this.logger.verbose('Detecting event listeners completed');
+  }
+
+  /**
+   * Publish ContextRefreshedEvent after prepare() completes.
+   */
+  publishContextRefreshedEvent() {
+    if (!this.eventPublisher) return;
+    const event = new ContextRefreshedEvent(this);
+    this.eventPublisher.publish(event);
+    this.logger.verbose(`Published ContextRefreshedEvent for ApplicationContext (${this.name})`);
+  }
+
+  /**
+   * Publish ContextClosedEvent during shutdown.
+   */
+  publishContextClosedEvent() {
+    if (!this.eventPublisher) return;
+    const event = new ContextClosedEvent(this);
+    this.eventPublisher.publish(event);
+    this.logger.verbose(`Published ContextClosedEvent for ApplicationContext (${this.name})`);
   }
 
   async run(options) {
