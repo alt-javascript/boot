@@ -200,6 +200,7 @@ export default class ApplicationContext {
     $component.factoryArgs = component.factoryArgs;
     $component.wireFactory = component.wireFactory;
     $component.constructorArgs = componentArg.constructorArgs || component.constructorArgs;
+    $component.dependsOn = componentArg.dependsOn || component.dependsOn;
     // TODO - dynamic import (async)
     if (component.require) {
       try {
@@ -260,37 +261,58 @@ export default class ApplicationContext {
 
   createSingletons() {
     this.logger.verbose('Creating singletons started');
+    this._creationStack = [];
     const keys = Object.keys(this.components);
     for (let i = 0; i < keys.length; i++) {
       const component = this.components[keys[i]];
       if (component.scope === Scopes.SINGLETON && !component.instance) {
-        if (component.isClass) {
-          if (component.constructorArgs && Array.isArray(component.constructorArgs)) {
-            const resolvedArgs = component.constructorArgs.map((arg) => {
-              if (typeof arg === 'string' && this.components[arg]) {
-                return this.get(arg);
-              }
-              return arg;
-            });
-            component.instance = new component.Reference(...resolvedArgs);
-            this.logger.verbose(`Created singleton (${component.name}) with constructor args [${component.constructorArgs.join(', ')}]`);
-          } else {
-            component.instance = new component.Reference();
-          }
-        } else if (typeof component.factory === 'function') {
-          let args = component.factoryArgs;
-          if (!Array.isArray(args)) {
-            args = [args];
-          }
-          // eslint-disable-next-line new-cap
-          component.instance = new component.factory(...args);
-        } else {
-          component.instance = component.Reference;
-        }
-        this.logger.verbose(`Created singleton (${component.name})`);
+        this._createSingleton(component);
       }
     }
+    this._creationStack = null;
     this.logger.verbose('Creating singletons completed');
+  }
+
+  _createSingleton(component) {
+    // Cycle detection for constructor injection
+    if (this._creationStack.includes(component.name)) {
+      const cycle = [...this._creationStack, component.name].join(' → ');
+      const msg = `Circular dependency detected: ${cycle}`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+    this._creationStack.push(component.name);
+
+    if (component.isClass) {
+      if (component.constructorArgs && Array.isArray(component.constructorArgs)) {
+        const resolvedArgs = component.constructorArgs.map((arg) => {
+          if (typeof arg === 'string' && this.components[arg]) {
+            const dep = this.components[arg];
+            // If dependency is a singleton that hasn't been created yet, create it now
+            if (dep.scope === Scopes.SINGLETON && !dep.instance) {
+              this._createSingleton(dep);
+            }
+            return dep.instance || dep.Reference;
+          }
+          return arg;
+        });
+        component.instance = new component.Reference(...resolvedArgs);
+        this.logger.verbose(`Created singleton (${component.name}) with constructor args [${component.constructorArgs.join(', ')}]`);
+      } else {
+        component.instance = new component.Reference();
+      }
+    } else if (typeof component.factory === 'function') {
+      let args = component.factoryArgs;
+      if (!Array.isArray(args)) {
+        args = [args];
+      }
+      // eslint-disable-next-line new-cap
+      component.instance = new component.factory(...args);
+    } else {
+      component.instance = component.Reference;
+    }
+    this.logger.verbose(`Created singleton (${component.name})`);
+    this._creationStack.pop();
   }
 
   resolveConfigPlaceHolder(placeholderArg) {
@@ -396,25 +418,94 @@ export default class ApplicationContext {
     this.logger.verbose('Injecting singleton dependencies completed');
   }
 
+  /**
+   * Topological sort of singleton components respecting dependsOn declarations.
+   * Components without dependsOn come first (in original order), then
+   * components are ordered so dependencies are initialized before dependents.
+   *
+   * @returns {Array<string>} ordered component names
+   */
+  _topologicalSort() {
+    const keys = Object.keys(this.components).filter(
+      (k) => this.components[k].scope === Scopes.SINGLETON,
+    );
+
+    // Validate dependsOn references exist
+    for (const key of keys) {
+      const deps = this.components[key].dependsOn;
+      if (deps) {
+        const depList = Array.isArray(deps) ? deps : [deps];
+        for (const dep of depList) {
+          if (!this.components[dep]) {
+            const msg = `Component (${key}) dependsOn (${dep}) which does not exist in the context`;
+            this.logger.error(msg);
+            throw new Error(msg);
+          }
+        }
+      }
+    }
+
+    // Build adjacency list
+    const graph = new Map();
+    const inDegree = new Map();
+    for (const key of keys) {
+      graph.set(key, []);
+      inDegree.set(key, 0);
+    }
+    for (const key of keys) {
+      const deps = this.components[key].dependsOn;
+      if (deps) {
+        const depList = Array.isArray(deps) ? deps : [deps];
+        for (const dep of depList) {
+          if (graph.has(dep)) {
+            graph.get(dep).push(key);
+            inDegree.set(key, inDegree.get(key) + 1);
+          }
+        }
+      }
+    }
+
+    // Kahn's algorithm
+    const queue = keys.filter((k) => inDegree.get(k) === 0);
+    const sorted = [];
+    while (queue.length > 0) {
+      const node = queue.shift();
+      sorted.push(node);
+      for (const neighbor of graph.get(node)) {
+        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+        if (inDegree.get(neighbor) === 0) {
+          queue.push(neighbor);
+        }
+      }
+    }
+
+    if (sorted.length !== keys.length) {
+      const remaining = keys.filter((k) => !sorted.includes(k));
+      const msg = `Circular dependsOn detected involving: ${remaining.join(', ')}`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+
+    return sorted;
+  }
+
   initialiseSingletons() {
     this.logger.verbose('Initialising singletons started');
-    const keys = Object.keys(this.components);
-    for (let i = 0; i < keys.length; i++) {
-      const component = this.components[keys[i]];
-      if (component.scope === Scopes.SINGLETON) {
-        // Aware interface: inject ApplicationContext reference
-        if (typeof component.instance?.setApplicationContext === 'function') {
-          component.instance.setApplicationContext(this);
-          this.logger.verbose(`Called setApplicationContext on singleton (${component.name})`);
-        }
-
-        if (typeof component.instance.init === 'function') {
-          component.instance.init();
-        } else if (typeof component.init === 'string') {
-          component.instance[component.init]();
-        }
-        this.logger.verbose(`Initialised singleton (${component.name})`);
+    const orderedKeys = this._topologicalSort();
+    for (let i = 0; i < orderedKeys.length; i++) {
+      const component = this.components[orderedKeys[i]];
+      // Aware interface: inject ApplicationContext reference
+      if (typeof component.instance?.setApplicationContext === 'function') {
+        component.instance.setApplicationContext(this);
+        this.logger.verbose(`Called setApplicationContext on singleton (${component.name})`);
       }
+
+      if (typeof component.instance.init === 'function') {
+        component.instance.init();
+      } else if (typeof component.init === 'string') {
+        component.instance[component.init]();
+      }
+      this.logger.verbose(`Initialised singleton (${component.name})`);
     }
     this.logger.verbose('Initialising singletons completed');
   }
