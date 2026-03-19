@@ -201,6 +201,7 @@ export default class ApplicationContext {
     $component.wireFactory = component.wireFactory;
     $component.constructorArgs = componentArg.constructorArgs || component.constructorArgs;
     $component.dependsOn = componentArg.dependsOn || component.dependsOn;
+    $component.primary = componentArg.primary || component.primary || false;
     // TODO - dynamic import (async)
     if (component.require) {
       try {
@@ -249,6 +250,11 @@ export default class ApplicationContext {
       if (!this.components[$component.name]) {
         this.components[$component.name] = $component;
         this.logger.verbose(`Added application context component (${$component.name}) with ${$component.scope} scope`);
+      } else if ($component.primary && !this.components[$component.name].primary) {
+        this.logger.verbose(`Primary component (${$component.name}) replacing existing non-primary`);
+        this.components[$component.name] = $component;
+      } else if (!$component.primary && this.components[$component.name].primary) {
+        this.logger.verbose(`Skipping non-primary duplicate (${$component.name}), primary already registered`);
       } else {
         const msg = `Duplicate definition of application context component (${$component.name})`;
         this.logger.error(msg);
@@ -530,6 +536,11 @@ export default class ApplicationContext {
       const component = this.components[keys[i]];
       if (component.scope === Scopes.SINGLETON) {
         let destroyer = null;
+        if (typeof component.instance.stop === 'function') {
+          const stopper = () => component.instance.stop(component.instance);
+          ApplicationContext.registerDestroyer(stopper);
+          this.logger.verbose(`Registering singleton (${component.name}) stop lifecycle`);
+        }
         if (typeof component.instance.destroy === 'function') {
           destroyer = () => component.instance.destroy(component.instance);
         } else if (typeof component.destroy === 'string') {
@@ -681,6 +692,13 @@ export default class ApplicationContext {
       for (let i = 0; i < keys.length; i++) {
         const component = this.components[keys[i]];
         if (component.scope === Scopes.SINGLETON) {
+          // Lifecycle interface: start()
+          if (typeof component.instance.start === 'function'
+              && component.instance.start !== this.start) {
+            component.instance.start();
+            this.logger.verbose(`Started lifecycle component (${component.name})`);
+          }
+
           if (typeof component.run === 'string') {
             component.instance[component.run]();
           } else if (typeof component.instance.run === 'function') {
