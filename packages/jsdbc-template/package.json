@@ -27,7 +27,8 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/jsdbc-core": "^1.0.0"
+    "@alt-javascript/jsdbc-core": "^1.0.0",
+    "@alt-javascript/cdi": "3.0.0-alpha.0"
   },
   "devDependencies": {
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
