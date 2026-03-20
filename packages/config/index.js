@@ -7,6 +7,8 @@ export { default as DelegatingConfig } from './DelegatingConfig.js';
 export { default as DelegatingResolver } from './DelegatingResolver.js';
 export { default as EphemeralConfig } from './EphemeralConfig.js';
 export { default as EnvPropertySource } from './EnvPropertySource.js';
+export { default as BrowserProfileResolver } from './BrowserProfileResolver.js';
+export { default as ProfileAwareConfig } from './ProfileAwareConfig.js';
 export { default as JasyptDecryptor } from './JasyptDecryptor.js';
 export { default as ProfileConfigLoader } from './ProfileConfigLoader.js';
 export { default as PropertiesParser } from './PropertiesParser.js';

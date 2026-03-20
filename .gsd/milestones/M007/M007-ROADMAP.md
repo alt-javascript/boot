@@ -49,16 +49,11 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: URL-Based Browser Profiles** `risk:high` `depends:[]`
-  > After this: Browser config resolves URL-to-profile mappings declaratively — `{ profiles: { 'localhost:8080': 'dev', '*.example.com': 'prod' } }` activates profile-specific config sections. Existing `WindowLocationSelectiveConfig` replaced with profile-based approach. Tested in Node with simulated window.location.
-- [ ] **S02: Vue CDN Integration** `risk:medium` `depends:[S01]`
-  > After this: A Vue 3 CDN app boots CDI via `<script type="module">`, wires services as singletons, and bridges CDI beans into Vue's reactive system. Proven by a working Todo app with CDI-managed TodoService.
-- [ ] **S03: CDN-First Framework Coverage** `risk:medium` `depends:[S02]`
-  > After this: Alpine.js and/or Petite-Vue apps demonstrate the same CDI integration pattern — proving it's not Vue-specific but works with any CDN-first framework.
-- [ ] **S04: React Integration** `risk:high` `depends:[S01]`
-  > After this: A React app (Create React App or Vite) integrates CDI services via a `useCdi()` hook or React Context provider. Service layer code is identical to server-side.
-- [ ] **S05: Vue CLI + Angular Integration** `risk:medium` `depends:[S04]`
-  > After this: Vue CLI (Vite) and Angular apps integrate CDI via their respective module systems. Documentation covers all integration patterns.
+- [x] **S01: URL-Based Browser Profiles** `risk:high` `depends:[]`
+- [x] **S02: Vue CDN Integration** `risk:medium` `depends:[S01]`
+- [x] **S03: CDN-First Framework Coverage** `risk:medium` `depends:[S02]`
+- [x] **S04: React Integration** `risk:high` `depends:[S01]`
+- [x] **S05: Vue CLI + Angular Integration** `risk:medium` `depends:[S04]`
 
 ## Boundary Map
 

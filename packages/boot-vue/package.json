@@ -1,0 +1,48 @@
+{
+  "name": "@alt-javascript/boot-vue",
+  "version": "3.0.0-alpha.0",
+  "description": "Vue 3 integration for @alt-javascript boot — bridges CDI services into Vue's reactive system",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
+  "keywords": [
+    "alt-javascript",
+    "vue",
+    "boot",
+    "cdi",
+    "dependency-injection",
+    "reactive"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/cdi": "3.0.0-alpha.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@alt-javascript/boot": "3.0.0-alpha.0",
+    "@alt-javascript/config": "3.0.0-alpha.0",
+    "@alt-javascript/logger": "3.0.0-alpha.0",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "license": "MIT"
+}
