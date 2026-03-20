@@ -15,5 +15,9 @@
     "lint": "npm run lint --workspaces --if-present"
   },
   "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "license": "ISC"
 }

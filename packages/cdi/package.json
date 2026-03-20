@@ -3,6 +3,9 @@
   "version": "3.0.0-alpha.0",
   "description": "Contexts and Dependency Injection for JavaScript",
   "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "keywords": [
     "contexts",
     "dependency",

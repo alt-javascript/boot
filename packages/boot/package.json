@@ -3,6 +3,9 @@
   "version": "3.0.0-alpha.0",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "keywords": [
     "logging",
     "configuration",

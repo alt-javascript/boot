@@ -3,6 +3,9 @@
   "version": "3.0.0-alpha.0",
   "description": "A simple configurable logging facade for javascript.",
   "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "keywords": [
     "log",
     "logger",

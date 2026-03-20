@@ -11,5 +11,9 @@
     "test": "echo 'no tests yet'"
   },
   "license": "ISC",
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "keywords": ["alt-javascript", "common", "shared", "utilities"]
 }
