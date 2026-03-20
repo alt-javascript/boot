@@ -33,6 +33,13 @@ A guide for developers coming from Spring Framework / Spring Boot. This maps Spr
 | `DisposableBean` | `destroy()` method | Convention-based |
 | `InitializingBean` | `init()` method | Convention-based |
 | `Aware` interfaces | `setApplicationContext(ctx)` | Only ApplicationContextAware equivalent |
+| `JdbcTemplate` | `JsdbcTemplate` | Async. `query` → `queryForList`. See [Database Access](database.md) |
+| `NamedParameterJdbcTemplate` | `NamedParameterJsdbcTemplate` | Same `:param` syntax |
+| `DataSource` auto-config | `jsdbcAutoConfiguration()` | Reads `jsdbc.*` config properties |
+| Spring MVC `@Controller` | Controller with `static __routes` | Declarative route metadata. See [HTTP Adapters](http-adapters.md) |
+| `@GetMapping` / `@PostMapping` | `{ method: 'get', path: '/todos', handler: 'list' }` | Objects in `__routes` array |
+| Spring MVC `@RequestBody` | `req.body` | Normalised request object in handler |
+| Spring MVC `@PathVariable` | `req.params` | Normalised request object in handler |
 
 ## What's Similar
 

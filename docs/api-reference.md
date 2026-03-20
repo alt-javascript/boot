@@ -214,3 +214,157 @@ import { detectBrowser, getGlobalRef, getGlobalRoot, isPlainObject } from '@alt-
 | `getGlobalRef()` | Returns `window` or `globalThis` |
 | `getGlobalRoot(key)` | Read from `boot.contexts.root[key]` |
 | `isPlainObject(value)` | Check if value is a plain object |
+
+---
+
+## @alt-javascript/jsdbc-template
+
+```javascript
+import {
+  JsdbcTemplate,
+  NamedParameterJsdbcTemplate,
+  TransactionTemplate,
+  ConfiguredDataSource,
+  jsdbcAutoConfiguration,
+} from '@alt-javascript/jsdbc-template';
+```
+
+| Export | Description |
+|---|---|
+| `JsdbcTemplate(dataSource)` | SQL operations: `execute`, `update`, `queryForList`, `queryForObject`, `queryForMap`, `batchUpdate`, `executeInTransaction` |
+| `NamedParameterJsdbcTemplate(dataSource)` | Named `:param` parameters. Same methods as JsdbcTemplate. |
+| `TransactionTemplate(dataSource)` | Callback-based transaction management |
+| `ConfiguredDataSource` | CDI-aware DataSource that reads `jsdbc.*` config |
+| `jsdbcAutoConfiguration()` | Returns CDI component definitions for DataSource + templates |
+
+---
+
+## @alt-javascript/config (Browser)
+
+```javascript
+import { BrowserProfileResolver, ProfileAwareConfig } from '@alt-javascript/config';
+```
+
+| Export | Description |
+|---|---|
+| `BrowserProfileResolver.resolve(options)` | Resolve active profiles from URL. Options: `{ urlMappings, locationHref, queryParam }` |
+| `new ProfileAwareConfig(configObject, activeProfiles)` | Config wrapper that overlays profile-specific sections onto base config |
+
+---
+
+## HTTP Adapter Packages
+
+All adapters share the controller convention: static `__routes` metadata + normalised `{ params, query, headers, body, ctx }` request.
+
+### @alt-javascript/boot-express
+
+```javascript
+import { expressAutoConfiguration, ExpressAdapter, ControllerRegistrar } from '@alt-javascript/boot-express';
+```
+
+| Export | Description |
+|---|---|
+| `expressAutoConfiguration()` | CDI component definitions for Express adapter |
+| `ExpressAdapter` | Creates Express app, registers routes, starts listening |
+| `ControllerRegistrar` | Scans CDI beans for `__routes` and binds to Express router |
+
+### @alt-javascript/boot-fastify
+
+```javascript
+import { fastifyAutoConfiguration, FastifyAdapter } from '@alt-javascript/boot-fastify';
+```
+
+### @alt-javascript/boot-koa
+
+```javascript
+import { koaAutoConfiguration, KoaAdapter, KoaControllerRegistrar } from '@alt-javascript/boot-koa';
+```
+
+### @alt-javascript/boot-hono
+
+```javascript
+import { honoAutoConfiguration, HonoAdapter, HonoControllerRegistrar } from '@alt-javascript/boot-hono';
+```
+
+### @alt-javascript/boot-lambda
+
+```javascript
+import { createLambdaHandler, lambdaAutoConfiguration, LambdaControllerRegistrar } from '@alt-javascript/boot-lambda';
+```
+
+| Export | Description |
+|---|---|
+| `createLambdaHandler(options)` | Standalone handler function. Boots CDI on cold start, reuses on warm. |
+| `lambdaAutoConfiguration()` | CDI component definitions for Lambda adapter |
+| `LambdaControllerRegistrar` | Scans routes, auto-converts `:param` → `{param}` |
+
+### @alt-javascript/boot-cloudflare-worker
+
+```javascript
+import { createWorkerHandler, cloudflareWorkerAutoConfiguration } from '@alt-javascript/boot-cloudflare-worker';
+```
+
+| Export | Description |
+|---|---|
+| `createWorkerHandler(options)` | Returns a `fetch(request, env, ctx)` handler |
+| `cloudflareWorkerAutoConfiguration()` | CDI component definitions |
+
+### @alt-javascript/boot-azure-function
+
+```javascript
+import { createAzureFunctionHandler, azureFunctionAutoConfiguration } from '@alt-javascript/boot-azure-function';
+```
+
+| Export | Description |
+|---|---|
+| `createAzureFunctionHandler(options)` | Returns a handler producing `{ status, jsonBody, headers }` |
+| `azureFunctionAutoConfiguration()` | CDI component definitions |
+
+---
+
+## Frontend Adapter Packages
+
+### @alt-javascript/boot-vue
+
+```javascript
+import { createCdiApp, cdiPlugin, getBean } from '@alt-javascript/boot-vue';
+```
+
+| Export | Description |
+|---|---|
+| `createCdiApp(options)` | Boot CDI + create Vue app. Options: `{ contexts, config, rootComponent, createApp, onReady }` |
+| `cdiPlugin` | Vue plugin: `app.use(cdiPlugin, { contexts, config })` |
+| `getBean(ctx, name)` | Resolve a CDI bean outside Vue's inject system |
+
+### @alt-javascript/boot-alpine
+
+```javascript
+import { bootAlpine } from '@alt-javascript/boot-alpine';
+```
+
+| Export | Description |
+|---|---|
+| `bootAlpine(options)` | Boot CDI + register as Alpine store. Options: `{ contexts, config, Alpine, storeName }` |
+
+### @alt-javascript/boot-react
+
+```javascript
+import { bootCdi, bootCdiHeadless } from '@alt-javascript/boot-react';
+```
+
+| Export | Description |
+|---|---|
+| `bootCdi(options)` | Returns `{ CdiProvider, useCdi, useBean, getBean, applicationContext }`. Options: `{ contexts, config, React }` |
+| `bootCdiHeadless(options)` | Returns booted `ApplicationContext` without React |
+
+### @alt-javascript/boot-angular
+
+```javascript
+import { createCdiProviders, createCdiProvidersWithService, CdiService } from '@alt-javascript/boot-angular';
+```
+
+| Export | Description |
+|---|---|
+| `createCdiProviders(options)` | Returns `{ applicationContext, providers }` — Angular `{ provide, useValue }[]` |
+| `createCdiProvidersWithService(options)` | Same + adds a `CdiService` provider for dynamic lookup |
+| `CdiService` | `getBean(name)` + `applicationContext` accessor |

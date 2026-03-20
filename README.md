@@ -100,6 +100,9 @@ console.log(appCtx.get('userRepository').findAll()); // [{ name: 'Craig' }]
 - **[Configuration](docs/configuration.md)** — Property sources, profiles, environment variables
 - **[Lifecycle & Events](docs/lifecycle.md)** — init/start/run/stop/destroy, BeanPostProcessor
 - **[Advanced Features](docs/advanced.md)** — AOP, auto-discovery, conditional beans, primary beans
+- **[Database Access](docs/database.md)** — JsdbcTemplate, named parameters, auto-configuration
+- **[HTTP Adapters](docs/http-adapters.md)** — Express, Fastify, Koa, Hono, Lambda, Cloudflare Workers, Azure Functions
+- **[Frontend Integration](docs/frontend-integration.md)** — Vue, Alpine, React, Angular + browser profiles
 - **[Browser Usage](docs/browser.md)** — ESM imports, CDN, import maps
 - **[Spring Comparison](docs/spring-comparison.md)** — Conceptual migration guide
 - **[API Reference](docs/api-reference.md)** — All exports, all packages
