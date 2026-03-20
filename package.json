@@ -16,6 +16,10 @@
     "test:express": "npm test -w packages/boot-express",
     "test:fastify": "npm test -w packages/boot-fastify",
     "test:lambda": "npm test -w packages/boot-lambda",
+    "test:koa": "npm test -w packages/boot-koa",
+    "test:hono": "npm test -w packages/boot-hono",
+    "test:cloudflare": "npm test -w packages/boot-cloudflare-worker",
+    "test:azure": "npm test -w packages/boot-azure-function",
     "lint": "npm run lint --workspaces --if-present"
   },
   "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",

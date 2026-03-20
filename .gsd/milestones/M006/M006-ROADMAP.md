@@ -56,6 +56,14 @@ This milestone is complete only when all are true:
   > After this: Two working example applications (Express + Fastify) serve JSDBC-backed REST endpoints, demonstrating the full stack: boot → config → CDI → JSDBC → HTTP — verified by running the apps and hitting endpoints
 - [x] **S04: AWS Lambda Adapter** `risk:medium` `depends:[S01]`
   > After this: Same service layer runs serverless on AWS Lambda, CDI boots once on cold start, API Gateway HTTP API v2 events dispatch to controller methods via __routes — proven by direct handler invocation tests + JSDBC integration
+- [x] **S05: Koa Adapter** `risk:low` `depends:[S01]`
+  > After this: Same service layer runs behind Koa (Express team's async successor) — proven by tests using supertest against Koa's callback()
+- [x] **S06: Hono Adapter** `risk:medium` `depends:[S01]`
+  > After this: Same service layer runs behind Hono (Web Standards Request/Response API) — proven by tests using Hono's app.request() test helper
+- [x] **S07: Cloudflare Workers Adapter** `risk:low` `depends:[S04]`
+  > After this: Same service layer runs on Cloudflare Workers — proven by simulating the fetch(request, env, ctx) handler shape with CDI-managed services
+- [x] **S08: Azure Functions Adapter** `risk:low` `depends:[S04]`
+  > After this: Same service layer runs on Azure Functions v4 — proven by simulating the (request, context) handler shape with CDI-managed services
 
 ## Boundary Map
 
