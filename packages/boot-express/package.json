@@ -1,0 +1,43 @@
+{
+  "name": "@alt-javascript/boot-express",
+  "version": "3.0.0-alpha.0",
+  "description": "Express adapter for @alt-javascript boot — CDI-managed Express with controller auto-registration",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
+  "keywords": [
+    "alt-javascript",
+    "express",
+    "boot",
+    "cdi",
+    "dependency-injection",
+    "controller",
+    "mvc"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/cdi": "3.0.0-alpha.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@alt-javascript/boot": "3.0.0-alpha.0",
+    "@alt-javascript/config": "3.0.0-alpha.0",
+    "@alt-javascript/logger": "3.0.0-alpha.0",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5",
+    "supertest": "^7.0.0"
+  },
+  "license": "MIT"
+}

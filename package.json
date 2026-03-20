@@ -13,6 +13,7 @@
     "test:config": "npm test -w packages/config",
     "test:logger": "npm test -w packages/logger",
     "test:jsdbc-template": "npm test -w packages/jsdbc-template",
+    "test:express": "npm test -w packages/boot-express",
     "lint": "npm run lint --workspaces --if-present"
   },
   "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",
