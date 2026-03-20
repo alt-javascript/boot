@@ -48,12 +48,14 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Express Adapter + Controller Convention** `risk:high` `depends:[]`
+- [x] **S01: Express Adapter + Controller Convention** `risk:high` `depends:[]`
   > After this: An Express app boots via ApplicationContext with CDI-managed services, route handlers access beans, controllers auto-register routes — proven by tests using supertest
-- [ ] **S02: Fastify Adapter** `risk:medium` `depends:[S01]`
+- [x] **S02: Fastify Adapter** `risk:medium` `depends:[S01]`
   > After this: The same service layer from S01 runs behind Fastify with a different adapter — proven by tests using fastify.inject()
-- [ ] **S03: Example Apps + JSDBC Integration** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Example Apps + JSDBC Integration** `risk:low` `depends:[S01,S02]`
   > After this: Two working example applications (Express + Fastify) serve JSDBC-backed REST endpoints, demonstrating the full stack: boot → config → CDI → JSDBC → HTTP — verified by running the apps and hitting endpoints
+- [x] **S04: AWS Lambda Adapter** `risk:medium` `depends:[S01]`
+  > After this: Same service layer runs serverless on AWS Lambda, CDI boots once on cold start, API Gateway HTTP API v2 events dispatch to controller methods via __routes — proven by direct handler invocation tests + JSDBC integration
 
 ## Boundary Map
 
