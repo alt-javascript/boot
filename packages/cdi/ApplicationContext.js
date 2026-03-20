@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import { LoggerFactory } from '@alt-javascript/logger';
 import { ConfigFactory } from '@alt-javascript/config';
-import { getGlobalRoot } from '@alt-javascript/common';
+import { getGlobalRoot, detectBrowser } from '@alt-javascript/common';
 import {
   Context, Component, Property, Scopes,
 } from './context/index.js';
@@ -114,6 +114,7 @@ export default class ApplicationContext {
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
+    await this.printBanner();
     this.registerEventPublisher();
     this.createSingletons();
     this.injectSingletonDependencies();
@@ -125,6 +126,55 @@ export default class ApplicationContext {
     this.registerSingletonDestroyers();
     this.publishContextRefreshedEvent();
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
+  }
+
+  /**
+   * Print a startup banner from `banner.md` in the working directory.
+   *
+   * Controlled by config key `boot.banner-mode`:
+   * - `console` (default) — print to stdout via console.log
+   * - `log` — print via the context logger (info level)
+   * - `off` — skip banner entirely
+   *
+   * Silently skips if `banner.md` is not found or if running in a browser.
+   */
+  async printBanner() {
+    const mode = this.config.has('boot.banner-mode')
+      ? this.config.get('boot.banner-mode')
+      : 'console';
+
+    if (mode === 'off') {
+      this.logger.verbose('Banner mode is off, skipping.');
+      return;
+    }
+
+    // Browser — no filesystem access
+    if (detectBrowser()) {
+      this.logger.verbose('Browser environment detected, skipping banner.');
+      return;
+    }
+
+    try {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const bannerPath = path.default.resolve(process.cwd(), 'banner.md');
+
+      if (!fs.default.existsSync(bannerPath)) {
+        this.logger.verbose('No banner.md found in working directory, skipping.');
+        return;
+      }
+
+      const banner = fs.default.readFileSync(bannerPath, 'utf8');
+
+      if (mode === 'log') {
+        this.logger.info(banner);
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(banner);
+      }
+    } catch (err) {
+      this.logger.verbose(`Failed to read banner.md: ${err.message}`);
+    }
   }
 
   /** Detect and load context component definitions from the config object. */
