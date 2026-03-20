@@ -1,5 +1,9 @@
 # @alt-javascript
 
+[![Language](https://img.shields.io/badge/language-JavaScript-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
+
 A Spring-inspired IoC / DI application framework for pure JavaScript.
 
 Dependency injection, hierarchical configuration, structured logging, lifecycle management, events, AOP — all in ES modules that run identically in Node.js and the browser, with no TypeScript and no build step required.
@@ -52,36 +56,65 @@ console.log(appCtx.get('userRepository').findAll()); // [{ name: 'Craig' }]
 
 ## Packages
 
+### Core
+
 | Package | Purpose |
 |---|---|
-| [`@alt-javascript/boot`](packages/boot) | Application bootstrap — detects environment, resolves config, initialises global context |
-| [`@alt-javascript/cdi`](packages/cdi) | IoC container — component definitions, autowiring, lifecycle, events, AOP, conditions |
-| [`@alt-javascript/config`](packages/config) | Hierarchical configuration — profiles, property sources, placeholder resolution, env binding |
-| [`@alt-javascript/logger`](packages/logger) | Pluggable logging — config-driven levels, category caching, console/Winston/multi backends |
+| [`@alt-javascript/boot`](packages/boot) | Application bootstrap — environment detection, config resolution, global context |
+| [`@alt-javascript/cdi`](packages/cdi) | IoC container — components, autowiring, lifecycle, events, AOP, conditions |
+| [`@alt-javascript/config`](packages/config) | Hierarchical config — profiles, property sources, placeholder resolution |
+| [`@alt-javascript/logger`](packages/logger) | Pluggable logging — config-driven levels, category caching, console/Winston |
 | [`@alt-javascript/common`](packages/common) | Shared kernel — environment detection, global reference resolution |
+
+### Database
+
+| Package | Purpose |
+|---|---|
+| [`@alt-javascript/jsdbc-template`](packages/jsdbc-template) | JsdbcTemplate + NamedParameterJsdbcTemplate — CDI-managed database access |
+
+### HTTP Adapters
+
+| Package | Purpose |
+|---|---|
+| [`@alt-javascript/boot-express`](packages/boot-express) | Express adapter with ControllerRegistrar |
+| [`@alt-javascript/boot-fastify`](packages/boot-fastify) | Fastify adapter |
+| [`@alt-javascript/boot-koa`](packages/boot-koa) | Koa adapter with built-in JSON body parser |
+| [`@alt-javascript/boot-hono`](packages/boot-hono) | Hono adapter (Web Standards API) |
+| [`@alt-javascript/boot-lambda`](packages/boot-lambda) | AWS Lambda adapter (API Gateway HTTP API v2) |
+| [`@alt-javascript/boot-cloudflare-worker`](packages/boot-cloudflare-worker) | Cloudflare Workers adapter |
+| [`@alt-javascript/boot-azure-function`](packages/boot-azure-function) | Azure Functions adapter |
+
+### Frontend Adapters
+
+| Package | Purpose |
+|---|---|
+| [`@alt-javascript/boot-vue`](packages/boot-vue) | Vue 3 integration — CDI services via provide/inject |
+| [`@alt-javascript/boot-alpine`](packages/boot-alpine) | Alpine.js integration — CDI services via Alpine.store |
+| [`@alt-javascript/boot-react`](packages/boot-react) | React integration — CdiProvider, useCdi, useBean hooks |
+| [`@alt-javascript/boot-angular`](packages/boot-angular) | Angular integration — CDI beans as Angular providers |
 
 ## Documentation
 
-- **[Getting Started](docs/getting-started.md)** — Tutorial: build a working app from scratch
-- **[Dependency Injection](docs/dependency-injection.md)** — Contexts, components, scopes, autowiring, constructor injection
-- **[Configuration](docs/configuration.md)** — Property sources, profiles, .properties format, environment variables
-- **[Lifecycle & Events](docs/lifecycle.md)** — init/start/run/stop/destroy, application events, BeanPostProcessor
-- **[Advanced Features](docs/advanced.md)** — AOP, auto-discovery, conditional beans, primary beans, dependsOn
+- **[Getting Started](docs/getting-started.md)** — Build a working app from scratch
+- **[Dependency Injection](docs/dependency-injection.md)** — Contexts, components, scopes, autowiring
+- **[Configuration](docs/configuration.md)** — Property sources, profiles, environment variables
+- **[Lifecycle & Events](docs/lifecycle.md)** — init/start/run/stop/destroy, BeanPostProcessor
+- **[Advanced Features](docs/advanced.md)** — AOP, auto-discovery, conditional beans, primary beans
 - **[Browser Usage](docs/browser.md)** — ESM imports, CDN, import maps
-- **[Spring Comparison](docs/spring-comparison.md)** — What's similar, what's different, conceptual migration guide
+- **[Spring Comparison](docs/spring-comparison.md)** — Conceptual migration guide
 - **[API Reference](docs/api-reference.md)** — All exports, all packages
 - **[Decisions](decisions/)** — Architecture Decision Records (MADR format)
 
 ## Design Principles
 
-**Pure JavaScript.** No TypeScript. No decorators. No transpilation. Every source file is a standard ES module that Node.js and browsers execute directly. This is an ideological choice — see [ADR-002](decisions/002-pure-javascript.md).
+**Pure JavaScript.** No TypeScript. No decorators. No transpilation. Every source file is a standard ES module that Node.js and browsers execute directly.
 
-**Isomorphic.** The same code runs in Node.js and as `<script type="module">` in the browser. No polyfills, no bundler, no conditional compilation. Browser builds are flat ESM bundles importable via CDN.
+**Isomorphic.** The same code runs in Node.js and as `<script type="module">` in the browser. No polyfills, no bundler, no conditional compilation.
 
-**Spring-inspired, not Spring-cloned.** The patterns (IoC, DI, lifecycle, events, AOP, profiles, externalized config) come from Spring. The implementation is idiomatic JavaScript where it can be, idiosyncratic where it must be. See the [Spring Comparison](docs/spring-comparison.md) for the full mapping.
+**Spring-inspired, not Spring-cloned.** The patterns come from Spring. The implementation is idiomatic JavaScript.
 
-**Convention over configuration.** Autowiring matches null properties to component names. Profile activation via `NODE_ACTIVE_PROFILES`. Config file discovery follows `application-{profile}.{json,yaml,properties}` convention.
+**Convention over configuration.** Autowiring by name. Profile activation via `NODE_ACTIVE_PROFILES`. Config file discovery follows `application-{profile}.{json,yaml,properties}`.
 
 ## License
 
-MIT
+MIT — Copyright (c) 2021-2026 Craig Parravicini

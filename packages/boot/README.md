@@ -1,8 +1,13 @@
 # @alt-javascript/boot
 
+[![Language](https://img.shields.io/badge/language-JavaScript-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![npm version](https://img.shields.io/npm/v/%40alt-javascript%2Fboot)](https://www.npmjs.com/package/@alt-javascript/boot)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
+
 Application bootstrap for the `@alt-javascript` framework. Detects the runtime environment (Node.js or browser), resolves configuration, and initialises the global boot context that logging and other packages depend on.
 
-**Part of the [@alt-javascript](https://github.com/nickg-alt/altjs) monorepo.**
+**Part of the [@alt-javascript](https://github.com/alt-javascript/boot) monorepo.**
 
 ## Install
 

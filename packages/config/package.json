@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/config",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0",
   "description": "An extensible wrapper of the popular config package, supporting placeholder resolution, encrypted values and url fetch.",
   "author": "Craig Parravicini",
   "contributors": [
@@ -29,13 +29,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.0-alpha.0",
+    "@alt-javascript/common": "3.0.0",
     "@alt-javascript/jasypt": "^1.0.0",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.0-alpha.0",
-    "@alt-javascript/logger": "3.0.0-alpha.0",
+    "@alt-javascript/boot": "3.0.0",
+    "@alt-javascript/logger": "3.0.0",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "config": "^4.4.1",
@@ -44,5 +44,17 @@
     "eslint-plugin-import": "^2.23.4",
     "mocha": "^11.7.5",
     "node-fetch": "^2.6.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/config"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/config#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

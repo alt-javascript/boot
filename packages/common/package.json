@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/common",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -10,10 +10,27 @@
   "scripts": {
     "test": "echo 'no tests yet'"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "Craig Parravicini",
   "contributors": [
     "Claude (Anthropic)"
   ],
-  "keywords": ["alt-javascript", "common", "shared", "utilities"]
+  "keywords": [
+    "alt-javascript",
+    "common",
+    "shared",
+    "utilities"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/common"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/common#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-vue",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0",
   "description": "Vue 3 integration for @alt-javascript boot — bridges CDI services into Vue's reactive system",
   "type": "module",
   "main": "index.js",
@@ -27,7 +27,7 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.0-alpha.0"
+    "@alt-javascript/cdi": "3.0.0"
   },
   "peerDependencies": {
     "vue": "^3.0.0"
@@ -38,11 +38,23 @@
     }
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.0-alpha.0",
-    "@alt-javascript/config": "3.0.0-alpha.0",
-    "@alt-javascript/logger": "3.0.0-alpha.0",
+    "@alt-javascript/boot": "3.0.0",
+    "@alt-javascript/config": "3.0.0",
+    "@alt-javascript/logger": "3.0.0",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/boot-vue"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/boot-vue#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

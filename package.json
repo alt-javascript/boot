@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/altjs",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -27,5 +27,16 @@
   "contributors": [
     "Claude (Anthropic)"
   ],
-  "license": "ISC"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/.git"
+  },
+  "homepage": "https://github.com/#readme",
+  "bugs": {
+    "url": "https://github.com//issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

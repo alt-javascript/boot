@@ -1,8 +1,13 @@
 # @alt-javascript/config
 
+[![Language](https://img.shields.io/badge/language-JavaScript-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![npm version](https://img.shields.io/npm/v/%40alt-javascript%2Fconfig)](https://www.npmjs.com/package/@alt-javascript/config)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
+
 Hierarchical, profile-aware configuration for the `@alt-javascript` framework. Supports JSON, YAML, and Java `.properties` files, environment variable binding, placeholder resolution, and layered property sources with Spring Boot-aligned precedence.
 
-**Part of the [@alt-javascript](https://github.com/nickg-alt/altjs) monorepo.**
+**Part of the [@alt-javascript](https://github.com/alt-javascript/boot) monorepo.**
 
 ## Install
 
