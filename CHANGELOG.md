@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.0.1 — 2026-03-21
+
+### Bug fixes
+
+- **Browser ESM dist bundles now published.** All five browser-facing packages (`common`, `config`,
+  `logger`, `cdi`, `boot`) now build and publish pre-built ESM bundles to `dist/`. The 3.0.0
+  release shipped without running the rollup build, so `dist/` was absent from every published
+  package and CDN/no-build usage was broken. See [Browser Usage](docs/browser.md).
+
+- **`@alt-javascript/common` now published.** This package existed in the monorepo at 3.0.0 but
+  was never actually published to npm. All dependent packages now resolve correctly.
+
+- **`Application-browser.js` fixed.** The dynamic `import('@alt-javascript/cdi/ApplicationContext')`
+  in the browser entry point was not destructuring the module default, causing `new ApplicationContext()`
+  to fail when calling `Application.run()` without a pre-built context. Replaced with a static import.
+
+- **CI build step added.** The npm publish workflow now runs `npm run build` before
+  `npm publish --workspaces`, so dist bundles are always present at publish time.
+
+### Documentation
+
+- **[Browser Usage](docs/browser.md)** rewritten. Covers CDN usage with pre-built ESM bundles
+  (the recommended no-build path), the CDN bundle URL table, import map requirements, browser
+  compatibility, local-install-with-import-map as an alternative, and a browser limitations
+  reference table.
+
 ## 3.0.0 — 2026-03-18
 
 Complete rewrite as a monorepo with 17 packages. Breaking changes from v2.x.
