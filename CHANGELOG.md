@@ -1,12 +1,8 @@
 # Changelog
 
-## 3.0.2 — 2026-03-21
+## 3.0.3 — 2026-03-21
 
 ### Bug fixes
-
-- **`@alt-javascript/common` publishConfig missing.** The package was missing
-  `"publishConfig": { "access": "public" }`, causing npm to reject the publish with a 402
-  Payment Required error. Added to match all other scoped packages in the monorepo.
 
 - **`Context`, `Singleton`, `Prototype`, `Service`, `Transient`, `Property`, `Scopes`
   re-exported from `@alt-javascript/cdi` main entry.** These helpers were only accessible via
@@ -28,6 +24,14 @@
 - **`@alt-javascript/boot-vue` ESM dist bundle.** `boot-vue` now builds and publishes
   `dist/alt-javascript-boot-vue-esm.js`. CDN usage of `createCdiApp` and `cdiPlugin` works
   without a bundler.
+
+## 3.0.2 — 2026-03-21
+
+### Bug fixes
+
+- **`@alt-javascript/common` publishConfig missing.** The package was missing
+  `"publishConfig": { "access": "public" }`, causing npm to reject the publish with a 402
+  Payment Required error. Added to match all other scoped packages in the monorepo.
 
 ## 3.0.1 — 2026-03-21
 

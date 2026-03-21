@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-alpine",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Alpine.js integration for @alt-javascript boot \u2014 CDI services accessible from Alpine components",
   "type": "module",
   "main": "index.js",
@@ -27,12 +27,12 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.2"
+    "@alt-javascript/cdi": "3.0.3"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.2",
-    "@alt-javascript/config": "3.0.2",
-    "@alt-javascript/logger": "3.0.2",
+    "@alt-javascript/boot": "3.0.3",
+    "@alt-javascript/config": "3.0.3",
+    "@alt-javascript/logger": "3.0.3",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },
