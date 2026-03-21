@@ -24,6 +24,8 @@
     "access": "public"
   },
   "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "prepublishOnly": "npm run build",
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
@@ -56,5 +58,9 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "files": [
+    "index.js",
+    "dist/"
+  ]
 }

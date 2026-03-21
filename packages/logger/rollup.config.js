@@ -4,7 +4,7 @@ import esmImportToUrl from 'rollup-plugin-esm-import-to-url';
 export default [
   // Monolithic ESM bundle for browser module implementation.
   {
-    input: 'index.js',
+    input: 'browser/index.js',
     treeshake: true,
     plugins: [esmImportToUrl({
       imports: {
@@ -23,7 +23,7 @@ export default [
   },
   // IIFE bundle for browsers global import.
   {
-    input: 'LoggerFactory.js',
+    input: 'browser/index.js',
     treeshake: true,
     plugins: [esmImportToUrl({
       imports: {

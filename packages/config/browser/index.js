@@ -10,4 +10,6 @@ export { default as SelectiveResolver } from '../SelectiveResolver.js';
 export { default as Selector } from '../Selector.js';
 export { default as URLResolver } from '../URLResolver.js';
 export { default as ValueResolvingConfig } from '../ValueResolvingConfig.js';
+export { default as ProfileAwareConfig } from '../ProfileAwareConfig.js';
+export { default as BrowserProfileResolver } from '../BrowserProfileResolver.js';
 export { default as ConfigFactory } from './ConfigFactory.js';

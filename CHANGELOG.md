@@ -8,6 +8,27 @@
   `"publishConfig": { "access": "public" }`, causing npm to reject the publish with a 402
   Payment Required error. Added to match all other scoped packages in the monorepo.
 
+- **`Context`, `Singleton`, `Prototype`, `Service`, `Transient`, `Property`, `Scopes`
+  re-exported from `@alt-javascript/cdi` main entry.** These helpers were only accessible via
+  the deep import `@alt-javascript/cdi/context/index.js`, which doesn't resolve from a CDN URL.
+  They are now exported from `cdi/index.js` and included in the ESM bundle, so CDN users can
+  write `new Context([new Singleton(MyService)])` directly.
+
+- **`ProfileAwareConfig` and `BrowserProfileResolver` added to the config browser bundle.**
+  Both classes were omitted from `config/browser/index.js` despite being entirely browser-safe.
+  The config ESM bundle now includes them, enabling the v3 profile pattern from CDN.
+
+- **Logger browser bundle excludes Node.js-only classes.** The logger rollup previously used
+  `index.js` as its entry point, pulling `WinstonLogger`, `WinstonLoggerFactory`,
+  `CachingLoggerFactory`, `CachingConsole`, and `MultiLogger` into the browser bundle.
+  A new `browser/index.js` entry exports only the browser-safe subset.
+
+### New
+
+- **`@alt-javascript/boot-vue` ESM dist bundle.** `boot-vue` now builds and publishes
+  `dist/alt-javascript-boot-vue-esm.js`. CDN usage of `createCdiApp` and `cdiPlugin` works
+  without a bundler.
+
 ## 3.0.1 — 2026-03-21
 
 ### Bug fixes

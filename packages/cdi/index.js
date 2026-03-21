@@ -29,3 +29,13 @@ export {
   createProxy,
   matchMethod,
 } from './Aop.js';
+export {
+  Context,
+  Component,
+  Property,
+  Prototype,
+  Scopes,
+  Singleton,
+  Service,
+  Transient,
+} from './context/index.js';

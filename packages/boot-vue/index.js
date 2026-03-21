@@ -21,8 +21,7 @@
  *   const todoService = inject('todoService');
  *   const ctx = inject('applicationContext');
  */
-import { ApplicationContext } from '@alt-javascript/cdi';
-import { Context } from '@alt-javascript/cdi/context/index.js';
+import { ApplicationContext, Context } from '@alt-javascript/cdi';
 
 /**
  * Boot CDI and create a Vue app with all singletons provided.

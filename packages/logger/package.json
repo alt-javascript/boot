@@ -23,6 +23,7 @@
   "type": "module",
   "files": [
     "*.js",
+    "browser/",
     "dist/"
   ],
   "scripts": {
