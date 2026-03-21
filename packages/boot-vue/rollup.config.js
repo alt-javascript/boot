@@ -7,6 +7,7 @@ export default [
     treeshake: true,
     plugins: [esmImportToUrl({
       imports: {
+        '@alt-javascript/boot': 'https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3/dist/alt-javascript-boot-esm.js',
         '@alt-javascript/cdi': 'https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3/dist/alt-javascript-cdi-esm.js',
       },
     })],

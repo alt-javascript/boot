@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-angular",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Angular integration for @alt-javascript boot \u2014 CDI services as Angular injection tokens",
   "type": "module",
   "main": "index.js",
@@ -26,12 +26,12 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.3"
+    "@alt-javascript/cdi": "3.0.4"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.3",
-    "@alt-javascript/config": "3.0.3",
-    "@alt-javascript/logger": "3.0.3",
+    "@alt-javascript/boot": "3.0.4",
+    "@alt-javascript/config": "3.0.4",
+    "@alt-javascript/logger": "3.0.4",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },

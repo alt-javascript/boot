@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-fastify",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Fastify adapter for @alt-javascript boot \u2014 CDI-managed Fastify with controller auto-registration",
   "type": "module",
   "main": "index.js",
@@ -28,15 +28,15 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.3",
+    "@alt-javascript/cdi": "3.0.4",
     "fastify": "^5.0.0"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.3",
-    "@alt-javascript/config": "3.0.3",
-    "@alt-javascript/jsdbc-template": "3.0.3",
+    "@alt-javascript/boot": "3.0.4",
+    "@alt-javascript/config": "3.0.4",
+    "@alt-javascript/jsdbc-template": "3.0.4",
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
-    "@alt-javascript/logger": "3.0.3",
+    "@alt-javascript/logger": "3.0.4",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },

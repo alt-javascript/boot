@@ -1,4 +1,4 @@
-import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config';
+import { ValueResolvingConfig, EphemeralConfig, ConfigFactory, PropertySourceChain } from '@alt-javascript/config';
 import {
   CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
 } from '@alt-javascript/logger';
@@ -44,7 +44,10 @@ export default class Boot {
     $config = configArg || $config;
 
     if ($config) {
-      if (!($config instanceof ValueResolvingConfig) && ($config.constructor?.name !== 'ValueResolvingConfig')) {
+      // Duck-type: pass through anything that already implements the config interface
+      // (ValueResolvingConfig, ProfileAwareConfig, EphemeralConfig, etc.).
+      // Only wrap plain POJOs that lack has()/get().
+      if (typeof $config.has !== 'function' || typeof $config.get !== 'function') {
         if (browser) {
           $config = ConfigFactory.getConfig(new EphemeralConfig($config));
         } else {
@@ -64,7 +67,7 @@ export default class Boot {
    */
   static boot(context) {
     const loggerFactoryArg = context && context.loggerFactory;
-    const loggerCategoryCacheArg = context && context.loggerFactory;
+    const loggerCategoryCacheArg = context && context.loggerCategoryCache;
     const fetchArg = context && context.fetch;
 
     const browser = detectBrowser();
@@ -76,7 +79,7 @@ export default class Boot {
       $loggerCategoryCache = loggerCategoryCacheArg;
     }
     if (browser && window?.loggerCategoryCache) {
-      $config = window.loggerCategoryCache;
+      $loggerCategoryCache = window.loggerCategoryCache;
     }
 
     $loggerCategoryCache = $loggerCategoryCache
@@ -107,18 +110,22 @@ export default class Boot {
   }
 
   /**
-   * Test bootstrap — uses CachingLoggerFactory to suppress log output during tests.
+   * Test bootstrap — uses CachingLoggerFactory to suppress log output during tests,
+   * and suppresses the startup banner via a high-priority config overlay.
    * Respects config key `logging.test.fixtures.quiet` (default: true).
    * @param {object} [context] - { config }
    */
   static test(context) {
     const $config = Boot.detectConfig(context);
+    // Overlay forces banner off in all tests without mutating the caller's config
+    const testOverlay = new EphemeralConfig({ boot: { 'banner-mode': 'off' } });
+    const $testConfig = new PropertySourceChain([testOverlay, $config]);
     const loggerCategoryCache = new LoggerCategoryCache();
-    const cachingLoggerFactory = new CachingLoggerFactory($config, loggerCategoryCache);
+    const cachingLoggerFactory = new CachingLoggerFactory($testConfig, loggerCategoryCache);
     if ($config.get('logging.test.fixtures.quiet', true)) {
-      Boot.boot({ config: $config, loggerFactory: cachingLoggerFactory, loggerCategoryCache });
+      Boot.boot({ config: $testConfig, loggerFactory: cachingLoggerFactory, loggerCategoryCache });
     } else {
-      Boot.boot({ config: $config });
+      Boot.boot({ config: $testConfig });
     }
   }
 

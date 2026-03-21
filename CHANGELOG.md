@@ -1,5 +1,44 @@
 # Changelog
 
+## 3.0.4 — 2026-03-21
+
+### Bug fixes
+
+- **Duck-type config check in `Boot.detectConfig()`.** Replaced `instanceof ValueResolvingConfig`
+  guard with a `has()`/`get()` interface check, so `ProfileAwareConfig`, `EphemeralConfig`, and
+  any future config types pass through without being unnecessarily wrapped.
+
+- **`Boot.boot()` copy-paste bug: `loggerCategoryCacheArg`.** Assignment read
+  `context.loggerFactory` instead of `context.loggerCategoryCache`, so the logger category cache
+  was never passed through to the boot context.
+
+- **`Boot.boot()` assignment bug: `$loggerCategoryCache`.** `$config` was incorrectly assigned
+  `window.loggerCategoryCache` instead of `$loggerCategoryCache`.
+
+- **`@alt-javascript/boot-vue` — `Boot.boot()` not called before `ApplicationContext`.** The
+  Vue integration was creating `ApplicationContext` without first calling `Boot.boot({ config })`,
+  so the global root was never populated and component wiring failed in CDN/no-build usage.
+
+### New
+
+- **Startup banner inlined into `ApplicationContext`.** The banner is now a string constant
+  inside `ApplicationContext.js` — no filesystem access, no async I/O. Works in browser and
+  Node without modification. Controlled by `boot.banner-mode`:
+  - `console` (default, matches Spring Boot behaviour) — prints to stdout via `console.log`
+  - `log` — routes through the configured `@alt-javascript/logger` at `info` level
+  - `off` — suppressed entirely
+
+- **Banner version resolved at runtime.** The version line (`@alt-javascript/boot :: x.y.z`) is
+  read from `package.json` at startup using `createRequire(import.meta.url)` — no hardcoded
+  version string. Works from both the source tree and the `dist/` bundle (tries `./package.json`,
+  falls back to `../package.json`). In browser environments the version shows as `(browser)` since
+  `createRequire` is unavailable there.
+
+- **Banner suppressed in test mode.** `Boot.test()` injects `banner-mode: off` via a
+  `PropertySourceChain` overlay on the global root config. Any `ApplicationContext` that does not
+  explicitly set `boot.banner-mode` in its own config will inherit `off` during test runs,
+  keeping test output clean without requiring changes to individual test fixtures.
+
 ## 3.0.3 — 2026-03-21
 
 ### Bug fixes

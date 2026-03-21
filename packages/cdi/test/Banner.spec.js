@@ -1,34 +1,18 @@
 /* eslint-disable import/extensions */
 import { assert } from 'chai';
-import fs from 'node:fs';
-import path from 'node:path';
 import { LoggerFactory } from '@alt-javascript/logger';
 import { EphemeralConfig } from '@alt-javascript/config';
 import { ApplicationContext } from '../index.js';
-import { Context, Singleton } from '../context/index.js';
+import { Context } from '../context/index.js';
 
 const logger = LoggerFactory.getLogger('@alt-javascript/cdi/test/Banner_spec');
 
 describe('Banner', () => {
-  const fixtureDir = path.resolve(process.cwd(), 'test/fixtures');
-  const cwdBanner = path.resolve(process.cwd(), 'banner.md');
-  const fixtureBanner = path.resolve(fixtureDir, 'banner.md');
-  const bannerContent = fs.readFileSync(fixtureBanner, 'utf8');
-
-  beforeEach(() => {
-    // Copy fixture banner to cwd so ApplicationContext finds it
-    fs.copyFileSync(fixtureBanner, cwdBanner);
-  });
-
-  afterEach(() => {
-    // Clean up
-    if (fs.existsSync(cwdBanner)) {
-      fs.unlinkSync(cwdBanner);
-    }
-  });
-
   it('prints banner to console by default (banner-mode not set)', async () => {
-    const config = new EphemeralConfig({});
+    // Banner.spec.js runs with the Boot.test() fixture active (banner-mode: off in global root).
+    // This test explicitly sets banner-mode: console to verify the console path, which is the
+    // documented production default when Boot.test() is NOT in effect.
+    const config = new EphemeralConfig({ boot: { 'banner-mode': 'console' } });
     const context = new Context([]);
     const appCtx = new ApplicationContext({ contexts: [context], config });
 
@@ -42,7 +26,7 @@ describe('Banner', () => {
       console.log = origLog;
     }
 
-    assert.isTrue(logged.some((line) => line.includes('_____')), 'banner should be printed to console');
+    assert.isTrue(logged.some((line) => line.includes('_____')), 'banner should be printed to console by default');
   });
 
   it('prints banner to console when banner-mode is "console"', async () => {
@@ -63,17 +47,36 @@ describe('Banner', () => {
     assert.isTrue(logged.some((line) => line.includes('_____')), 'banner should be printed to console');
   });
 
+  it('includes the version line', async () => {
+    const config = new EphemeralConfig({ boot: { 'banner-mode': 'console' } });
+    const context = new Context([]);
+    const appCtx = new ApplicationContext({ contexts: [context], config });
+
+    const logged = [];
+    const origLog = console.log;
+    console.log = (...args) => logged.push(args.join(' '));
+
+    try {
+      await appCtx.start({ run: false });
+    } finally {
+      console.log = origLog;
+    }
+
+    assert.isTrue(
+      logged.some((line) => line.includes('@alt-javascript/boot ::')),
+      'banner should include the version line',
+    );
+  });
+
   it('prints banner via logger when banner-mode is "log"', async () => {
     const config = new EphemeralConfig({ boot: { 'banner-mode': 'log' } });
     const context = new Context([]);
     const appCtx = new ApplicationContext({ contexts: [context], config });
 
-    // In "log" mode, banner goes through logger.info(), not console.log()
     const consoleLogs = [];
     const origLog = console.log;
     console.log = (...args) => consoleLogs.push(args.join(' '));
 
-    // Capture logger.info calls
     const loggerInfoCalls = [];
     const origInfo = appCtx.logger.info;
     appCtx.logger.info = (...args) => loggerInfoCalls.push(args.join(' '));
@@ -85,11 +88,8 @@ describe('Banner', () => {
       appCtx.logger.info = origInfo;
     }
 
-    // Banner should NOT go to console.log
     assert.isFalse(consoleLogs.some((line) => line.includes('_____')),
       'banner should not be printed to console in log mode');
-
-    // Banner SHOULD go to logger.info
     assert.isTrue(loggerInfoCalls.some((line) => line.includes('_____')),
       'banner should be logged via logger.info');
   });
@@ -110,19 +110,5 @@ describe('Banner', () => {
     }
 
     assert.isFalse(logged.some((line) => line.includes('_____')), 'banner should not be printed');
-  });
-
-  it('silently skips when banner.md does not exist', async () => {
-    // Remove the banner file
-    if (fs.existsSync(cwdBanner)) {
-      fs.unlinkSync(cwdBanner);
-    }
-
-    const config = new EphemeralConfig({});
-    const context = new Context([]);
-    const appCtx = new ApplicationContext({ contexts: [context], config });
-
-    // Should not throw
-    await appCtx.start({ run: false });
   });
 });

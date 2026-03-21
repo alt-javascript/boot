@@ -138,3 +138,39 @@ const config = ConfigFactory.getConfig();
 // Spring-aligned (profile + env + files)
 const config = ConfigFactory.loadConfig({ profiles: 'production' });
 ```
+
+---
+
+## Framework Configuration Keys
+
+The following keys are reserved by the `@alt-javascript` framework and read from your config
+at runtime.
+
+| Key | Values | Default | Description |
+|---|---|---|---|
+| `boot.banner-mode` | `console`, `log`, `off` | `console` | Controls the startup banner. `console` prints to stdout. `log` routes through `@alt-javascript/logger` at `info` level. `off` suppresses it. |
+| `logging.level.ROOT` | log level string | `info` | Root log level for `@alt-javascript/logger`. |
+| `logging.level.<category>` | log level string | inherits ROOT | Per-category log level override. |
+
+### Example: suppress the banner and set log levels
+
+```javascript
+const config = new EphemeralConfig({
+  boot: { 'banner-mode': 'off' },
+  logging: {
+    level: {
+      ROOT: 'warn',
+      '@myorg/myapp/MyService': 'debug',
+    },
+  },
+});
+```
+
+### Example: route the banner through the logger
+
+```javascript
+const config = new EphemeralConfig({
+  boot: { 'banner-mode': 'log' },
+  logging: { level: { ROOT: 'info' } },
+});
+```

@@ -22,6 +22,7 @@
  *   const ctx = inject('applicationContext');
  */
 import { ApplicationContext, Context } from '@alt-javascript/cdi';
+import { Boot } from '@alt-javascript/boot';
 
 /**
  * Boot CDI and create a Vue app with all singletons provided.
@@ -44,9 +45,13 @@ export async function createCdiApp(options) {
 
   if (!createApp) {
     throw new Error(
-      'Vue createApp not found. Pass it as options.createApp or load Vue globally.',
+      'Vue createApp not found. Pass it as options.createApp or load Vue globally (window.Vue).',
     );
   }
+
+  // Populate global boot root (loggerFactory, loggerCategoryCache, config)
+  // so CDI beans can autowire loggers without caller boilerplate.
+  Boot.boot({ config });
 
   // Boot CDI
   const appCtx = new ApplicationContext({ contexts, config });
@@ -81,6 +86,9 @@ export const cdiPlugin = {
    */
   async install(app, options) {
     const { contexts, config } = options;
+
+    // Populate global boot root so CDI beans can autowire loggers without caller boilerplate.
+    Boot.boot({ config });
 
     const appCtx = new ApplicationContext({ contexts, config });
     await appCtx.start({ run: false });

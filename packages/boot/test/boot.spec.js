@@ -40,7 +40,9 @@ describe('boot function', () => {
   it('boot - config ', () => {
     const ephemeralConfig = new EphemeralConfig({});
     boot({ config: ephemeralConfig });
-    assert.instanceOf(global.boot.contexts.root.config, ValueResolvingConfig, 'global.boot.contexts.root.config instanceof ValueResolvingConfig');
+    // EphemeralConfig implements has()/get() so it passes through without wrapping
+    assert.isFunction(global.boot.contexts.root.config.has, 'config.has is a function');
+    assert.isFunction(global.boot.contexts.root.config.get, 'config.get is a function');
     assert.instanceOf(global.boot.contexts.root.loggerFactory, LoggerFactory, 'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
     assert.instanceOf(global.boot.contexts.root.loggerCategoryCache, LoggerCategoryCache, 'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
@@ -58,7 +60,9 @@ describe('boot function', () => {
     const ephemeralConfig = new EphemeralConfig({});
     global.config = ephemeralConfig;
     boot();
-    assert.instanceOf(global.boot.contexts.root.config, ValueResolvingConfig, 'global.boot.contexts.root.ephemeralConfig instanceof ValueResolvingConfig');
+    // EphemeralConfig implements has()/get() so it passes through without wrapping
+    assert.isFunction(global.boot.contexts.root.config.has, 'config.has is a function');
+    assert.isFunction(global.boot.contexts.root.config.get, 'config.get is a function');
     assert.instanceOf(global.boot.contexts.root.loggerFactory, LoggerFactory, 'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
     assert.instanceOf(global.boot.contexts.root.loggerCategoryCache, LoggerCategoryCache, 'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;
@@ -69,7 +73,9 @@ describe('boot function', () => {
     const ephemeralConfig = new EphemeralConfig({});
     global.window = { config: ephemeralConfig };
     boot();
-    assert.instanceOf(global.window.boot.contexts.root.config, ValueResolvingConfig, 'global.boot.contexts.root.config instanceof ValueResolvingConfig');
+    // EphemeralConfig implements has()/get() so it passes through without wrapping
+    assert.isFunction(global.window.boot.contexts.root.config.has, 'config.has is a function');
+    assert.isFunction(global.window.boot.contexts.root.config.get, 'config.get is a function');
     assert.instanceOf(global.window.boot.contexts.root.loggerFactory, LoggerFactory, 'global.boot.contexts.root.loggerFactory instanceof LoggerFactory');
     assert.instanceOf(global.window.boot.contexts.root.loggerCategoryCache, LoggerCategoryCache, 'global.boot.contexts.root.loggerCategoryCache instanceof loggerCategoryCache');
     global.boot = undefined;

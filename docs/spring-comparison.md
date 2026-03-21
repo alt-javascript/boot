@@ -51,6 +51,8 @@ A guide for developers coming from Spring Framework / Spring Boot. This maps Spr
 
 **Conditional Registration.** `conditionalOnProperty`, `conditionalOnMissingBean`, `conditionalOnBean` map directly to Spring Boot's `@ConditionalOn*` annotations.
 
+**Startup Banner.** `ApplicationContext.start()` prints a startup banner to `console.log` by default, matching Spring Boot's behaviour. Controlled by `boot.banner-mode`: `console` (default), `log` (routes through `@alt-javascript/logger`), or `off`. In test mode, `Boot.test()` suppresses the banner automatically.
+
 ## What's Different
 
 ### No Annotations

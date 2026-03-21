@@ -59,21 +59,65 @@ This is symmetric with server-side profiles: the same `conditionalOnProfile('dev
 npm install @alt-javascript/boot-vue
 ```
 
+`@alt-javascript/boot-vue` handles the CDI bootstrap for you — both `createCdiApp` and
+`cdiPlugin` call `Boot.boot({ config })` internally before starting the `ApplicationContext`.
+You do not need to call `Boot.boot()` yourself.
+
 ### CDN Usage (no build step)
 
+Load Vue globally, then use `createCdiApp` to boot CDI and create the Vue app in one call.
+The function resolves `window.Vue.createApp` automatically if you do not pass `createApp`
+explicitly.
+
 ```html
+<!-- 1. Load Vue from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+
+<!-- 2. Import map for @alt-javascript packages -->
+<script type="importmap">
+{
+  "imports": {
+    "lodash":                     "https://cdn.jsdelivr.net/npm/lodash-es/lodash.min.js",
+    "@alt-javascript/common":     "https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js",
+    "@alt-javascript/config":     "https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js",
+    "@alt-javascript/logger":     "https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3/dist/alt-javascript-logger-esm.js",
+    "@alt-javascript/cdi":        "https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3/dist/alt-javascript-cdi-esm.js",
+    "@alt-javascript/boot":       "https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3/dist/alt-javascript-boot-esm.js",
+    "@alt-javascript/boot-vue":   "https://cdn.jsdelivr.net/npm/@alt-javascript/boot-vue@3/dist/alt-javascript-boot-vue-esm.js"
+  }
+}
+</script>
+
 <script type="module">
   import { createCdiApp } from '@alt-javascript/boot-vue';
+  import { Context, Singleton } from '@alt-javascript/cdi';
+  import { EphemeralConfig } from '@alt-javascript/config';
 
+  class GreetingService {
+    greet(name) { return `Hello, ${name}!`; }
+  }
+
+  const config = new EphemeralConfig({ logging: { level: { ROOT: 'info' } } });
+  const context = new Context([new Singleton(GreetingService)]);
+
+  // createCdiApp calls Boot.boot() and ApplicationContext.start() internally.
+  // window.Vue.createApp is resolved automatically from the globally loaded Vue script.
   const { vueApp } = await createCdiApp({
     contexts: [context],
     config,
     rootComponent: App,
-    createApp: Vue.createApp,
+    // createApp: Vue.createApp,  // optional — resolved from window.Vue automatically
   });
 
   vueApp.mount('#app');
 </script>
+```
+
+If Vue is not on `window`, pass `createApp` explicitly:
+
+```javascript
+import { createApp } from 'vue'; // Vite/bundler import
+const { vueApp } = await createCdiApp({ contexts, config, rootComponent: App, createApp });
 ```
 
 ### Vite / CLI Usage
@@ -82,6 +126,7 @@ npm install @alt-javascript/boot-vue
 import { createApp } from 'vue';
 import { cdiPlugin } from '@alt-javascript/boot-vue';
 
+// cdiPlugin.install() calls Boot.boot({ config }) and ApplicationContext.start() internally.
 const app = createApp(App);
 app.use(cdiPlugin, { contexts: [context], config });
 app.mount('#app');
@@ -96,7 +141,8 @@ const todoService = inject('todoService');
 const ctx = inject('applicationContext');
 ```
 
-All CDI singletons are provided by name via Vue's `provide`/`inject`.
+All CDI singletons are provided by name via Vue's `provide`/`inject`. The `ApplicationContext`
+instance itself is provided as both `'applicationContext'` and `'ctx'`.
 
 ## Alpine.js
 

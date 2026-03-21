@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/cdi",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Contexts and Dependency Injection for JavaScript",
   "author": "Craig Parravicini",
   "contributors": [
@@ -35,13 +35,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.3",
-    "@alt-javascript/config": "3.0.3",
-    "@alt-javascript/logger": "3.0.3",
+    "@alt-javascript/common": "3.0.4",
+    "@alt-javascript/config": "3.0.4",
+    "@alt-javascript/logger": "3.0.4",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.3",
+    "@alt-javascript/boot": "3.0.4",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",

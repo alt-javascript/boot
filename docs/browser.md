@@ -52,6 +52,8 @@ Load config, the CDI container, and boot from the CDN. No npm, no bundler, no bu
       logging: { level: { ROOT: 'info' } },
     });
 
+    // Boot.boot() populates the global root with config, loggerFactory, and
+    // loggerCategoryCache so CDI beans can autowire loggers without boilerplate.
     Boot.boot({ config });
 
     const context = new Context([new Singleton(GreetingService)]);
@@ -65,6 +67,27 @@ Load config, the CDI container, and boot from the CDN. No npm, no bundler, no bu
 </html>
 ```
 
+### Why call `Boot.boot()` before `ApplicationContext`?
+
+`Boot.boot()` populates a global root context with the resolved config, logger factory, and
+logger category cache. `ApplicationContext` picks these up automatically when it starts,
+allowing beans that declare a `logger` property to receive an injected logger without any
+explicit wiring. Skipping `Boot.boot()` means the global root is empty and logger injection
+silently fails.
+
+### Passing config to `Boot.boot()`
+
+`Boot.boot({ config })` accepts any object that implements `has(path)` and `get(path)` —
+`EphemeralConfig`, `ProfileAwareConfig`, `ValueResolvingConfig`, or any custom implementation.
+Plain POJOs are wrapped automatically. You do not need to pre-wrap your config.
+
+```javascript
+// All of these work:
+Boot.boot({ config: new EphemeralConfig({ logging: { level: { ROOT: 'info' } } }) });
+Boot.boot({ config: new ProfileAwareConfig(configObject, profiles) });
+Boot.boot({ config: { logging: { level: { ROOT: 'info' } } } }); // plain object, auto-wrapped
+```
+
 ### CDN bundle URLs
 
 | Package | ESM bundle URL |
@@ -76,7 +99,7 @@ Load config, the CDI container, and boot from the CDN. No npm, no bundler, no bu
 | `@alt-javascript/boot` | `https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3/dist/alt-javascript-boot-esm.js` |
 
 The `@3` tag resolves to the latest `3.x` release. To pin to an exact version, replace `@3`
-with `@3.0.1`.
+with `@3.0.4`.
 
 ### Import map requirements
 
@@ -152,8 +175,7 @@ Use `BrowserProfileResolver` to select configuration based on the current URL,
 giving you the same profile-aware config that the server gets from `NODE_ACTIVE_PROFILES`.
 
 ```javascript
-import { EphemeralConfig } from '@alt-javascript/config';
-import { BrowserProfileResolver, ProfileAwareConfig } from '@alt-javascript/config';
+import { BrowserProfileResolver, ProfileAwareConfig, EphemeralConfig } from '@alt-javascript/config';
 
 const configObject = {
   api: { url: 'https://api.example.com' },
@@ -176,13 +198,89 @@ const profiles = BrowserProfileResolver.resolve({
 });
 const config = new ProfileAwareConfig(configObject, profiles);
 
+// Pass ProfileAwareConfig directly to Boot.boot() — no wrapping required.
+Boot.boot({ config });
+
 config.get('api.url');
 // On localhost:8080 → 'http://localhost:8081'
 // On app.example.com → 'https://api.example.com'
 ```
 
+`Boot.boot()` accepts `ProfileAwareConfig` directly. Duck-typing is used to detect the config
+interface — any object with `has()` and `get()` passes through without being re-wrapped.
+
 For the full profile matching rules and `conditionalOnProfile` usage in browser components,
 see [Frontend Integration](frontend-integration.md#browser-profiles).
+
+---
+
+## Startup Banner
+
+When `ApplicationContext.start()` runs, it prints a startup banner — the same behaviour as
+Spring Boot. The banner is controlled by the `boot.banner-mode` config key:
+
+| Value | Behaviour |
+|---|---|
+| `console` | Print to `console.log` on startup. **Default.** |
+| `log` | Route through the configured `@alt-javascript/logger` at `info` level. |
+| `off` | Suppress the banner entirely. |
+
+### Banner in the browser
+
+The banner works in the browser. The version line shows `(browser)` instead of the package
+version number, because `package.json` is not accessible from browser JavaScript.
+
+```javascript
+const config = new EphemeralConfig({ logging: { level: { ROOT: 'info' } } });
+Boot.boot({ config });
+const appCtx = new ApplicationContext({ contexts: [context], config });
+await appCtx.start();
+// Browser console output:
+//   ____        _ _        _                                _       _    ____
+//  / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \ \ \
+// ...
+// @alt-javascript/boot :: (browser)
+```
+
+### Suppress the banner
+
+```javascript
+const config = new EphemeralConfig({
+  boot: { 'banner-mode': 'off' },
+  logging: { level: { ROOT: 'info' } },
+});
+```
+
+### Route the banner through the logger
+
+Set `boot.banner-mode` to `log` to send the banner through the configured logger at `info`
+level instead of writing directly to `console.log`. Useful when you want the banner captured
+by your logging infrastructure:
+
+```javascript
+const config = new EphemeralConfig({
+  boot: { 'banner-mode': 'log' },
+  logging: { level: { ROOT: 'info' } },
+});
+```
+
+### Banner in Node.js
+
+On Node.js the version line is resolved at runtime from `package.json` — no hardcoded string.
+The version shown always matches the installed package version.
+
+```
+  ____        _ _        _                                _       _    ____
+ / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \ \ \
+...
+@alt-javascript/boot :: 3.0.4
+```
+
+### Test environments
+
+`Boot.test()` automatically sets `banner-mode: off` via a config overlay on the global root.
+Any `ApplicationContext` that does not explicitly set `boot.banner-mode` in its own config
+inherits `off` during test runs. You do not need to configure this in individual test fixtures.
 
 ---
 
@@ -211,3 +309,4 @@ See [Frontend Integration](frontend-integration.md) for examples of each.
 | `process.env` | Not available | `window.config` or `BrowserProfileResolver` URL mapping |
 | Auto-discovery (`AutoDiscovery.scan`) | Not available | Register components explicitly in `new Context([...])` |
 | `PropertiesParser` | Available — but you must fetch the file content yourself | `fetch('/app.properties').then(r => r.text())` |
+| Banner version number | Shows `(browser)` — `package.json` is not accessible from browser JS | Use `boot.banner-mode: off` or `log` if version is important |
