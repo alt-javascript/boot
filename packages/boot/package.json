@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "contributors": [
@@ -20,7 +20,13 @@
   },
   "main": "index.js",
   "type": "module",
+  "files": [
+    "*.js",
+    "dist/"
+  ],
   "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "prepublishOnly": "npm run build",
     "lint": "npx eslint \"./*.js\" \"./test/**/*.js\" --fix",
     "test": "npm run test:unit",
     "test:unit": "npm run test:tdd",
@@ -29,10 +35,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.0",
-    "@alt-javascript/common": "3.0.0",
-    "@alt-javascript/config": "3.0.0",
-    "@alt-javascript/logger": "3.0.0"
+    "@alt-javascript/cdi": "3.0.1",
+    "@alt-javascript/common": "3.0.1",
+    "@alt-javascript/config": "3.0.1",
+    "@alt-javascript/logger": "3.0.1"
   },
   "devDependencies": {
     "chai": "^4.3.4",

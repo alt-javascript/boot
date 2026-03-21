@@ -1,12 +1,18 @@
 {
   "name": "@alt-javascript/altjs",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "type": "module",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:common": "npm run build -w packages/common",
+    "build:config": "npm run build -w packages/config",
+    "build:logger": "npm run build -w packages/logger",
+    "build:cdi": "npm run build -w packages/cdi",
+    "build:boot": "npm run build -w packages/boot",
     "test": "npm test --workspaces",
     "test:boot": "npm test -w packages/boot",
     "test:cdi": "npm test -w packages/cdi",
@@ -21,6 +27,10 @@
     "test:cloudflare": "npm test -w packages/boot-cloudflare-worker",
     "test:azure": "npm test -w packages/boot-azure-function",
     "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "rollup": "^4.59.0",
+    "rollup-plugin-esm-import-to-url": "^2.1.0"
   },
   "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",
   "author": "Craig Parravicini",

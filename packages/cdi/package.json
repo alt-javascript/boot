@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/cdi",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Contexts and Dependency Injection for JavaScript",
   "author": "Craig Parravicini",
   "contributors": [
@@ -18,7 +18,15 @@
   },
   "main": "index.js",
   "type": "module",
+  "files": [
+    "*.js",
+    "context/",
+    "events/",
+    "dist/"
+  ],
   "scripts": {
+    "build": "rollup -c rollup.config.esm.js",
+    "prepublishOnly": "npm run build",
     "lint": "npx eslint \"./*.js\" \"./test/**/*.js\" --fix",
     "test": "npm run test:unit",
     "test:unit": "npm run test:tdd",
@@ -27,13 +35,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.0",
-    "@alt-javascript/config": "3.0.0",
-    "@alt-javascript/logger": "3.0.0",
+    "@alt-javascript/common": "3.0.1",
+    "@alt-javascript/config": "3.0.1",
+    "@alt-javascript/logger": "3.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.0",
+    "@alt-javascript/boot": "3.0.1",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",

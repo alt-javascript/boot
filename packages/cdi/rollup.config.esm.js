@@ -5,6 +5,7 @@ export default [
   {
     input: 'index.js',
     treeshake: true,
+    external: ['node:fs', 'node:path'],
     plugins: [esmImportToUrl({
       imports: {
         lodash: 'https://cdn.jsdelivr.net/npm/lodash-es/lodash.min.js',

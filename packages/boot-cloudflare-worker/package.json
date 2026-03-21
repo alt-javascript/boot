@@ -1,7 +1,7 @@
 {
   "name": "@alt-javascript/boot-cloudflare-worker",
-  "version": "3.0.0",
-  "description": "Cloudflare Workers adapter for @alt-javascript boot — CDI-managed serverless with controller auto-registration",
+  "version": "3.0.1",
+  "description": "Cloudflare Workers adapter for @alt-javascript boot \u2014 CDI-managed serverless with controller auto-registration",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -28,14 +28,14 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.0"
+    "@alt-javascript/cdi": "3.0.1"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.0",
-    "@alt-javascript/config": "3.0.0",
-    "@alt-javascript/jsdbc-template": "3.0.0",
+    "@alt-javascript/boot": "3.0.1",
+    "@alt-javascript/config": "3.0.1",
+    "@alt-javascript/jsdbc-template": "3.0.1",
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
-    "@alt-javascript/logger": "3.0.0",
+    "@alt-javascript/logger": "3.0.1",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },

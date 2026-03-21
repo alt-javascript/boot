@@ -1,15 +1,21 @@
 {
   "name": "@alt-javascript/common",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "main": "index.js",
   "exports": {
     ".": "./index.js"
   },
-  "description": "Shared kernel for the alt-javascript framework — global-ref resolution, environment detection, utilities",
+  "files": [
+    "index.js",
+    "dist/"
+  ],
   "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "prepublishOnly": "npm run build",
     "test": "echo 'no tests yet'"
   },
+  "description": "Shared kernel for the alt-javascript framework — global-ref resolution, environment detection, utilities",
   "license": "MIT",
   "author": "Craig Parravicini",
   "contributors": [
