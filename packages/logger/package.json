@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/logger",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A simple configurable logging facade for javascript.",
   "author": "Craig Parravicini",
   "contributors": [
@@ -36,10 +36,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.1"
+    "@alt-javascript/common": "3.0.2"
   },
   "devDependencies": {
-    "@alt-javascript/config": "3.0.1",
+    "@alt-javascript/config": "3.0.2",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "config": "^4.4.1",

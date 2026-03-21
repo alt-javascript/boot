@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/common",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -19,7 +19,7 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
-  "description": "Shared kernel for the alt-javascript framework — global-ref resolution, environment detection, utilities",
+  "description": "Shared kernel for the alt-javascript framework \u2014 global-ref resolution, environment detection, utilities",
   "license": "MIT",
   "author": "Craig Parravicini",
   "contributors": [

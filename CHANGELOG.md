@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.2 — 2026-03-21
+
+### Bug fixes
+
+- **`@alt-javascript/common` publishConfig missing.** The package was missing
+  `"publishConfig": { "access": "public" }`, causing npm to reject the publish with a 402
+  Payment Required error. Added to match all other scoped packages in the monorepo.
+
 ## 3.0.1 — 2026-03-21
 
 ### Bug fixes
