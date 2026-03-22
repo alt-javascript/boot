@@ -1,3 +1,4 @@
+import { createRequire } from 'module';
 import { ValueResolvingConfig, EphemeralConfig, ConfigFactory, PropertySourceChain } from '@alt-javascript/config';
 import {
   CachingLoggerFactory, LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
@@ -62,10 +63,17 @@ export default class Boot {
 
   /**
    * Bootstrap the application: detect config, create logger infrastructure,
-   * and populate the global boot context.
-   * @param {object} [context] - { config, loggerFactory, loggerCategoryCache, fetch }
+   * populate the global boot context, and print the startup banner.
+   *
+   * When `contexts` is provided, also creates and starts an ApplicationContext,
+   * returning the running context. This is the minimal entry-point pattern:
+   *
+   *   await Boot.boot({ contexts: [context] });
+   *
+   * @param {object} [context] - { config, contexts, loggerFactory, loggerCategoryCache, fetch }
+   * @returns {Promise<ApplicationContext|undefined>} running context if contexts provided
    */
-  static boot(context) {
+  static async boot(context) {
     const loggerFactoryArg = context && context.loggerFactory;
     const loggerCategoryCacheArg = context && context.loggerCategoryCache;
     const fetchArg = context && context.fetch;
@@ -107,6 +115,20 @@ export default class Boot {
     $globalref.boot.contexts.root.loggerCategoryCache = $loggerCategoryCache;
     $globalref.boot.contexts.root.loggerFactory = $loggerFactory;
     $globalref.boot.contexts.root.fetch = $fetch;
+
+    // Print banner — fires once at boot time, from the boot module (not ApplicationContext).
+    // eslint-disable-next-line no-use-before-define
+    printBanner($config, $loggerFactory.getLogger('@alt-javascript/boot'));
+
+    // If contexts are provided, start the ApplicationContext and return it.
+    if (context && context.contexts) {
+      const { ApplicationContext } = await import('@alt-javascript/cdi');
+      const appCtx = new ApplicationContext({ contexts: context.contexts, config: $config });
+      await appCtx.start();
+      return appCtx;
+    }
+
+    return undefined;
   }
 
   /**
@@ -115,7 +137,7 @@ export default class Boot {
    * Respects config key `logging.test.fixtures.quiet` (default: true).
    * @param {object} [context] - { config }
    */
-  static test(context) {
+  static async test(context) {
     const $config = Boot.detectConfig(context);
     // Overlay forces banner off in all tests without mutating the caller's config
     const testOverlay = new EphemeralConfig({ boot: { 'banner-mode': 'off' } });
@@ -123,9 +145,9 @@ export default class Boot {
     const loggerCategoryCache = new LoggerCategoryCache();
     const cachingLoggerFactory = new CachingLoggerFactory($testConfig, loggerCategoryCache);
     if ($config.get('logging.test.fixtures.quiet', true)) {
-      Boot.boot({ config: $testConfig, loggerFactory: cachingLoggerFactory, loggerCategoryCache });
+      await Boot.boot({ config: $testConfig, loggerFactory: cachingLoggerFactory, loggerCategoryCache });
     } else {
-      Boot.boot({ config: $testConfig });
+      await Boot.boot({ config: $testConfig });
     }
   }
 
@@ -138,5 +160,59 @@ export default class Boot {
   static root(name, defaultValue) {
     const value = getGlobalRoot(name);
     return value || defaultValue;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Banner — lives in Boot, not ApplicationContext.
+// Mirrors Spring Boot: prints once at boot time, not per-context.
+// ---------------------------------------------------------------------------
+
+const BANNER_ART = `  ____        _ _        _                                _       _    ____  
+ / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \\ \\ \\
+/ / /   / _\` | | __|____| |/ _\` \\ \\ / / _\` / __|/ __| '__| | '_ \\| __|  \\ \\ \\
+\\ \\ \\  | (_| | | ||_____| | (_| |\\ V / (_| \\__ \\ (__| |  | | |_) | |_   / / /
+ \\_\\_\\  \\__,_|_|\\__|   _/ |\\__,_| \\_/ \\__,_|___/\\___|_|  |_| .__/ \\__| /_/_/
+                       |__/                                  |_|`;
+
+/**
+ * Resolve the banner version from package.json at runtime.
+ * Works from source tree and from the dist/ bundle (try/catch fallback).
+ * Returns '(browser)' when running in a browser environment.
+ */
+function buildBanner() {
+  if (detectBrowser()) {
+    return `${BANNER_ART}\n   @alt-javascript/boot :: (browser)`;
+  }
+  try {
+    const require = createRequire(import.meta.url);
+    let pkg;
+    try { pkg = require('./package.json'); } catch { pkg = require('../package.json'); }
+    return `${BANNER_ART}\n   @alt-javascript/boot :: ${pkg.version || '(unknown)'}`;
+  } catch {
+    return `${BANNER_ART}\n   @alt-javascript/boot :: (unknown)`;
+  }
+}
+
+/**
+ * Print (or suppress) the startup banner.
+ * Reads boot.banner-mode from config: 'console' (default), 'log', 'off'.
+ * @param {object} config - resolved config object with has()/get()
+ * @param {object} [logger] - optional logger for 'log' mode
+ */
+export function printBanner(config, logger) {
+  const mode = (config && config.has('boot.banner-mode'))
+    ? config.get('boot.banner-mode')
+    : 'console';
+
+  if (mode === 'off') return;
+
+  const banner = buildBanner();
+
+  if (mode === 'log' && logger) {
+    logger.info(banner);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(banner);
   }
 }

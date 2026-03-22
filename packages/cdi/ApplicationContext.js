@@ -10,7 +10,6 @@ import BeanPostProcessor from './BeanPostProcessor.js';
 import ApplicationEventPublisher from './events/ApplicationEventPublisher.js';
 import ContextRefreshedEvent from './events/ContextRefreshedEvent.js';
 import ContextClosedEvent from './events/ContextClosedEvent.js';
-import { createRequire } from 'module';
 
 /**
  * Spring-inspired IoC application context for JavaScript.
@@ -115,7 +114,6 @@ export default class ApplicationContext {
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
-    this.printBanner();
     this.registerEventPublisher();
     this.createSingletons();
     this.injectSingletonDependencies();
@@ -129,41 +127,6 @@ export default class ApplicationContext {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
   }
 
-  /**
-   * Print the startup banner.
-   *
-   * The banner is inlined — no filesystem access required, works in browser and Node.
-   *
-   * Controlled by config key `boot.banner-mode`:
-   * - `console` (default) — print to stdout via console.log
-   * - `log` — print via the context logger (info level)
-   * - `off` — skip banner entirely
-   */
-  printBanner() {
-    // Local config wins. If it doesn't have banner-mode, check the global root
-    // (set by Boot.test() to suppress banner in test processes).
-    const globalConfig = getGlobalRoot('config');
-    const mode = this.config.has('boot.banner-mode')
-      ? this.config.get('boot.banner-mode')
-      : (globalConfig && globalConfig.has('boot.banner-mode'))
-        ? globalConfig.get('boot.banner-mode')
-        : 'console';
-
-    if (mode === 'off') {
-      this.logger.verbose('Banner mode is off, skipping.');
-      return;
-    }
-
-    // eslint-disable-next-line no-use-before-define
-    const banner = buildBanner();
-
-    if (mode === 'log') {
-      this.logger.info(banner);
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(banner);
-    }
-  }
 
   /** Detect and load context component definitions from the config object. */
   detectConfigContext() {
@@ -435,10 +398,13 @@ export default class ApplicationContext {
     const placeholder = placeholderArg.substring(2, placeholderArg.length - 1);
     const tuple = placeholder.split(':');
     const path = tuple[0];
-    const defaultValue = tuple[1] || undefined;
+    const rawDefault = tuple[1] || undefined;
+    const defaultValue = rawDefault !== undefined
+      ? (() => { try { return JSON.parse(rawDefault); } catch { return rawDefault; } })()
+      : undefined;
     let returnValue = null;
     try {
-      returnValue = this.config.get(path, defaultValue ? JSON.parse(defaultValue) : defaultValue);
+      returnValue = this.config.get(path, defaultValue);
     } catch (e) {
       const msg = `Failed to resolve placeholder component property value (${path}) from config.`;
       this.logger.error(msg);
@@ -922,28 +888,3 @@ export default class ApplicationContext {
   }
 }
 
-const BANNER_ART = `  ____        _ _        _                                _       _    ____  
- / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \\ \\ \\
-/ / /   / _\` | | __|____| |/ _\` \\ \\ / / _\` / __|/ __| '__| | '_ \\| __|  \\ \\ \\
-\\ \\ \\  | (_| | | ||_____| | (_| |\\ V / (_| \\__ \\ (__| |  | | |_) | |_   / / /
- \_\_\  \__,_|_|\__|   _/ |\__,_| \_/ \__,_|___/\___|_|  |_| .__/ \__| /_/_/
-                       |__/                                  |_|`;
-
-/**
- * Build the banner string, resolving the package version at runtime via createRequire.
- * Synchronous — no async I/O. In a browser environment the version shows as "(browser)".
- */
-function buildBanner() {
-  if (detectBrowser()) {
-    return `${BANNER_ART}\n@alt-javascript/boot :: (browser)`;
-  }
-  try {
-    const require = createRequire(import.meta.url);
-    // ./package.json works when running from source; ../package.json when running from dist/.
-    let pkg;
-    try { pkg = require('./package.json'); } catch { pkg = require('../package.json'); }
-    return `${BANNER_ART}\n@alt-javascript/boot :: ${pkg.version || '(unknown)'}`;
-  } catch {
-    return `${BANNER_ART}\n@alt-javascript/boot :: (unknown)`;
-  }
-}

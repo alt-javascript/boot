@@ -1,0 +1,18 @@
+{
+  "name": "@alt-javascript/example-4-intro-boot",
+  "version": "1.0.0",
+  "description": "Step 4 — @alt-javascript/boot: the full stack in one call",
+  "type": "module",
+  "scripts": {
+    "start": "SUPPRESS_NO_CONFIG_WARNING=true node main.js",
+    "start:dev": "SUPPRESS_NO_CONFIG_WARNING=true NODE_ACTIVE_PROFILES=dev node main.js",
+    "start:json-log": "SUPPRESS_NO_CONFIG_WARNING=true NODE_ACTIVE_PROFILES=json-log node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/config": "*",
+    "@alt-javascript/logger": "*"
+  },
+  "private": true
+}

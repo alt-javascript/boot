@@ -5,7 +5,7 @@ import {
   config as altConfig, EphemeralConfig, ConfigFactory, ValueResolvingConfig,
 } from '@alt-javascript/config';
 import { CachingLoggerFactory, LoggerFactory, LoggerCategoryCache } from '@alt-javascript/logger';
-import { boot, root } from '../index.js';
+import { boot, root, Boot } from '../index.js';
 
 const logger = LoggerFactory.getLogger('@alt-javascript/boot/test/boot_spec', config);
 
@@ -34,8 +34,15 @@ beforeEach(async () => {
 });
 
 describe('boot function', () => {
-  it('boot - config is required', () => {
-    assert.throws(() => { boot(); }, 'Unable to detect config, is \'config\' declared or provided?');
+  it('boot - config is required', async () => {
+    let threw = false;
+    try {
+      await Boot.boot();
+    } catch (e) {
+      threw = true;
+      assert.include(e.message, 'Unable to detect config');
+    }
+    assert.isTrue(threw, 'Boot.boot() should reject when no config is available');
   });
   it('boot - config ', () => {
     const ephemeralConfig = new EphemeralConfig({});

@@ -7,4 +7,5 @@ export { Boot };
 export const { boot } = Boot;
 export const { root } = Boot;
 export const { test } = Boot;
+export { printBanner } from './Boot.js';
 export { config } from '@alt-javascript/config';

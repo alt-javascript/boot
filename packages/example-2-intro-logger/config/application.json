@@ -1,0 +1,10 @@
+{
+  "app": { "name": "Logger Example" },
+  "logging": {
+    "format": "text",
+    "level": {
+      "ROOT": "info",
+      "@alt-javascript/example-2-intro-logger": "debug"
+    }
+  }
+}

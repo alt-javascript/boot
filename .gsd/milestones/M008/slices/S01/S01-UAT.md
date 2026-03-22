@@ -1,67 +1,143 @@
-# S01 UAT — Console Application (`example-console-app`)
+# S01 UAT — Progressive Introduction Examples (examples 1–4)
 
-**Status:** ⏳ Pending implementation
+**Status:** ✅ Ready for human sign-off
+
+---
+
+## Structure
+
+S01 delivers four progressive examples, each introducing one layer of the framework:
+
+| Package | Introduces |
+|---|---|
+| `example-1-intro-config` | `ProfileConfigLoader` — file-based config + profiles |
+| `example-2-intro-logger` | `LoggerFactory` — categories, levels, text/JSON format |
+| `example-3-intro-cdi` | `ApplicationContext` — DI wiring, `static qualifier`, placeholder injection, `Application.run()` |
+| `example-4-intro-boot` | `Boot.boot()` — single call bootstraps config + logger + CDI + banner |
 
 ---
 
 ## How to run
 
 ```bash
-cd packages/example-console-app
-npm install
-npm start
+# Example 1
+cd packages/example-1-intro-config
+npm start                   # default profile
+npm run start:dev           # dev profile (greeting + port change)
+
+# Example 2
+cd packages/example-2-intro-logger
+npm start                   # text logs, debug level for this category
+npm run start:json-log      # JSON log lines
+
+# Example 3
+cd packages/example-3-intro-cdi
+npm start                   # Hello, World!
+npm run start:dev           # G'day, World!
+
+# Example 4
+cd packages/example-4-intro-boot
+npm start                   # banner + Hello, World!
+npm run start:dev           # banner + G'day, World! + debug logs
+npm run start:json-log      # banner + JSON log lines
+```
+
+---
+
+## Evidence from implementation run
+
+### Example 1 — default / dev profiles
+
+```
+App:       Config Example     Greeting:  Hello     Port:      8080
+App:       Config Example     Greeting:  G'day     Port:      9090   # dev profile
+```
+
+### Example 2 — text / JSON logs
+
+```
+...@alt-javascript/example-2-intro-logger/main:debug:Config loaded...
+...@alt-javascript/example-2-intro-logger/MyService:info:MyService info...
+{"level":"debug","message":"Config loaded...","category":"@alt-javascript/example-2-intro-logger/main"}
+```
+
+### Example 3 — CDI with placeholder injection
+
+```
+...GreetingService:info:GreetingService ready — greeting: "Hello"
+...Application:info:[CDI Example] Starting
+Hello, World!
+Hello, Alt-JavaScript!
+...GreetingService:info:GreetingService shutting down
+# dev: greeting: "G'day"
+```
+
+### Example 4 — Boot.boot() one call
+
+```
+  ____  ...banner...
+   @alt-javascript/boot :: 3.0.4
+...GreetingRepository:debug:GreetingRepository initialised
+...GreetingService:info:GreetingService ready — greeting: "Hello"
+...Application:info:[Boot Example] Running
+Hello, World!
+Hello, Alt-JavaScript!
+...GreetingService:info:GreetingService shutting down
+# dev: G'day  json-log: JSON lines throughout
 ```
 
 ---
 
 ## Acceptance Checklist
 
-Complete this checklist by running the example and checking each item.
 **All boxes must be checked before S02 begins.**
 
-### Runs without errors
+### Example 1 — Config
 
-- [ ] `npm start` exits with code 0
-- [ ] No unhandled promise rejections or uncaught exceptions in output
+- [ ] `npm start` shows `Hello` greeting and port `8080`
+- [ ] `npm run start:dev` shows `G'day` greeting and port `9090`
+- [ ] `config.has('app.theme')` returns `false` — missing key handled cleanly
 
-### Config loading
+### Example 2 — Logger
 
-- [ ] Default config (`config/default.json`) loads and values are used
-- [ ] A second profile (e.g. `config/dev.json` or `NODE_ACTIVE_PROFILES=dev`) overrides at
-      least one value and the override is visible in the output
+- [ ] `npm start` — text format log lines with full category path visible
+- [ ] `npm run start:json-log` — valid JSON log objects with `level`, `message`, `timestamp`, `category`
+- [ ] Category-level filtering works: `main` category shows debug; `ROOT` is info
+- [ ] `static qualifier` visible in log category name
 
-### Logging
+### Example 3 — CDI
 
-- [ ] Log lines appear in **text** format by default
-- [ ] Switching to **JSON** format (via config) produces valid JSON log lines
-- [ ] Setting log level to `debug` in config produces debug-level output
-- [ ] Setting log level to `warn` suppresses info/debug lines
+- [ ] `npm start` — `Hello, World!` from `Application.run()`
+- [ ] `npm run start:dev` — `G'day, World!` — placeholder `${app.greeting:Hello}` resolves from dev profile
+- [ ] Logger autowired with correct category (`static qualifier` path visible in log)
+- [ ] `GreetingService shutting down` appears on exit — `destroy()` lifecycle works
+- [ ] No application logic in `main.js` — `Application.run()` is the entry point
 
-### Dependency injection
+### Example 4 — Boot
 
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] The service produces verifiably correct output (shown in console)
+- [ ] `npm start` — banner prints, `Hello, World!`, single destroy line
+- [ ] `npm run start:dev` — `G'day, World!`, debug log from `GreetingRepository.init()`
+- [ ] `npm run start:json-log` — JSON log lines, banner still shows (banner bypasses log format)
+- [ ] `main.js` is ≤10 meaningful lines
+- [ ] Banner version matches installed package (`3.0.4`)
 
-### Boilerplate check
+### Framework correctness
 
-- [ ] `main.js` / entry point is minimal — only `Boot.boot()`, context setup, and start
-- [ ] No redundant wiring, no manual logger construction, no manual config wrapping
-
-### Startup banner
-
-- [ ] Banner prints on startup (default behaviour)
-- [ ] Banner can be suppressed by setting `boot.banner-mode: off` in config
+- [ ] Placeholder `'${app.greeting:Hello}'` resolves correctly with string default (not JSON-parsed)
+- [ ] `static qualifier` used on all service classes
+- [ ] Banner printed from `Boot.boot()`, not `ApplicationContext`
+- [ ] `Boot.boot({ config, contexts })` starts the full lifecycle in one call
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — add any observations, issues found, or suggestions here before signing off)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [ ] **I have run all four examples and all checklist items above are satisfied.**
 
   Signed off by: __________________ Date: __________________
