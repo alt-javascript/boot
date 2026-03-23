@@ -1,0 +1,5 @@
+{
+  "app": { "greeting": "G'day" },
+  "server": { "port": 3001 },
+  "logging": { "level": { "ROOT": "debug" } }
+}

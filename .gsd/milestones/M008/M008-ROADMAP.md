@@ -50,7 +50,7 @@ All 14 example packages run correctly, UAT sign-off exists for each slice, and t
 
 ## Slices
 
-- [ ] **S01: Console Application** `risk:low` `depends:[]`
+- [x] **S01: Console Application** `risk:low` `depends:[]`
 - [ ] **S02: Express** `risk:low` `depends:[S01]`
 - [ ] **S03: Fastify** `risk:low` `depends:[S01]`
 - [ ] **S04: Hono** `risk:low` `depends:[S01]`

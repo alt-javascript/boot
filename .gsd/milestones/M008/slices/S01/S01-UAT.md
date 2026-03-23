@@ -185,6 +185,6 @@ advanced features and add a UAT section for sign off.
 
 ## Sign-Off
 
-- [ ] **I have run all four examples and all checklist items above are satisfied.**
+- [x] **I have run all four examples and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-03-24

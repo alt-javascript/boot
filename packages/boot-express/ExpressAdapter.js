@@ -79,15 +79,21 @@ export default class ExpressAdapter {
   }
 
   /**
-   * CDI destroy lifecycle — close the HTTP server.
+   * CDI destroy lifecycle — close the HTTP server and exit cleanly.
+   * Called once per SIGINT/SIGTERM by the CDI lifecycle. Idempotent.
    */
   destroy() {
-    if (this._server) {
-      this._server.close();
-      if (this._logger) {
-        this._logger.info('Express server closed');
-      }
+    if (!this._server) return;
+    const server = this._server;
+    this._server = null; // guard against double-call
+
+    if (this._logger) {
+      this._logger.info('Express server closing...');
     }
+    server.closeAllConnections?.(); // Node 18.2+ — drop keep-alive sockets immediately
+    server.close();
+    // Give the event loop 500ms to flush logs, then exit.
+    setTimeout(() => process.exit(0), 500);
   }
 
   /** @returns {express.Application} the Express app instance */
