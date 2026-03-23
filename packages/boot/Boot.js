@@ -197,15 +197,15 @@ const BANNER_ART = `  ____        _ _        _                                _ 
  */
 function buildBanner() {
   if (detectBrowser()) {
-    return `${BANNER_ART}\n   @alt-javascript/boot :: (browser)`;
+    return `${BANNER_ART}\n   @alt-javascript/boot :: (browser)\n`;
   }
   try {
     const require = createRequire(import.meta.url);
     let pkg;
     try { pkg = require('./package.json'); } catch { pkg = require('../package.json'); }
-    return `${BANNER_ART}\n   @alt-javascript/boot :: ${pkg.version || '(unknown)'}`;
+    return `${BANNER_ART}\n   @alt-javascript/boot :: ${pkg.version || '(unknown)'}\n`;
   } catch {
-    return `${BANNER_ART}\n   @alt-javascript/boot :: (unknown)`;
+    return `${BANNER_ART}\n   @alt-javascript/boot :: (unknown)\n`;
   }
 }
 
