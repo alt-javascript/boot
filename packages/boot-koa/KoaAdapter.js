@@ -185,9 +185,15 @@ export default class KoaAdapter {
   }
 
   destroy() {
-    if (this._server) {
-      this._server.close();
+    if (!this._server) return;
+    const server = this._server;
+    this._server = null;
+
+    if (this._logger) {
+      this._logger.info('Koa server closing...');
     }
+    server.close();
+    setTimeout(() => process.exit(0), 500);
   }
 
   get app() {

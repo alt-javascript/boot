@@ -1,0 +1,16 @@
+{
+  "name": "@alt-javascript/example-5-1-intro-koa",
+  "version": "1.0.0",
+  "description": "Step 5.1 — @alt-javascript/boot-koa: REST API with CDI-managed Koa",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-koa": "*",
+    "@alt-javascript/cdi": "*"
+  },
+  "private": true
+}

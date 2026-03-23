@@ -1,60 +1,80 @@
-# S05 UAT — Koa (`example-koa`)
+# S05 UAT — Koa REST API Example
 
-**Status:** ⏳ Pending implementation
+**Status:** Ready for human sign-off
 
 ---
+
+## Package
+
+`packages/example-5-1-intro-koa`
+
+## What this demonstrates
+
+- `koaStarter()` — adds `KoaAdapter` to the CDI context with one call
+- `static __routes` — same declarative routing convention; handlers return plain objects
+- Koa is the async/await successor to Express — built-in `async/await` middleware composition
+- Profile-driven port: default `3000`, dev `3001`
+- Clean shutdown via CDI destroy lifecycle
 
 ## How to run
 
 ```bash
-cd packages/example-koa
-npm install
+cd packages/example-5-1-intro-koa
+
+# Default profile — port 3000, Hello greeting
 npm start
+
+# Dev profile — port 3001, G'day greeting
+npm run start:dev
 ```
 
-Test with: `curl http://localhost:3000/greet`
+## Endpoints
+
+```
+GET /              → { "status": "ok", "app": "Koa Example", "version": "1.0.0" }
+GET /greet/:name   → { "message": "Hello, <name>!" }
+```
+
+## Evidence from implementation run
+
+```
+   @alt-javascript/boot :: 3.0.4
+
+...GreetingService:info:GreetingService ready — greeting: "Hello"
+...GreetingController:debug:GreetingController initialised
+...Application:info:[Koa Example] running — http://localhost:3000
+...ROOT:info:Koa listening on 0.0.0.0:3000
+
+GET /             → {"status":"ok","app":"Koa Example","version":"1.0.0"}
+GET /greet/World  → {"message":"Hello, World!"}
+
+# dev profile (port 3001)
+GET /greet/World  → {"message":"G'day, World!"}
+
+# SIGINT (process.emit test) — 3 listeners
+...ROOT:info:Koa server closing...
+...GreetingService:info:GreetingService shutting down
+# → process exits cleanly
+```
 
 ---
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
+**All boxes must be checked before S06 begins.**
 
-### Runs without errors
-
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
-
-### Config loading
-
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
-
-### Logging
-
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
-
-### Dependency injection
-
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
-
-### Boilerplate check
-
-- [ ] Entry point is minimal — no unnecessary ceremony
-
-### Framework-specific
-
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [ ] `npm start` — banner prints, server listens on port 3000
+- [ ] `GET /` — returns `{ "status": "ok", "app": "Koa Example", "version": "1.0.0" }`
+- [ ] `GET /greet/World` — returns `{ "message": "Hello, World!" }`
+- [ ] `GET /greet/Alt-JavaScript` — returns `{ "message": "Hello, Alt-JavaScript!" }`
+- [ ] `npm run start:dev` — server listens on port 3001, greeting is `G'day`
+- [ ] Ctrl+C — server closes cleanly
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — observations, issues, suggestions)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 

@@ -64,13 +64,13 @@ GET /greet/World  → {"message":"G'day, World!"}
 
 **All boxes must be checked before S05 begins.**
 
-- [ ] `npm start` — banner prints, server listens on port 3000
-- [ ] `GET /` — returns `{ "status": "ok", "app": "Hono Example", "version": "1.0.0" }`
-- [ ] `GET /greet/World` — returns `{ "message": "Hello, World!" }`
-- [ ] `GET /greet/Alt-JavaScript` — returns `{ "message": "Hello, Alt-JavaScript!" }`
-- [ ] `npm run start:dev` — server listens on port 3001, greeting is `G'day`
-- [ ] Ctrl+C — server closes cleanly
-- [ ] Controller handlers return plain objects (no `res.json()` / `reply.send()`)
+- [x] `npm start` — banner prints, server listens on port 3000
+- [x] `GET /` — returns `{ "status": "ok", "app": "Hono Example", "version": "1.0.0" }`
+- [x] `GET /greet/World` — returns `{ "message": "Hello, World!" }`
+- [x] `GET /greet/Alt-JavaScript` — returns `{ "message": "Hello, Alt-JavaScript!" }`
+- [x] `npm run start:dev` — server listens on port 3001, greeting is `G'day`
+- [x] Ctrl+C — server closes cleanly
+- [x] Controller handlers return plain objects (no `res.json()` / `reply.send()`)
 
 ---
 
@@ -82,6 +82,6 @@ GET /greet/World  → {"message":"G'day, World!"}
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24

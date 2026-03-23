@@ -5,7 +5,7 @@ import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
 import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
 import '@alt-javascript/jsdbc-sqljs';
-import { koaAutoConfiguration, KoaAdapter } from '../index.js';
+import { koaStarter, KoaAdapter } from '../index.js';
 
 // --- Service ---
 class GreetingService {
@@ -69,7 +69,7 @@ class TodoController {
 async function buildContext(extras = [], configOverrides = {}) {
   const config = new EphemeralConfig({ server: { port: 0 }, ...configOverrides });
   const context = new Context([
-    ...koaAutoConfiguration(),
+    ...koaStarter(),
     { Reference: GreetingService, name: 'greetingService', scope: 'singleton' },
     { Reference: GreetingController, name: 'greetingController', scope: 'singleton' },
     { Reference: ImperativeController, name: 'imperativeController', scope: 'singleton' },
