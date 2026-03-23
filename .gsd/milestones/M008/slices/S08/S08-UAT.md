@@ -1,60 +1,68 @@
-# S08 UAT — Cloudflare Worker (`example-cloudflare-worker`)
+# S08 UAT — Cloudflare Worker Example
 
-**Status:** ⏳ Pending implementation
+**Status:** Ready for human sign-off
 
 ---
+
+## Package
+
+`packages/example-3-3-servers-cloudflare-worker`
+
+## What this demonstrates
+
+- `cloudflareWorkerStarter()` — registers `CloudflareWorkerAdapter` CDI singleton
+- `Boot.boot({ contexts, run: false })` — same idiom as Lambda and Azure; skips run phase
+- `static __routes` — same convention; path params use `:name`
+- Worker returns Web Standards `Response` objects (not `{ statusCode, body }`)
+- Unit-testable with Node.js globals — no Wrangler, no Miniflare required
+- Local invoke harness: `npm run invoke` using `new Request(url)`
+- `export default { fetch }` — Cloudflare Workers v2 module syntax
 
 ## How to run
 
 ```bash
-cd packages/example-cloudflare-worker
-npm install
-npm start
+cd packages/example-3-3-servers-cloudflare-worker
+
+# Unit tests (no Wrangler required)
+npm test
+
+# Local invoke harness
+npm run invoke        # Hello greeting (default profile)
+npm run invoke:dev    # G'day greeting (dev profile)
 ```
 
-Test with Wrangler dev or direct handler invocation
+## Expected output
+
+```
+# npm run invoke
+GET /health [200] {"status":"ok","app":"Cloudflare Worker Example","version":"1.0.0"}
+GET /greet/World [200] {"message":"Hello, World!"}
+GET /greet/CF [200] {"message":"Hello, CF!"}
+GET /missing [404] {"error":"Not found: GET /missing"}
+```
+
+## Evidence from implementation run
+
+- 5/5 unit tests pass
+- invoke harness: all 4 routes return expected responses
+- CDI boots once: GreetingService init log appears once across warm calls
 
 ---
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
-
-### Runs without errors
-
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
-
-### Config loading
-
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
-
-### Logging
-
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
-
-### Dependency injection
-
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
-
-### Boilerplate check
-
-- [ ] Entry point is minimal — no unnecessary ceremony
-
-### Framework-specific
-
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [ ] `npm test` — 5 tests pass
+- [ ] `npm run invoke` — health, greet/World, greet/CF return 200; /missing returns 404
+- [ ] `npm run invoke:dev` — greeting changes to `G'day`
+- [ ] CDI boots once (GreetingService init log appears once)
+- [ ] `worker.js` uses `export default { fetch }` — Cloudflare module syntax
+- [ ] Uses `Boot.boot({ contexts, run: false })` — same idiom as Lambda and Azure
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — observations, issues, suggestions)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 

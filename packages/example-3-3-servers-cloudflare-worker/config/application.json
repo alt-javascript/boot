@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "Cloudflare Worker Example",
+    "greeting": "Hello",
+    "version": "1.0.0"
+  },
+  "logging": {
+    "format": "text",
+    "level": {
+      "ROOT": "info",
+      "@alt-javascript/example-3-3-servers-cloudflare-worker": "debug"
+    }
+  }
+}

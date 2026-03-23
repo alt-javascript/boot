@@ -50,12 +50,12 @@ GET /missing [404] {"error":"Not found: GET /missing"}
 
 ## Acceptance Checklist
 
-- [ ] `npm test` — 5 tests pass
-- [ ] `npm run invoke` — health, greet/World, greet/Azure return 200; /missing returns 404
-- [ ] `npm run invoke:dev` — greeting changes to `G'day`
-- [ ] CDI boots once (GreetingService init log appears once)
-- [ ] `handler.js` exports a named `handler` function
-- [ ] Uses `Boot.boot({ contexts, run: false })` — same idiom as Lambda
+- [x] `npm test` — 5 tests pass
+- [x] `npm run invoke` — health, greet/World, greet/Azure return 200; /missing returns 404
+- [x] `npm run invoke:dev` — greeting changes to `G'day`
+- [x] CDI boots once (GreetingService init log appears once)
+- [x] `handler.js` exports a named `handler` function
+- [x] Uses `Boot.boot({ contexts, run: false })` — same idiom as Lambda
 
 ---
 
@@ -67,6 +67,6 @@ GET /missing [404] {"error":"Not found: GET /missing"}
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24   

@@ -1,29 +1,82 @@
-import { ApplicationContext } from '@alt-javascript/cdi';
+/**
+ * @alt-javascript/boot-cloudflare-worker — Cloudflare Workers adapter.
+ *
+ * Provides CDI-managed fetch handler with controller auto-registration.
+ * Same `__routes` convention as all other adapters.
+ * Returns Web Standards Response objects.
+ *
+ * Usage (idiomatic — Boot.boot() pattern):
+ *   import { cloudflareWorkerStarter } from '@alt-javascript/boot-cloudflare-worker';
+ *   import { Boot } from '@alt-javascript/boot';
+ *   import { Context, Singleton } from '@alt-javascript/cdi';
+ *
+ *   const context = new Context([...cloudflareWorkerStarter(), new Singleton(MyController)]);
+ *   const appCtxPromise = Boot.boot({ contexts: [context], run: false });
+ *
+ *   export default {
+ *     async fetch(request, env, ctx) {
+ *       const appCtx = await appCtxPromise;
+ *       return appCtx.get('cloudflareWorkerAdapter').fetch(request, env, ctx);
+ *     }
+ *   };
+ */
 import CloudflareWorkerAdapter from './CloudflareWorkerAdapter.js';
 
 /**
+ * Returns CDI component definitions that register a CloudflareWorkerAdapter as a singleton.
+ *
+ * @returns {Array} component definitions for CDI Context
+ */
+export function cloudflareWorkerStarter() {
+  return [
+    {
+      name: 'cloudflareWorkerAdapter',
+      Reference: CloudflareWorkerAdapterFactory,
+      scope: 'singleton',
+      condition: (config, components) => !components.cloudflareWorkerAdapter,
+    },
+  ];
+}
+
+/**
+ * Factory class that CDI instantiates as a singleton.
+ * Creates the CloudflareWorkerAdapter during init() after all components are wired.
+ */
+class CloudflareWorkerAdapterFactory {
+  constructor() {
+    this._adapter = null;
+    this._applicationContext = null;
+  }
+
+  setApplicationContext(ctx) {
+    this._applicationContext = ctx;
+  }
+
+  init() {
+    this._adapter = new CloudflareWorkerAdapter(this._applicationContext);
+  }
+
+  get routeCount() {
+    return this._adapter?.routeCount || 0;
+  }
+
+  async fetch(request, env, workerCtx) {
+    return this._adapter.fetch(request, env, workerCtx);
+  }
+}
+
+/**
+ * @deprecated Use Boot.boot({ contexts: [...cloudflareWorkerStarter(), ...], run: false }) instead.
+ *
  * Create a Cloudflare Workers fetch handler that boots CDI on the first
  * request and reuses the context across subsequent requests.
- *
- * Usage in wrangler worker entry:
- *   import { createWorkerHandler } from '@alt-javascript/boot-cloudflare-worker';
- *
- *   export default {
- *     fetch: createWorkerHandler({ contexts: [...], config })
- *   };
- *
- * env bindings (secrets, KV, D1) are available on request.env in handlers.
- *
- * @param {object} options
- * @param {Array} options.contexts — CDI Context instances
- * @param {object} options.config — config object
- * @returns {Function} (request, env, ctx) => Promise<Response>
  */
 export function createWorkerHandler(options) {
   let adapter = null;
   let bootPromise = null;
 
   async function bootstrap() {
+    const { ApplicationContext } = await import('@alt-javascript/cdi');
     const appCtx = new ApplicationContext({
       contexts: options.contexts,
       config: options.config,
@@ -41,4 +94,4 @@ export function createWorkerHandler(options) {
   };
 }
 
-export { CloudflareWorkerAdapter };
+export { CloudflareWorkerAdapter, CloudflareWorkerAdapterFactory };
