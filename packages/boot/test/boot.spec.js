@@ -34,15 +34,13 @@ beforeEach(async () => {
 });
 
 describe('boot function', () => {
-  it('boot - config is required', async () => {
-    let threw = false;
-    try {
-      await Boot.boot();
-    } catch (e) {
-      threw = true;
-      assert.include(e.message, 'Unable to detect config');
-    }
-    assert.isTrue(threw, 'Boot.boot() should reject when no config is available');
+  it('boot - defaults config from ProfileConfigLoader when none provided', async () => {
+    // Boot.boot() without config falls back to ConfigFactory.loadConfig() (ProfileConfigLoader).
+    // It should succeed (not throw) and populate global.boot.contexts.root.
+    await Boot.boot();
+    assert.isFunction(global.boot.contexts.root.config.has, 'default config.has is a function');
+    assert.isFunction(global.boot.contexts.root.config.get, 'default config.get is a function');
+    global.boot = undefined;
   });
   it('boot - config ', () => {
     const ephemeralConfig = new EphemeralConfig({});

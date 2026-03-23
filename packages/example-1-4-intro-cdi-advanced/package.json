@@ -1,0 +1,17 @@
+{
+  "name": "@alt-javascript/example-1-4-intro-cdi-advanced",
+  "version": "1.0.0",
+  "description": "Step 1.4 — @alt-javascript/cdi advanced features",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js",
+    "start:prod": "NODE_ACTIVE_PROFILES=prod node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/config": "*",
+    "@alt-javascript/logger": "*"
+  },
+  "private": true
+}

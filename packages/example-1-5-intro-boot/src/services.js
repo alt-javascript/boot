@@ -1,21 +1,21 @@
 /**
- * example-4-intro-boot — services
+ * example-1-5-intro-boot — services
  *
- * Same patterns as example-3-intro-cdi:
+ * Same patterns as example-1-3-intro-cdi:
  *   - static qualifier for logger category
  *   - Property injection with '${config.path:default}' placeholders
  *   - Null-property autowiring
  *   - Application.run() as the lifecycle entry point
  *
- * The difference from example-3: this module doesn't wire the logger factory
- * manually. Boot.boot() does it — and also prints the banner.
+ * Boot.boot() injects config, loggerFactory, and loggerCategoryCache into the
+ * ApplicationContext as a root context — no manual wiring of infrastructure needed.
  */
 
 export class GreetingRepository {
-  static qualifier = '@alt-javascript/example-4-intro-boot/GreetingRepository';
+  static qualifier = '@alt-javascript/example-1-5-intro-boot/GreetingRepository';
 
   constructor() {
-    this.logger = null; // autowired by CDI from global root loggerFactory
+    this.logger = null; // autowired via root context loggerFactory
   }
 
   init() {
@@ -29,15 +29,12 @@ export class GreetingRepository {
 }
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-4-intro-boot/GreetingService';
+  static qualifier = '@alt-javascript/example-1-5-intro-boot/GreetingService';
 
   constructor() {
     this.logger = null;             // autowired
     this.greetingRepository = null; // autowired
-
-    // Property injection — resolved from config by ApplicationContext.
-    // '${app.greeting:Hello}' → config.get('app.greeting') or 'Hello' if absent.
-    this.greeting = '${app.greeting:Hello}';
+    this.greeting = '${app.greeting:Hello}'; // property injection
   }
 
   init() {
@@ -53,14 +50,8 @@ export class GreetingService {
   }
 }
 
-/**
- * Application is a CDI singleton with a run() method.
- * ApplicationContext calls run() during the lifecycle run phase,
- * after all dependencies are wired and init() methods have been called.
- * This is where your application logic lives — not in main.js.
- */
 export class Application {
-  static qualifier = '@alt-javascript/example-4-intro-boot/Application';
+  static qualifier = '@alt-javascript/example-1-5-intro-boot/Application';
 
   constructor() {
     this.logger = null;          // autowired

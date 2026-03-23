@@ -1,0 +1,16 @@
+{
+  "name": "@alt-javascript/example-1-5-intro-boot",
+  "version": "1.0.0",
+  "description": "Step 1.5 — @alt-javascript/boot: the full stack in one call",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js",
+    "start:json-log": "NODE_ACTIVE_PROFILES=json-log node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/cdi": "*"
+  },
+  "private": true
+}

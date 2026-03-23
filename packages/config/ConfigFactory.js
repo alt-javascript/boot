@@ -1,5 +1,5 @@
 /* eslint-disable import/extensions */
-import npmconfig from 'config';
+
 import { getGlobalRoot } from '@alt-javascript/common';
 import ValueResolvingConfig from './ValueResolvingConfig.js';
 import DelegatingResolver from './DelegatingResolver.js';
@@ -37,7 +37,7 @@ export default class ConfigFactory {
         jasyptDecryptor, jasyptDecryptorAlt,
         urlResolver, urlResolverAlt, urlResolverAlt2],
     );
-    const valueResolvingConfig = new ValueResolvingConfig(config || npmconfig,
+    const valueResolvingConfig = new ValueResolvingConfig(config || ConfigFactory.loadConfig(),
       resolver || delegatingResolver);
 
     placeHolderResolver.reference = valueResolvingConfig;

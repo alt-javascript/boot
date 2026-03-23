@@ -1,0 +1,16 @@
+{
+  "name": "@alt-javascript/example-1-2-intro-logger",
+  "version": "1.0.0",
+  "description": "Step 1.2 — @alt-javascript/logger + config",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js",
+    "start:json-log": "NODE_ACTIVE_PROFILES=json-log node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/config": "*",
+    "@alt-javascript/logger": "*"
+  },
+  "private": true
+}

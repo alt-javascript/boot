@@ -58,19 +58,21 @@ describe('LoggerFactory Specification', () => {
     assert.equal(logger.cache, cache, 'logger.cache === cache');
   });
 
-  it('static getLogger Unable to detect config,', () => {
-    assert.throws(() => { LoggerFactory.getLogger(); }, 'Unable to detect config, is \'config\' declared or provided?');
+  it('static getLogger uses default config when none provided,', () => {
+    const logger = LoggerFactory.getLogger();
+    assert.exists(logger, 'logger exists with default config');
+    assert.equal(logger.category, Logger.DEFAULT_CATEGORY, 'logger.category === Logger.DEFAULT_CATEGORY');
   });
 
-  it('static getLogger global config is detected,', () => {
+  it('static getLogger global boot config is detected,', () => {
     const config = new EphemeralConfig({});
-    global.config = config;
+    global.boot = { contexts: { root: { config } } };
     const logger = LoggerFactory.getLogger();
 
     assert.equal(logger.config, config, 'logger.config === config');
     assert.equal(logger.category, Logger.DEFAULT_CATEGORY, 'logger.category === Logger.DEFAULT_CATEGORY');
     assert.equal(logger.configPath, ConfigurableLogger.DEFAULT_CONFIG_PATH, 'logger.configPath === ConfigurableLogger.DEFAULT_CONFIG_PATH');
-    global.config = undefined;
+    global.boot = undefined;
   });
 
   it('static getLogger global browser config is detected,', () => {

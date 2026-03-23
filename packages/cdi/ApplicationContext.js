@@ -1,8 +1,7 @@
 /* eslint-disable import/extensions */
 import _ from 'lodash';
-import { LoggerFactory } from '@alt-javascript/logger';
-import { ConfigFactory } from '@alt-javascript/config';
-import { getGlobalRoot, detectBrowser } from '@alt-javascript/common';
+import { LoggerFactory, loggerFactory as defaultLoggerFactory } from '@alt-javascript/logger';
+import { config as defaultConfig, ConfigFactory } from '@alt-javascript/config';
 import {
   Context, Component, Property, Scopes,
 } from './context/index.js';
@@ -69,7 +68,7 @@ export default class ApplicationContext {
     this.configContextPath = options?.configContextPath
         || (typeof (process) !== 'undefined' && process?.env?.NODE_CONFIG_CONTEXT_PATH)
         || ApplicationContext.DEFAULT_CONFIG_CONTEXT_PATH;
-    this.config = options?.config || ConfigFactory.getConfig({});
+    this.config = options?.config || defaultConfig;
     if (options?.config) {
       // eslint-disable-next-line no-param-reassign
       delete options.config;
@@ -140,46 +139,6 @@ export default class ApplicationContext {
     this.logger.verbose('Detecting config contexts completed.');
   }
 
-  /** Register framework components (config, loggerFactory, loggerCategoryCache, logger, fetch) as context singletons. */
-  detectGlobalContextComponents() {
-    this.logger.verbose('Detecting global context components started.');
-
-    if (!this.components.config && getGlobalRoot('config')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('config'),
-        name: 'config',
-      });
-    }
-    if (!this.components.loggerFactory && getGlobalRoot('loggerFactory')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('loggerFactory'),
-        name: 'loggerFactory',
-      });
-    }
-    if (!this.components.loggerCategoryCache && getGlobalRoot('loggerCategoryCache')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('loggerCategoryCache'),
-        name: 'loggerCategoryCache',
-      });
-    }
-    if (!this.components.logger) {
-      this.deriveContextComponent({
-        scope: Scopes.PROTOTYPE,
-        wireFactory: 'loggerFactory',
-        factoryFunction: 'getLogger',
-        name: 'logger',
-      });
-    }
-    if (!this.components.fetch && getGlobalRoot('fetch')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('fetch'),
-        name: 'fetch',
-      });
-    }
-
-    this.logger.verbose('Detecting global context components completed.');
-  }
-
   /** Parse all context definitions: config-driven, explicit, and global framework components. */
   async parseContexts() {
     this.logger.verbose('Parsing configured contexts started.');
@@ -199,7 +158,31 @@ export default class ApplicationContext {
         throw new Error(msg);
       }
     }
-    this.detectGlobalContextComponents();
+    // Register default infrastructure components so beans with `this.logger = null`,
+    // `this.config = null`, etc. are always autowired — even when no explicit
+    // loggerFactory or config is in the provided contexts.
+    // When Boot.boot() provides these via the root context, those take precedence
+    // (they're parsed first, registration is first-write wins).
+    if (!this.components.loggerFactory) {
+      await this.deriveContextComponent({
+        Reference: defaultLoggerFactory,
+        name: 'loggerFactory',
+      });
+    }
+    if (!this.components.logger) {
+      await this.deriveContextComponent({
+        scope: Scopes.PROTOTYPE,
+        wireFactory: 'loggerFactory',
+        factoryFunction: 'getLogger',
+        name: 'logger',
+      });
+    }
+    if (!this.components.config) {
+      await this.deriveContextComponent({
+        Reference: this.config,
+        name: 'config',
+      });
+    }
     this.logger.verbose('Parsing configured contexts completed.');
   }
 

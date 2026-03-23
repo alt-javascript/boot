@@ -40,7 +40,7 @@ const config = ProfileConfigLoader.load({
   profiles: 'dev,local',  // or reads NODE_ACTIVE_PROFILES from env
 });
 
-config.get('server.port');  // from application-local.json, or application-dev.json, or application.json
+config.get('server.port');  // from application-local.json, or application-dev.yaml, or application.json
 config.get('db.host');      // from process.env.DB_HOST via relaxed binding
 ```
 

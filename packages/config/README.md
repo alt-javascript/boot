@@ -17,29 +17,37 @@ npm install @alt-javascript/config
 
 ## Quick Start
 
-### In-Memory Config
+### In-Memory Config 
 
 ```javascript
 import { EphemeralConfig } from '@alt-javascript/config';
+import { ConfigFactory } from '@alt-javascript/config';
 
+// simple config (basic lookup)
 const config = new EphemeralConfig({
   db: { host: 'localhost', port: 5432 },
-  logging: { level: { ROOT: 'info' } },
+  logging: { level: { ROOT: 'info' } }, 
+  secret: 'ENC(Ho8XdYf6/r+FdJ/ZC55BBA==)',
 });
 
 config.get('db.host');        // 'localhost'
 config.get('db.port');        // 5432
 config.get('missing', 'def'); // 'def'
+config.get('secret');         // 'ENC(Ho8XdYf6/r+FdJ/ZC55BBA==)'
 config.has('db.host');        // true
+
+// wrap for extended features, placeholder resolution, encrypted properties, etc 
+const extended = ConfigFactory.getConfig(config);
+
+config.get('secret');         // 'secret'
+
 ```
 
 ### Profile-Based Config (Spring-Aligned)
 
 ```javascript
-import { ProfileConfigLoader } from '@alt-javascript/config';
-
 // Reads NODE_ACTIVE_PROFILES from env, discovers config files
-const config = ProfileConfigLoader.load();
+import  { config } from '@alt-javascript/config' ;
 
 config.get('server.port');  // from application-{profile}.json or process.env.SERVER_PORT
 ```
@@ -47,9 +55,12 @@ config.get('server.port');  // from application-{profile}.json or process.env.SE
 ### node-config Integration (Traditional)
 
 ```javascript
+//  node-config based discovery and formats
+import nodeconfig from 'config';
 import { ConfigFactory } from '@alt-javascript/config';
 
-const config = ConfigFactory.getConfig();
+// enhance node-config, with alt features
+const config = ConfigFactory.getConfig(nodeconfig); 
 ```
 
 ## Property Source Precedence

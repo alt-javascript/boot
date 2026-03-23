@@ -1,5 +1,6 @@
 /* eslint-disable import/extensions */
 import { getGlobalRoot, detectBrowser } from '@alt-javascript/common';
+import { config } from '@alt-javascript/config';
 import ConfigurableLogger from './ConfigurableLogger.js';
 import ConsoleLogger from './ConsoleLogger.js';
 import LoggerCategoryCache from './LoggerCategoryCache.js';
@@ -12,10 +13,6 @@ export default class LoggerFactory {
 
     static detectConfig(configArg) {
       let $config = null;
-      if (!(typeof config === 'undefined')) {
-        // eslint-disable-next-line no-undef
-        $config = config;
-      }
       if (getGlobalRoot('config')) {
         $config = getGlobalRoot('config');
       }
@@ -26,8 +23,8 @@ export default class LoggerFactory {
       if ($config) {
         return $config;
       }
-
-      throw new Error('Unable to detect config, is \'config\' declared or provided?');
+      // Fall back to the module-level default (ProfileConfigLoader-backed)
+      return config;
     }
 
     static detectLoggerFactory() {
@@ -78,9 +75,9 @@ export default class LoggerFactory {
         cache || LoggerFactory.loggerCategoryCache);
     }
 
-    constructor(config, cache, configPath) {
-      this.config = config;
-      this.cache = cache;
+    constructor(_config, cache, configPath) {
+      this.config = _config || config;
+      this.cache = cache  || LoggerFactory.loggerCategoryCache ;
       this.configPath = configPath || ConfigurableLogger.DEFAULT_CONFIG_PATH;
       if (!this.config) {
         throw new Error('config is required');

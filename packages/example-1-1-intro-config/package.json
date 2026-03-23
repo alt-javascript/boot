@@ -1,0 +1,14 @@
+{
+  "name": "@alt-javascript/example-1-1-intro-config",
+  "version": "1.0.0",
+  "description": "Step 1.1 — @alt-javascript/config standalone introduction",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/config": "*"
+  },
+  "private": true
+}

@@ -36,7 +36,7 @@ describe('ProfileConfigLoader', () => {
         server: { port: 8080 },
         db: { host: 'localhost' },
       }));
-      writeFileSync(join(testDir, 'config', 'application-dev.json'), JSON.stringify({
+      writeFileSync(join(testDir, 'config', 'application-dev.yaml'), JSON.stringify({
         server: { port: 3000 },
       }));
 

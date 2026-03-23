@@ -1,5 +1,5 @@
 /**
- * example-3-intro-cdi — services
+ * example-1-3-intro-cdi — services
  *
  * Demonstrates idiomatic CDI patterns:
  *
@@ -8,8 +8,7 @@
  *                        logging convention.
  *
  *   Property injection — string values starting with '${' are resolved against config
- *                        by ApplicationContext.resolveConfigPlaceHolder(). Format:
- *                        '${config.path:defaultValue}'
+ *                        by ApplicationContext. Format: '${config.path:defaultValue}'
  *
  *   Null autowiring    — null properties are matched by name to registered CDI components
  *                        and injected automatically.
@@ -22,10 +21,10 @@ export class GreetingRepository {
   // qualifier: category string used by LoggerFactory when autowiring this.logger.
   // Without it, the category defaults to the class name — fine, but less informative
   // across module boundaries.
-  static qualifier = '@alt-javascript/example-3-intro-cdi/GreetingRepository';
+  static qualifier = '@alt-javascript/example-1-3-intro-cdi/GreetingRepository';
 
   constructor() {
-    this.logger = null; // autowired: injected by CDI from loggerFactory in global root
+    this.logger = null; // autowired: CDI injects a logger via the default loggerFactory
   }
 
   init() {
@@ -39,11 +38,11 @@ export class GreetingRepository {
 }
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-3-intro-cdi/GreetingService';
+  static qualifier = '@alt-javascript/example-1-3-intro-cdi/GreetingService';
 
   constructor() {
     this.logger = null;             // autowired
-    this.config = null;             // autowired
+    this.config = null;             // autowired — the default config instance
     this.greetingRepository = null; // autowired
 
     // Property injection — ApplicationContext resolves '${app.greeting:Hello}' from config.
@@ -70,7 +69,7 @@ export class GreetingService {
  * are wired and initialised.
  */
 export class Application {
-  static qualifier = '@alt-javascript/example-3-intro-cdi/Application';
+  static qualifier = '@alt-javascript/example-1-3-intro-cdi/Application';
 
   constructor() {
     this.logger = null;          // autowired

@@ -8,7 +8,7 @@ import {
 
 process.env.PROVIDED_ENV_VAR = 'provided-index-value';
 
-const config = ConfigFactory.getConfig();
+const config = ConfigFactory.getConfig(npmconfig);
 const logger = LoggerFactory.getLogger('@alt-javascript/config/test/ValueResolvingConfig_spec');
 const secretconfig = new ValueResolvingConfig(npmconfig, new JasyptDecryptor(new PrefixSelector('enc.'), 'secret'));
 

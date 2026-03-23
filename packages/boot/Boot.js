@@ -55,6 +55,9 @@ export default class Boot {
           $config = ConfigFactory.getConfig($config);
         }
       }
+    } else if (!browser) {
+      // No explicit config provided — use ProfileConfigLoader default (reads application.json etc.)
+      $config = ConfigFactory.loadConfig();
     } else {
       throw new Error('Unable to detect config, is \'config\' declared or provided?');
     }
@@ -122,8 +125,20 @@ export default class Boot {
 
     // If contexts are provided, start the ApplicationContext and return it.
     if (context && context.contexts) {
-      const { ApplicationContext } = await import('@alt-javascript/cdi');
-      const appCtx = new ApplicationContext({ contexts: context.contexts, config: $config });
+      const {
+        ApplicationContext, Context, Singleton,
+      } = await import('@alt-javascript/cdi');
+      // Build a root Context carrying the boot-managed infrastructure singletons
+      // (config, loggerFactory, loggerCategoryCache) so CDI beans can autowire them.
+      const rootContext = new Context([
+        new Singleton({ Reference: $config, name: 'config' }),
+        new Singleton({ Reference: $loggerFactory, name: 'loggerFactory' }),
+        new Singleton({ Reference: $loggerCategoryCache, name: 'loggerCategoryCache' }),
+      ]);
+      const appCtx = new ApplicationContext({
+        contexts: [rootContext, ...context.contexts],
+        config: $config,
+      });
       await appCtx.start();
       return appCtx;
     }

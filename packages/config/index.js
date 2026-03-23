@@ -23,3 +23,4 @@ export { default as URLResolver } from './URLResolver.js';
 export { default as ValueResolvingConfig } from './ValueResolvingConfig.js';
 export { ConfigFactory };
 export { config };
+

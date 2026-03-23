@@ -15,6 +15,7 @@ export default class Component {
         this.scope = options?.scope;
         this.properties = options?.properties;
         this.profiles = options?.profiles;
+        this.primary = options?.primary;
         this.factory = options?.factory;
         this.factoryFunction = options?.factoryFunction;
         this.factoryArgs = options?.factoryArgs;
