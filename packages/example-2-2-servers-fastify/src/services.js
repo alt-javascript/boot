@@ -1,12 +1,12 @@
 /**
- * example-3-1-servers-fastify — services
+ * example-2-2-servers-fastify — services
  *
  * Identical CDI patterns to example-2-1-servers-express.
  * The framework adapter changes; the service layer doesn't.
  */
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-3-1-servers-fastify/GreetingService';
+  static qualifier = '@alt-javascript/example-2-2-servers-fastify/GreetingService';
 
   constructor() {
     this.logger = null;
@@ -28,7 +28,7 @@ export class GreetingService {
 }
 
 export class Application {
-  static qualifier = '@alt-javascript/example-3-1-servers-fastify/Application';
+  static qualifier = '@alt-javascript/example-2-2-servers-fastify/Application';
 
   constructor() {
     this.logger = null;

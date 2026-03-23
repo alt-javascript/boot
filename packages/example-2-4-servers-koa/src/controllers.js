@@ -1,5 +1,5 @@
 /**
- * example-5-1-servers-koa — controllers
+ * example-2-4-servers-koa — controllers
  *
  * Same static __routes convention as all other adapters.
  * Koa handlers receive a normalized request object and return plain
@@ -8,7 +8,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-5-1-servers-koa/GreetingController';
+  static qualifier = '@alt-javascript/example-2-4-servers-koa/GreetingController';
 
   static __routes = [
     { method: 'GET', path: '/',            handler: 'health' },

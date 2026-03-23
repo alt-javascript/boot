@@ -1,12 +1,12 @@
 /**
- * example-5-1-servers-koa — services
+ * example-2-3-servers-hono — services
  *
- * Same CDI patterns as all previous examples.
- * Koa is the async/await successor to Express — service layer unchanged.
+ * Same CDI patterns as the Express and Fastify examples.
+ * Hono's Web Standards API doesn't affect the service layer at all.
  */
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-5-1-servers-koa/GreetingService';
+  static qualifier = '@alt-javascript/example-2-3-servers-hono/GreetingService';
 
   constructor() {
     this.logger = null;
@@ -28,12 +28,12 @@ export class GreetingService {
 }
 
 export class Application {
-  static qualifier = '@alt-javascript/example-5-1-servers-koa/Application';
+  static qualifier = '@alt-javascript/example-2-3-servers-hono/Application';
 
   constructor() {
     this.logger = null;
     this.config = null;
-    this.appName = '${app.name:Koa Example}';
+    this.appName = '${app.name:Hono Example}';
   }
 
   run() {

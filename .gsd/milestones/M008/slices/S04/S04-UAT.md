@@ -6,7 +6,7 @@
 
 ## Package
 
-`packages/example-4-1-servers-hono`
+`packages/example-2-3-servers-hono`
 
 ## What this demonstrates
 
@@ -20,7 +20,7 @@
 ## How to run
 
 ```bash
-cd packages/example-4-1-servers-hono
+cd packages/example-2-3-servers-hono
 
 # Default profile — port 3000, Hello greeting
 npm start

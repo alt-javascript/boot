@@ -1,7 +1,7 @@
 {
-  "name": "@alt-javascript/example-5-1-servers-koa",
+  "name": "@alt-javascript/example-2-2-servers-fastify",
   "version": "1.0.0",
-  "description": "Step 5.1 — @alt-javascript/boot-koa: REST API with CDI-managed Koa",
+  "description": "Step 3.1 — @alt-javascript/boot-fastify: REST API with CDI-managed Fastify",
   "type": "module",
   "scripts": {
     "start": "node main.js",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@alt-javascript/boot": "*",
-    "@alt-javascript/boot-koa": "*",
+    "@alt-javascript/boot-fastify": "*",
     "@alt-javascript/cdi": "*"
   },
   "private": true

@@ -1,5 +1,5 @@
 /**
- * example-3-1-servers-fastify — controllers
+ * example-2-2-servers-fastify — controllers
  *
  * Declarative __routes pattern — same as Express example.
  * Fastify handlers receive (request, reply) instead of (req, res).
@@ -7,7 +7,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-3-1-servers-fastify/GreetingController';
+  static qualifier = '@alt-javascript/example-2-2-servers-fastify/GreetingController';
 
   static __routes = [
     { method: 'GET', path: '/',            handler: 'health' },

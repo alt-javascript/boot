@@ -6,7 +6,7 @@
 
 ## Package
 
-`packages/example-3-1-servers-fastify`
+`packages/example-2-2-servers-fastify`
 
 ## What this demonstrates
 
@@ -19,7 +19,7 @@
 ## How to run
 
 ```bash
-cd packages/example-3-1-servers-fastify
+cd packages/example-2-2-servers-fastify
 
 # Default profile — port 3000, Hello greeting
 npm start

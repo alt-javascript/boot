@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Fastify Example",
+    "name": "Hono Example",
     "greeting": "Hello",
     "version": "1.0.0"
   },
@@ -15,7 +15,7 @@
     "format": "text",
     "level": {
       "ROOT": "info",
-      "@alt-javascript/example-3-1-servers-fastify": "debug"
+      "@alt-javascript/example-2-3-servers-hono": "debug"
     }
   }
 }

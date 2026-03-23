@@ -1,5 +1,5 @@
 /**
- * example-4-1-servers-hono — controllers
+ * example-2-3-servers-hono — controllers
  *
  * Same static __routes convention as Express/Fastify.
  *
@@ -12,7 +12,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-4-1-servers-hono/GreetingController';
+  static qualifier = '@alt-javascript/example-2-3-servers-hono/GreetingController';
 
   static __routes = [
     { method: 'GET', path: '/',            handler: 'health' },

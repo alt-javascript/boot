@@ -15,7 +15,7 @@
     "format": "text",
     "level": {
       "ROOT": "info",
-      "@alt-javascript/example-5-1-servers-koa": "debug"
+      "@alt-javascript/example-2-4-servers-koa": "debug"
     }
   }
 }

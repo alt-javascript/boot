@@ -1,11 +1,8 @@
 /**
- * example-5-1-servers-koa — entry point
+ * example-2-2-servers-fastify — entry point
  *
- * Same Boot.boot() pattern; swap koaStarter().
- *
- * Koa is the async/await successor to Express — no callbacks, clean
- * middleware composition via async/await. Service and controller code
- * is identical to all other examples.
+ * Identical Boot.boot() pattern to example-2-1-servers-express.
+ * Swap expressStarter() → fastifyStarter().
  *
  * Run:
  *   npm start           # http://localhost:3000
@@ -13,12 +10,12 @@
  */
 import { Boot } from '@alt-javascript/boot';
 import { Context, Singleton } from '@alt-javascript/cdi';
-import { koaStarter } from '@alt-javascript/boot-koa';
+import { fastifyStarter } from '@alt-javascript/boot-fastify';
 import { GreetingService, Application } from './src/services.js';
 import { GreetingController } from './src/controllers.js';
 
 const context = new Context([
-  ...koaStarter(),
+  ...fastifyStarter(),
   new Singleton(GreetingService),
   new Singleton(GreetingController),
   new Singleton(Application),

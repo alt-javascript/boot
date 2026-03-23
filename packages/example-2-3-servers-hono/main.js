@@ -1,5 +1,5 @@
 /**
- * example-4-1-servers-hono — entry point
+ * example-2-3-servers-hono — entry point
  *
  * Same Boot.boot() pattern; swap honoStarter().
  *
