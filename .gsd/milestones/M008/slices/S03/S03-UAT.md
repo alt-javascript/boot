@@ -63,13 +63,13 @@ GET /greet/World  → {"message":"G'day, World!"}
 
 **All boxes must be checked before S04 begins.**
 
-- [ ] `npm start` — banner prints (with blank line after version), server listens on port 3000
-- [ ] `GET /` — returns `{ "status": "ok", "app": "Fastify Example", "version": "1.0.0" }`
-- [ ] `GET /greet/World` — returns `{ "message": "Hello, World!" }`
-- [ ] `GET /greet/Alt-JavaScript` — returns `{ "message": "Hello, Alt-JavaScript!" }`
-- [ ] `npm run start:dev` — server listens on port 3001, greeting is `G'day`
-- [ ] Ctrl+C — server closes cleanly (no hanging process)
-- [ ] `main.js` differs from Express example only in the import and `fastifyAutoConfiguration()`
+- [x] `npm start` — banner prints (with blank line after version), server listens on port 3000
+- [X] `GET /` — returns `{ "status": "ok", "app": "Fastify Example", "version": "1.0.0" }`
+- [X] `GET /greet/World` — returns `{ "message": "Hello, World!" }`
+- [X] `GET /greet/Alt-JavaScript` — returns `{ "message": "Hello, Alt-JavaScript!" }`
+- [X] `npm run start:dev` — server listens on port 3001, greeting is `G'day`
+- [X] Ctrl+C — server closes cleanly (no hanging process)
+- [X] `main.js` differs from Express example only in the import and `fastifyAutoConfiguration()`
 
 ---
 
@@ -81,6 +81,6 @@ GET /greet/World  → {"message":"G'day, World!"}
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [X] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24
