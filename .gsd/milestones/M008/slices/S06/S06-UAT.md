@@ -55,12 +55,12 @@ GET /greet/World [200] {"message":"G'day, World!"}
 
 **All boxes must be checked before S07 begins.**
 
-- [ ] `npm test` — 5 tests pass
-- [ ] `npm run invoke` — health, greet/World, greet/Lambda return 200; /missing returns 404
-- [ ] `npm run invoke:dev` — greeting changes to `G'day`
-- [ ] CDI boots once (GreetingService init log appears once, not per-invocation)
-- [ ] `handler.js` exports a named `handler` function suitable for AWS Lambda runtime
-- [ ] No `Boot.boot()`, no running HTTP server
+- [x] `npm test` — 5 tests pass
+- [x] `npm run invoke` — health, greet/World, greet/Lambda return 200; /missing returns 404
+- [x] `npm run invoke:dev` — greeting changes to `G'day`
+- [x] CDI boots once (GreetingService init log appears once, not per-invocation)
+- [x] `handler.js` exports a named `handler` function suitable for AWS Lambda runtime
+- [x] No `Boot.boot()`, no running HTTP server
 
 ---
 
@@ -87,6 +87,6 @@ Also, change createLambdaHandler to lambdaStatert and deprecate createLambdaHand
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24

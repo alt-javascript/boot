@@ -1,0 +1,21 @@
+{
+  "name": "@alt-javascript/example-3-2-servers-azure-function",
+  "version": "1.0.0",
+  "description": "Step 3.2 — @alt-javascript/boot-azure-function: serverless handler with CDI wiring",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js",
+    "invoke": "node invoke.js",
+    "invoke:dev": "NODE_ACTIVE_PROFILES=dev node invoke.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-azure-function": "*",
+    "@alt-javascript/cdi": "*"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "private": true
+}

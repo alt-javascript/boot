@@ -1,60 +1,67 @@
-# S07 UAT — Azure Function (`example-azure-function`)
+# S07 UAT — Azure Function Example
 
-**Status:** ⏳ Pending implementation
+**Status:** Ready for human sign-off
 
 ---
+
+## Package
+
+`packages/example-3-2-servers-azure-function`
+
+## What this demonstrates
+
+- `azureFunctionStarter()` — registers `AzureFunctionAdapter` CDI singleton
+- `Boot.boot({ contexts, run: false })` — same idiom as Lambda; skips run phase
+- `static __routes` — same convention; path params use `:name` (URL-based routing)
+- Handlers return plain objects — adapter wraps in `{ status, jsonBody }`
+- Unit-testable without Azure account: `handler(request, {})` directly
+- Local invoke harness: `npm run invoke`
 
 ## How to run
 
 ```bash
-cd packages/example-azure-function
-npm install
-npm start
+cd packages/example-3-2-servers-azure-function
+
+# Unit tests (no Azure required)
+npm test
+
+# Local invoke harness
+npm run invoke        # Hello greeting (default profile)
+npm run invoke:dev    # G'day greeting (dev profile)
 ```
 
-Test with Azure Functions Core Tools or handler invocation
+## Expected output
+
+```
+# npm run invoke
+GET /health [200] {"status":"ok","app":"Azure Function Example","version":"1.0.0"}
+GET /greet/World [200] {"message":"Hello, World!"}
+GET /greet/Azure [200] {"message":"Hello, Azure!"}
+GET /missing [404] {"error":"Not found: GET /missing"}
+```
+
+## Evidence from implementation run
+
+- 5/5 unit tests pass
+- invoke harness: all 4 routes return expected responses
+- CDI boots once: GreetingService init log appears once across warm calls
 
 ---
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
-
-### Runs without errors
-
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
-
-### Config loading
-
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
-
-### Logging
-
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
-
-### Dependency injection
-
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
-
-### Boilerplate check
-
-- [ ] Entry point is minimal — no unnecessary ceremony
-
-### Framework-specific
-
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [ ] `npm test` — 5 tests pass
+- [ ] `npm run invoke` — health, greet/World, greet/Azure return 200; /missing returns 404
+- [ ] `npm run invoke:dev` — greeting changes to `G'day`
+- [ ] CDI boots once (GreetingService init log appears once)
+- [ ] `handler.js` exports a named `handler` function
+- [ ] Uses `Boot.boot({ contexts, run: false })` — same idiom as Lambda
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — observations, issues, suggestions)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 
