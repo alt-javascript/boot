@@ -4,8 +4,8 @@
  * Provides CDI-managed Fastify server with controller auto-registration.
  *
  * Usage:
- *   import { fastifyAutoConfiguration } from '@alt-javascript/boot-fastify';
- *   const context = new Context([...fastifyAutoConfiguration(), ...yourComponents]);
+ *   import { fastifyStarter } from '@alt-javascript/boot-fastify';
+ *   const context = new Context([...fastifyStarter(), ...yourComponents]);
  */
 import FastifyAdapter from './FastifyAdapter.js';
 import FastifyControllerRegistrar from './FastifyControllerRegistrar.js';
@@ -18,7 +18,7 @@ import FastifyControllerRegistrar from './FastifyControllerRegistrar.js';
  *
  * @returns {Array} component definitions for CDI Context
  */
-export function fastifyAutoConfiguration() {
+export function fastifyStarter() {
   return [
     {
       name: 'fastifyAdapter',
@@ -30,3 +30,6 @@ export function fastifyAutoConfiguration() {
 }
 
 export { FastifyAdapter, FastifyControllerRegistrar };
+
+/** @deprecated Use fastifyStarter() */
+export const fastifyAutoConfiguration = fastifyStarter;

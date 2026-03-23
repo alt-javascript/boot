@@ -1,7 +1,7 @@
 import HonoAdapter from './HonoAdapter.js';
 import HonoControllerRegistrar from './HonoControllerRegistrar.js';
 
-export function honoAutoConfiguration() {
+export function honoStarter() {
   return [
     {
       name: 'honoAdapter',
@@ -13,3 +13,6 @@ export function honoAutoConfiguration() {
 }
 
 export { HonoAdapter, HonoControllerRegistrar };
+
+/** @deprecated Use honoStarter() */
+export const honoAutoConfiguration = honoStarter;

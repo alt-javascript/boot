@@ -13,7 +13,7 @@ import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
 import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
 import '@alt-javascript/jsdbc-sqljs'; // self-registers SqlJs driver
-import { expressAutoConfiguration } from '../index.js';
+import { expressStarter } from '../index.js';
 
 // -- Domain: TodoService (framework-agnostic) --
 
@@ -110,7 +110,7 @@ async function buildFullStack() {
   });
 
   const context = new Context([
-    ...expressAutoConfiguration(),
+    ...expressStarter(),
     ...jsdbcAutoConfiguration(),
     { Reference: TodoService, name: 'todoService', scope: 'singleton' },
     { Reference: TodoController, name: 'todoController', scope: 'singleton' },

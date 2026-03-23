@@ -18,10 +18,10 @@ npm install @alt-javascript/boot-fastify fastify
 ## Usage
 
 ```javascript
-import { fastifyAutoConfiguration } from '@alt-javascript/boot-fastify';
+import { fastifyStarter } from '@alt-javascript/boot-fastify';
 
 const context = new Context([
-  ...fastifyAutoConfiguration(),
+  ...fastifyStarter(),
   new Singleton(TodoController), // has static __routes
   new Singleton(TodoService),
 ]);

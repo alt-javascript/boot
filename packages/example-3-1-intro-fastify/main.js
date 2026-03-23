@@ -2,7 +2,7 @@
  * example-3-1-intro-fastify — entry point
  *
  * Identical Boot.boot() pattern to example-2-1-intro-express.
- * Swap expressAutoConfiguration() → fastifyAutoConfiguration().
+ * Swap expressStarter() → fastifyStarter().
  *
  * Run:
  *   npm start           # http://localhost:3000
@@ -10,12 +10,12 @@
  */
 import { Boot } from '@alt-javascript/boot';
 import { Context, Singleton } from '@alt-javascript/cdi';
-import { fastifyAutoConfiguration } from '@alt-javascript/boot-fastify';
+import { fastifyStarter } from '@alt-javascript/boot-fastify';
 import { GreetingService, Application } from './src/services.js';
 import { GreetingController } from './src/controllers.js';
 
 const context = new Context([
-  ...fastifyAutoConfiguration(),
+  ...fastifyStarter(),
   new Singleton(GreetingService),
   new Singleton(GreetingController),
   new Singleton(Application),

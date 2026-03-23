@@ -3,7 +3,7 @@ import supertest from 'supertest';
 import { EphemeralConfig } from '@alt-javascript/config';
 import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
-import { expressAutoConfiguration, ExpressAdapter } from '../index.js';
+import { expressStarter, ExpressAdapter } from '../index.js';
 
 // --- Test service (framework-agnostic) ---
 class GreetingService {
@@ -73,7 +73,7 @@ async function buildContext(configOverrides = {}) {
   });
 
   const context = new Context([
-    ...expressAutoConfiguration(),
+    ...expressStarter(),
     { Reference: GreetingService, name: 'greetingService', scope: 'singleton' },
     { Reference: GreetingController, name: 'greetingController', scope: 'singleton' },
     { Reference: ImperativeController, name: 'imperativeController', scope: 'singleton' },
@@ -117,7 +117,7 @@ describe('Express Adapter', () => {
 
     it('defaults to port 3000 when not configured', async () => {
       const config = new EphemeralConfig({});
-      const context = new Context([...expressAutoConfiguration()]);
+      const context = new Context([...expressStarter()]);
       appCtx = new ApplicationContext({ contexts: [context], config });
       await appCtx.start({ run: false });
       const adapter = appCtx.get('expressAdapter');
@@ -213,7 +213,7 @@ describe('Express Adapter', () => {
       const config = new EphemeralConfig({});
       const context = new Context([
         { Reference: customAdapter, name: 'expressAdapter', scope: 'singleton' },
-        ...expressAutoConfiguration(),
+        ...expressStarter(),
       ]);
       appCtx = new ApplicationContext({ contexts: [context], config });
       await appCtx.start({ run: false });

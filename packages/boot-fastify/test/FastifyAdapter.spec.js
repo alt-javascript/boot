@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { EphemeralConfig } from '@alt-javascript/config';
 import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
-import { fastifyAutoConfiguration, FastifyAdapter } from '../index.js';
+import { fastifyStarter, FastifyAdapter } from '../index.js';
 
 // --- Test service (framework-agnostic — identical to Express tests) ---
 class GreetingService {
@@ -72,7 +72,7 @@ async function buildContext(configOverrides = {}) {
   });
 
   const context = new Context([
-    ...fastifyAutoConfiguration(),
+    ...fastifyStarter(),
     { Reference: GreetingService, name: 'greetingService', scope: 'singleton' },
     { Reference: GreetingController, name: 'greetingController', scope: 'singleton' },
     { Reference: ImperativeController, name: 'imperativeController', scope: 'singleton' },
@@ -118,7 +118,7 @@ describe('Fastify Adapter', () => {
 
     it('defaults to port 3000 when not configured', async () => {
       const config = new EphemeralConfig({});
-      const context = new Context([...fastifyAutoConfiguration()]);
+      const context = new Context([...fastifyStarter()]);
       appCtx = new ApplicationContext({ contexts: [context], config });
       await appCtx.start({ run: false });
       const adapter = appCtx.get('fastifyAdapter');
@@ -227,7 +227,7 @@ describe('Fastify Adapter', () => {
       const config = new EphemeralConfig({});
       const context = new Context([
         { Reference: customAdapter, name: 'fastifyAdapter', scope: 'singleton' },
-        ...fastifyAutoConfiguration(),
+        ...fastifyStarter(),
       ]);
       appCtx = new ApplicationContext({ contexts: [context], config });
       await appCtx.start({ run: false });

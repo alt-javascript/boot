@@ -4,7 +4,7 @@ import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
 import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
 import '@alt-javascript/jsdbc-sqljs';
-import { honoAutoConfiguration, HonoAdapter } from '../index.js';
+import { honoStarter, HonoAdapter } from '../index.js';
 
 class GreetingService {
   greet(name) { return `Hello, ${name}!`; }
@@ -61,7 +61,7 @@ class TodoController {
 async function buildContext(extras = [], configOverrides = {}) {
   const config = new EphemeralConfig({ server: { port: 0 }, ...configOverrides });
   const context = new Context([
-    ...honoAutoConfiguration(),
+    ...honoStarter(),
     { Reference: GreetingService, name: 'greetingService', scope: 'singleton' },
     { Reference: GreetingController, name: 'greetingController', scope: 'singleton' },
     { Reference: ImperativeController, name: 'imperativeController', scope: 'singleton' },

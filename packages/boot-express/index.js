@@ -4,8 +4,8 @@
  * Provides CDI-managed Express server with controller auto-registration.
  *
  * Usage:
- *   import { expressAutoConfiguration } from '@alt-javascript/boot-express';
- *   const context = new Context([...expressAutoConfiguration(), ...yourComponents]);
+ *   import { expressStarter } from '@alt-javascript/boot-express';
+ *   const context = new Context([...expressStarter(), ...yourComponents]);
  */
 import { conditionalOnMissingBean } from '@alt-javascript/cdi';
 import ExpressAdapter from './ExpressAdapter.js';
@@ -19,7 +19,7 @@ import ControllerRegistrar from './ControllerRegistrar.js';
  *
  * @returns {Array} component definitions for CDI Context
  */
-export function expressAutoConfiguration() {
+export function expressStarter() {
   return [
     {
       name: 'expressAdapter',
@@ -31,3 +31,6 @@ export function expressAutoConfiguration() {
 }
 
 export { ExpressAdapter, ControllerRegistrar };
+
+/** @deprecated Use expressStarter() */
+export const expressAutoConfiguration = expressStarter;

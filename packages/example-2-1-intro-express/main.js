@@ -2,7 +2,7 @@
  * example-2-1-intro-express — entry point
  *
  * Adds @alt-javascript/boot-express to the Boot.boot() pattern.
- * expressAutoConfiguration() returns the CDI component definitions for
+ * expressStarter() returns the CDI component definitions for
  * the ExpressAdapter — no manual server setup needed.
  *
  * Lifecycle (all managed by Boot.boot()):
@@ -18,12 +18,12 @@
  */
 import { Boot } from '@alt-javascript/boot';
 import { Context, Singleton } from '@alt-javascript/cdi';
-import { expressAutoConfiguration } from '@alt-javascript/boot-express';
+import { expressStarter } from '@alt-javascript/boot-express';
 import { GreetingService, Application } from './src/services.js';
 import { GreetingController } from './src/controllers.js';
 
 const context = new Context([
-  ...expressAutoConfiguration(),
+  ...expressStarter(),
   new Singleton(GreetingService),
   new Singleton(GreetingController),
   new Singleton(Application),

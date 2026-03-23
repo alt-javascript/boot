@@ -18,10 +18,10 @@ npm install @alt-javascript/boot-hono hono
 ## Usage
 
 ```javascript
-import { honoAutoConfiguration } from '@alt-javascript/boot-hono';
+import { honoStarter } from '@alt-javascript/boot-hono';
 
 const context = new Context([
-  ...honoAutoConfiguration(),
+  ...honoStarter(),
   new Singleton(TodoController), // has static __routes
   new Singleton(TodoService),
 ]);

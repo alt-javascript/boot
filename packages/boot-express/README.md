@@ -38,10 +38,10 @@ class TodoController {
 Auto-configure with CDI:
 
 ```javascript
-import { expressAutoConfiguration } from '@alt-javascript/boot-express';
+import { expressStarter } from '@alt-javascript/boot-express';
 
 const context = new Context([
-  ...expressAutoConfiguration(),
+  ...expressStarter(),
   new Singleton(TodoService),
   new Singleton(TodoController),
 ]);
