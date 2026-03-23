@@ -82,15 +82,24 @@ export default class FastifyAdapter {
   }
 
   /**
-   * CDI destroy lifecycle — close the Fastify server.
+   * CDI destroy lifecycle — close the Fastify server and exit cleanly.
+   * Idempotent: guard on this._fastify prevents double-close.
    */
   async destroy() {
-    if (this._fastify) {
-      await this._fastify.close();
-      if (this._logger) {
-        this._logger.info('Fastify server closed');
-      }
+    if (!this._fastify) return;
+    const fastify = this._fastify;
+    this._fastify = null;
+
+    if (this._logger) {
+      this._logger.info('Fastify server closing...');
     }
+    try {
+      await fastify.close();
+    } catch {
+      // ignore close errors during shutdown
+    }
+    // Give the event loop 500ms to flush logs, then exit.
+    setTimeout(() => process.exit(0), 500);
   }
 
   /** @returns {import('fastify').FastifyInstance} the Fastify instance */
