@@ -1,0 +1,75 @@
+@startuml components
+!theme plain
+skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica Neue"
+skinparam ArrowColor #444444
+skinparam componentBorderColor #888888
+skinparam packageBorderColor #AAAAAA
+skinparam noteBorderColor #AAAAAA
+skinparam noteBackgroundColor #FAFAFA
+
+title AWS Lambda Example — Component Diagram
+
+left to right direction
+
+package "example-3-1-servers-lambda" {
+  component [handler.js] as handlerjs <<entry point>>
+  component [GreetingController] as controller <<controller>>
+  component [GreetingService] as service <<service>>
+}
+
+package "@alt-javascript/boot-lambda" {
+  component [createLambdaHandler()] as factory <<factory>>
+  component [LambdaAdapter] as adapter <<singleton>>
+  component [LambdaControllerRegistrar] as registrar <<utility>>
+}
+
+package "@alt-javascript/cdi" {
+  component [Context] as ctx <<definition>>
+  component [ApplicationContext] as appctx <<container>>
+}
+
+package "@alt-javascript/config" {
+  component [ProfileConfigLoader] as configloader <<config>>
+}
+
+package "AWS Runtime" {
+  component [API Gateway\nHTTP API v2] as apigw
+  component [Lambda Runtime] as runtime
+}
+
+' --- wiring from entry point ---
+handlerjs --> factory : createLambdaHandler({ contexts })
+handlerjs --> ctx : new Context([...])
+ctx --> controller : Singleton
+ctx --> service : Singleton
+
+' --- factory / adapter internals ---
+factory --> appctx : new ApplicationContext\n({ contexts, config })
+factory --> adapter : new LambdaAdapter(appCtx)
+adapter --> registrar : register routes\nfrom __routes
+registrar ..> controller : scans __routes
+
+' --- CDI autowiring (dashed) ---
+appctx ..> service : autowire + init()
+appctx ..> controller : autowire + init()
+appctx ..> configloader : default config
+
+' --- runtime invocation ---
+apigw --> runtime : invoke event\n{ routeKey, pathParameters, body }
+runtime --> handlerjs : handler(event, ctx)
+handlerjs --> adapter : adapter.handle(event, ctx)
+adapter --> controller : matched handler(request)
+controller --> service : greet(name)
+
+note bottom of factory
+  Cold start: boots CDI once.
+  Warm: reuses adapter directly.
+end note
+
+note bottom of adapter
+  routeKey: "GET /greet/{name}"
+  Returns { statusCode, body, headers }
+end note
+@enduml

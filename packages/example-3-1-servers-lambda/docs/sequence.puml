@@ -1,0 +1,81 @@
+@startuml sequence
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Helvetica Neue"
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 200
+
+title AWS Lambda Example — Sequence Diagram
+
+actor Client
+participant "API Gateway\nHTTP API v2" as apigw
+participant "Lambda Runtime" as runtime
+participant "handler.js\n(createLambdaHandler)" as handlerjs
+participant "ApplicationContext" as appctx
+participant "LambdaAdapter" as adapter
+participant "GreetingController" as controller
+participant "GreetingService" as service
+
+== Cold Start (first invocation) ==
+
+Client -> apigw : HTTP GET /greet/World
+apigw -> runtime : invoke\n{ routeKey: "GET /greet/{name}",\n  pathParameters: { name: "World" } }
+runtime -> handlerjs : handler(event, lambdaCtx)
+
+group CDI Bootstrap [once per container lifetime]
+  handlerjs -> appctx : new ApplicationContext({ contexts, config })
+  appctx -> service : new GreetingService()
+  appctx -> controller : new GreetingController()
+  appctx -> service : autowire(logger, config)
+  appctx -> controller : autowire(logger, config, greetingService)
+  appctx -> service : init() — "GreetingService ready"
+  appctx -> controller : init() — "GreetingController initialised"
+  handlerjs -> adapter : new LambdaAdapter(appCtx)
+  adapter -> adapter : register routes\nfrom __routes
+end
+
+== Dispatch ==
+
+handlerjs -> adapter : handle(event, lambdaCtx)
+adapter -> adapter : match routeKey\n"GET /greet/{name}" ✓
+
+adapter -> controller : greet({ params: { name: "World" } })
+controller -> service : greet("World")
+service --> controller : "Hello, World!"
+controller --> adapter : { message: "Hello, World!" }
+
+adapter -> adapter : normalise response\n→ { statusCode: 200,\n    body: '{"message":"Hello, World!"}',\n    headers: { Content-Type: application/json } }
+
+adapter --> handlerjs : { statusCode: 200, body, headers }
+handlerjs --> runtime : { statusCode: 200, body, headers }
+runtime --> apigw : HTTP 200 + JSON body
+apigw --> Client : 200 OK\n{"message":"Hello, World!"}
+
+== Warm Invocation (subsequent calls) ==
+
+Client -> apigw : HTTP GET /health
+apigw -> runtime : invoke\n{ routeKey: "GET /health" }
+runtime -> handlerjs : handler(event, lambdaCtx)
+note right of handlerjs : adapter already initialised —\nskip CDI bootstrap
+
+handlerjs -> adapter : handle(event, lambdaCtx)
+adapter -> adapter : match routeKey "GET /health" ✓
+adapter -> controller : health()
+controller --> adapter : { status: "ok", app: "Lambda Example", version: "1.0.0" }
+adapter --> handlerjs : { statusCode: 200, body, headers }
+handlerjs --> runtime : { statusCode: 200, body, headers }
+runtime --> apigw : HTTP 200 + JSON body
+apigw --> Client : 200 OK\n{"status":"ok","app":"Lambda Example","version":"1.0.0"}
+
+== Unmatched Route ==
+
+Client -> apigw : HTTP GET /unknown
+apigw -> runtime : invoke\n{ routeKey: "GET /unknown" }
+runtime -> handlerjs : handler(event, lambdaCtx)
+handlerjs -> adapter : handle(event, lambdaCtx)
+adapter -> adapter : match routeKey "GET /unknown" ✗
+adapter --> handlerjs : { statusCode: 404,\n  body: '{"error":"No route matches: GET /unknown"}' }
+handlerjs --> runtime : { statusCode: 404, body, headers }
+runtime --> apigw : HTTP 404
+apigw --> Client : 404 Not Found
+@enduml

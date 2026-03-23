@@ -5,7 +5,7 @@
  * Same `__routes` convention as Express and Fastify adapters.
  *
  * Usage:
- *   import { createLambdaHandler, lambdaAutoConfiguration } from '@alt-javascript/boot-lambda';
+ *   import { createLambdaHandler, lambdaStarter } from '@alt-javascript/boot-lambda';
  *   import { ApplicationContext, Context } from '@alt-javascript/cdi';
  *
  *   // Option A: createLambdaHandler (standalone, manages its own context)
@@ -14,8 +14,8 @@
  *     config,
  *   });
  *
- *   // Option B: lambdaAutoConfiguration (CDI-managed, for use with Application.run())
- *   const context = new Context([...lambdaAutoConfiguration(), ...myComponents]);
+ *   // Option B: lambdaStarter (CDI-managed, for use with Application.run())
+ *   const context = new Context([...lambdaStarter(), ...myComponents]);
  */
 import { ApplicationContext } from '@alt-javascript/cdi';
 import LambdaAdapter from './LambdaAdapter.js';
@@ -69,7 +69,7 @@ export function createLambdaHandler(options) {
  *
  * @returns {Array} component definitions for CDI Context
  */
-export function lambdaAutoConfiguration() {
+export function lambdaStarter() {
   return [
     {
       name: 'lambdaAdapter',
@@ -116,3 +116,6 @@ class LambdaAdapterFactory {
 }
 
 export { LambdaAdapter, LambdaControllerRegistrar, LambdaAdapterFactory };
+
+/** @deprecated Use lambdaStarter() */
+export const lambdaAutoConfiguration = lambdaStarter;

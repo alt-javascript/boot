@@ -4,7 +4,7 @@ import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
 import {
   createLambdaHandler,
-  lambdaAutoConfiguration,
+  lambdaStarter,
   LambdaAdapter,
   LambdaAdapterFactory,
 } from '../index.js';
@@ -126,7 +126,7 @@ function apiEvent(routeKey, overrides = {}) {
 async function buildContext(configOverrides = {}) {
   const config = new EphemeralConfig(configOverrides);
   const context = new Context([
-    ...lambdaAutoConfiguration(),
+    ...lambdaStarter(),
     { Reference: GreetingService, name: 'greetingService', scope: 'singleton' },
     { Reference: GreetingController, name: 'greetingController', scope: 'singleton' },
     { Reference: StatusController, name: 'statusController', scope: 'singleton' },
@@ -382,7 +382,7 @@ describe('Lambda Adapter', () => {
       const config = new EphemeralConfig({});
       const context = new Context([
         { Reference: customAdapter, name: 'lambdaAdapter', scope: 'singleton' },
-        ...lambdaAutoConfiguration(),
+        ...lambdaStarter(),
       ]);
       appCtx = new ApplicationContext({ contexts: [context], config });
       await appCtx.start({ run: false });

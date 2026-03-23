@@ -1,60 +1,72 @@
-# S06 UAT — AWS Lambda (`example-lambda`)
+# S06 UAT — AWS Lambda Example
 
-**Status:** ⏳ Pending implementation
+**Status:** Ready for human sign-off
 
 ---
+
+## Package
+
+`packages/example-3-1-servers-lambda`
+
+## What this demonstrates
+
+- `createLambdaHandler({ contexts })` — boots CDI once on cold start, reuses on warm invocations
+- `static __routes` — same convention; path params use `{name}` (API Gateway style, not `:name`)
+- No `Boot.boot()` — Lambda manages its own lifecycle; handler exports a function
+- Handlers return plain objects — `LambdaAdapter` serialises to `{ statusCode, body, headers }`
+- Unit-testable without AWS account: `handler(event, {})` directly
+- Local invoke harness: `npm run invoke` simulates API Gateway v2 events
 
 ## How to run
 
 ```bash
-cd packages/example-lambda
-npm install
-npm start
+cd packages/example-3-1-servers-lambda
+
+# Unit tests (no AWS required)
+npm test
+
+# Local invoke harness — simulates API Gateway v2 events
+npm run invoke        # Hello greeting (default profile)
+npm run invoke:dev    # G'day greeting (dev profile)
 ```
 
-Test with SAM local or direct handler invocation
+## Expected output
+
+```
+# npm run invoke
+GET /health [200] {"status":"ok","app":"Lambda Example","version":"1.0.0"}
+GET /greet/World [200] {"message":"Hello, World!"}
+GET /greet/Lambda [200] {"message":"Hello, Lambda!"}
+GET /missing [404] {"error":"No route matches: GET /missing"}
+
+# npm run invoke:dev
+GET /greet/World [200] {"message":"G'day, World!"}
+```
+
+## Evidence from implementation run
+
+- 5/5 unit tests pass
+- invoke harness: all 4 routes return expected responses
+- CDI boots once: GreetingService init log appears once across 5 warm-invocation test calls
 
 ---
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
+**All boxes must be checked before S07 begins.**
 
-### Runs without errors
-
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
-
-### Config loading
-
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
-
-### Logging
-
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
-
-### Dependency injection
-
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
-
-### Boilerplate check
-
-- [ ] Entry point is minimal — no unnecessary ceremony
-
-### Framework-specific
-
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [ ] `npm test` — 5 tests pass
+- [ ] `npm run invoke` — health, greet/World, greet/Lambda return 200; /missing returns 404
+- [ ] `npm run invoke:dev` — greeting changes to `G'day`
+- [ ] CDI boots once (GreetingService init log appears once, not per-invocation)
+- [ ] `handler.js` exports a named `handler` function suitable for AWS Lambda runtime
+- [ ] No `Boot.boot()`, no running HTTP server
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — observations, issues, suggestions)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 
