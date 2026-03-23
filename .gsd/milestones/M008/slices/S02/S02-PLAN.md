@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build `packages/example-2-1-intro-express` demonstrating idiomatic `@alt-javascript/boot-express`
+Build `packages/example-2-1-servers-express` demonstrating idiomatic `@alt-javascript/boot-express`
 usage: Boot.boot() + context + expressAutoConfiguration(), one REST controller, health endpoint,
 profile-driven port.
 
@@ -20,7 +20,7 @@ to the Context and the server starts automatically.
 ## Tasks
 
 - [ ] **T01: Scaffold package** `est:15m`
-  - `packages/example-2-1-intro-express/`
+  - `packages/example-2-1-servers-express/`
   - `package.json` — name, deps (`@alt-javascript/boot`, `@alt-javascript/cdi`, `@alt-javascript/boot-express`)
   - `config/application.json` — server.port, app.name, logging
   - `config/application-dev.json` — dev port override

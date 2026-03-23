@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "Hono Example",
+    "greeting": "Hello",
+    "version": "1.0.0"
+  },
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0"
+  },
+  "boot": {
+    "banner-mode": "console"
+  },
+  "logging": {
+    "format": "text",
+    "level": {
+      "ROOT": "info",
+      "@alt-javascript/example-4-1-servers-hono": "debug"
+    }
+  }
+}

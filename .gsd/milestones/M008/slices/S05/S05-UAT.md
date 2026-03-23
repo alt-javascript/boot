@@ -6,7 +6,7 @@
 
 ## Package
 
-`packages/example-5-1-intro-koa`
+`packages/example-5-1-servers-koa`
 
 ## What this demonstrates
 
@@ -19,7 +19,7 @@
 ## How to run
 
 ```bash
-cd packages/example-5-1-intro-koa
+cd packages/example-5-1-servers-koa
 
 # Default profile — port 3000, Hello greeting
 npm start

@@ -1,0 +1,16 @@
+{
+  "name": "@alt-javascript/example-2-1-servers-express",
+  "version": "1.0.0",
+  "description": "Step 2.1 — @alt-javascript/boot-express: REST API with CDI-managed Express",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-express": "*",
+    "@alt-javascript/cdi": "*"
+  },
+  "private": true
+}

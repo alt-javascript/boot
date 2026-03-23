@@ -6,7 +6,7 @@
 
 ## Package
 
-`packages/example-2-1-intro-express`
+`packages/example-2-1-servers-express`
 
 ## What this demonstrates
 
@@ -19,7 +19,7 @@
 ## How to run
 
 ```bash
-cd packages/example-2-1-intro-express
+cd packages/example-2-1-servers-express
 
 # Default profile — port 3000, Hello greeting
 npm start
