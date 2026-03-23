@@ -30,8 +30,8 @@ export default class Boot {
    * @returns {ValueResolvingConfig} resolved config
    * @throws {Error} if no config can be detected
    */
-  static detectConfig(context) {
-    const configArg = context && context.config;
+  static detectConfig(options) {
+    const configArg = options && options.config;
     let $config = null;
     if (!(typeof config === 'undefined')) {
       // eslint-disable-next-line no-undef
@@ -73,17 +73,29 @@ export default class Boot {
    *
    *   await Boot.boot({ contexts: [context] });
    *
-   * @param {object} [context] - { config, contexts, loggerFactory, loggerCategoryCache, fetch }
+   * @param {object} [options] - { config, contexts, loggerFactory, loggerCategoryCache, fetch, run }
+   * @param {boolean|string} [options.run] - controls the CDI run phase when contexts are provided.
+   *   true (default) — run phase fires (servers start, Application.run() called).
+   *   false          — prepare only (CDI wired + init, no run/start calls). Use for Lambda/serverless.
+   *   Accepts boolean or case-insensitive string 'true'/'false'. Defaults to true when not provided.
    * @returns {Promise<ApplicationContext|undefined>} running context if contexts provided
    */
-  static async boot(context) {
-    const loggerFactoryArg = context && context.loggerFactory;
-    const loggerCategoryCacheArg = context && context.loggerCategoryCache;
-    const fetchArg = context && context.fetch;
+  static async boot(options) {
+    const loggerFactoryArg = options && options.loggerFactory;
+    const loggerCategoryCacheArg = options && options.loggerCategoryCache;
+    const fetchArg = options && options.fetch;
+
+    // Normalise options.run: undefined/null → true; string 'false' → false; else Boolean()
+    let runPhase = true;
+    if (options && options.run !== undefined && options.run !== null) {
+      runPhase = (typeof options.run === 'string')
+        ? options.run.toLowerCase() !== 'false'
+        : Boolean(options.run);
+    }
 
     const browser = detectBrowser();
 
-    let $config = Boot.detectConfig(context);
+    let $config = Boot.detectConfig(options);
 
     let $loggerCategoryCache = null;
     if (!(typeof loggerCategoryCacheArg === 'undefined')) {
@@ -124,7 +136,7 @@ export default class Boot {
     printBanner($config, $loggerFactory.getLogger('@alt-javascript/boot'));
 
     // If contexts are provided, start the ApplicationContext and return it.
-    if (context && context.contexts) {
+    if (options && options.contexts) {
       const {
         ApplicationContext, Context, Singleton,
       } = await import('@alt-javascript/cdi');
@@ -136,10 +148,10 @@ export default class Boot {
         new Singleton({ Reference: $loggerCategoryCache, name: 'loggerCategoryCache' }),
       ]);
       const appCtx = new ApplicationContext({
-        contexts: [rootContext, ...context.contexts],
+        contexts: [rootContext, ...options.contexts],
         config: $config,
       });
-      await appCtx.start();
+      await appCtx.start({ run: runPhase });
       return appCtx;
     }
 

@@ -4,36 +4,24 @@
  * Provides CDI-managed serverless handler with controller auto-registration.
  * Same `__routes` convention as Express and Fastify adapters.
  *
- * Usage:
- *   import { createLambdaHandler, lambdaStarter } from '@alt-javascript/boot-lambda';
- *   import { ApplicationContext, Context } from '@alt-javascript/cdi';
+ * Usage (idiomatic — Boot.boot() pattern):
+ *   import { lambdaStarter } from '@alt-javascript/boot-lambda';
+ *   import { Boot } from '@alt-javascript/boot';
+ *   import { Context, Singleton } from '@alt-javascript/cdi';
  *
- *   // Option A: createLambdaHandler (standalone, manages its own context)
- *   export const handler = createLambdaHandler({
- *     contexts: [new Context([...myComponents])],
- *     config,
- *   });
- *
- *   // Option B: lambdaStarter (CDI-managed, for use with Application.run())
- *   const context = new Context([...lambdaStarter(), ...myComponents]);
+ *   const context = new Context([...lambdaStarter(), new Singleton(MyController)]);
+ *   const appCtx = await Boot.boot({ contexts: [context], run: false });
+ *   export const handler = (event, ctx) => appCtx.get('lambdaAdapter').handle(event, ctx);
  */
 import { ApplicationContext } from '@alt-javascript/cdi';
 import LambdaAdapter from './LambdaAdapter.js';
 import LambdaControllerRegistrar from './LambdaControllerRegistrar.js';
 
 /**
+ * @deprecated Use Boot.boot({ contexts: [...lambdaStarter(), ...], run: false }) instead.
+ *
  * Create a Lambda handler function that boots CDI on cold start and
  * dispatches API Gateway events to controller methods.
- *
- * The CDI context is booted once and reused across warm invocations.
- * This is the standard Lambda pattern for connection pooling, config
- * caching, and singleton reuse.
- *
- * @param {object} options
- * @param {Array} options.contexts — CDI Context instances
- * @param {object} options.config — config object (EphemeralConfig, ValueResolvingConfig, etc.)
- * @param {object} [options.startOptions] — options passed to ApplicationContext.start()
- * @returns {Function} Lambda handler: (event, lambdaContext) => Promise<Response>
  */
 export function createLambdaHandler(options) {
   let adapter = null;

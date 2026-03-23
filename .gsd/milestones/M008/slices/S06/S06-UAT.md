@@ -68,6 +68,21 @@ GET /greet/World [200] {"message":"G'day, World!"}
 
 > _(Add observations, issues, or suggestions before signing off)_
 
+It would be better to use the Boot.boot() idiom as per all the other server adapters, so lets
+address the Boot.boot() function to allow for that to happen.
+
+Change the `static async boot(context)` signature to `static async boot(options)` to more accurately reflect
+that it is options being passed in (context is badly named here, since its not a CDI context, and confuses its intent),
+then add a options.run option that defaults to true if anything other than explicitly false or true 
+(ie undefined, null), perhaps case insensitive string matches of true or false are ok.
+
+Pass the run option to the AppllicationContext.start() function.
+
+The createLambdaHandler should then be able to use Boot.boot() idiomatically, confirm this will work without
+any sideeffects I haven't cuaght before implementing.
+
+Also, change createLambdaHandler to lambdaStatert and deprecate createLambdaHandler.
+
 ---
 
 ## Sign-Off
