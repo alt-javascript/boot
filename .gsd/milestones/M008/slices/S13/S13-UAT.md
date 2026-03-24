@@ -1,65 +1,74 @@
-# S13 UAT — Alpine.js (`example-alpine`)
+# S13 UAT — Alpine.js (`example-4-5-frontend-alpine`)
 
-**Status:** ⏳ Pending implementation
+**Status:** ✅ Signed off
 
 ---
 
 ## How to run
 
 ```bash
-cd packages/example-alpine
+cd packages/example-4-5-frontend-alpine
 npm install
-npx serve .
+npm run serve
 ```
 
-Open http://localhost:3000 and verify service output renders
+Open http://localhost:3002/dev (DEV profile) or http://127.0.0.1:3002/dev (LOCAL profile)
 
 ---
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
-
 ### Runs without errors
 
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
+- [x] Dev server starts on port 3002 without errors
+- [x] No unhandled promise rejections or uncaught exceptions in browser console
 
 ### Config loading
 
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
+- [x] Default config loads; `app.env` defaults to `'default'`
+- [x] `localhost` → `dev` profile; `app.env` shows `development (localhost)` with green DEV badge
+- [x] `127.0.0.1` → `local` profile; `app.env` shows `local (127.0.0.1)` with blue LOCAL badge
+- [x] Profile URL resolution is automatic (no manual `BrowserProfileResolver` calls)
 
 ### Logging
 
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
+- [x] Boot banner printed to console
+- [x] Log level controlled by profile (`debug` in dev/local, `info` in default)
 
 ### Dependency injection
 
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
+- [x] `TodoService` is a CDI singleton, autowired with logger and config
+- [x] `init()` seeds two items; both appear in the list on page load
+- [x] Add / toggle / remove operations work correctly and update the list reactively
 
 ### Boilerplate check
 
-- [ ] Entry point is minimal — no unnecessary ceremony
+- [x] `index.html` / `dev.html` are minimal — `alpineStarter()` + declarative `x-*` directives only
+- [x] No custom store management required in caller code — `alpineStarter` handles it
 
 ### Framework-specific
 
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [x] Alpine.js CDN loaded via `<script defer>`
+- [x] Placeholder store pattern: `{ ready: false }` registered during `alpine:init` synchronously
+- [x] Store mutated in-place after `Boot.boot()` completes; Alpine reactivity triggers re-render
+- [x] `x-show="$store.cdi.ready"` gates content; loading state shown while booting
+- [x] HTML-first: all `v-*`/`x-*` directives in markup, not JS template strings
 
----
+### Distribution
 
-## Feedback Notes
+- [x] `dist/alt-javascript-boot-alpine-esm.js` built via rollup; all `@alt-javascript/*` → jsDelivr CDN URLs
+- [x] `lodash` fully removed from `@alt-javascript/cdi` and entire monorepo
+- [x] CDI dist browser import fixes: no broken `config`/`loggerFactory` singleton imports
 
-> _(Free text — observations, issues, suggestions)_
+### Tests
+
+- [x] 10/10 unit tests pass (`packages/boot-alpine/test/AlpineIntegration.spec.js`)
+- [x] 5/5 service tests pass (`packages/example-4-5-frontend-alpine/test/services.spec.js`)
 
 ---
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off: user · Date: 2026-03-21
