@@ -1,7 +1,7 @@
 {
   "name": "@alt-javascript/boot-hono",
   "version": "3.0.4",
-  "description": "Hono adapter for @alt-javascript boot — CDI-managed Hono with controller auto-registration",
+  "description": "Hono adapter for @alt-javascript boot \u2014 CDI-managed Hono with controller auto-registration",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -36,7 +36,7 @@
     "@alt-javascript/boot": "3.0.4",
     "@alt-javascript/config": "3.0.4",
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
-    "@alt-javascript/jsdbc-template": "3.0.4",
+    "@alt-javascript/jsdbc-template": "*",
     "@alt-javascript/logger": "3.0.4",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"

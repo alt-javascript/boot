@@ -1,7 +1,7 @@
 {
   "name": "@alt-javascript/boot-jsdbc",
-  "version": "3.0.4",
-  "description": "JSDBC persistence starter for @alt-javascript boot — auto-configures DataSource and JsdbcTemplate beans from config",
+  "version": "3.1.0",
+  "description": "JSDBC persistence starter for @alt-javascript boot \u2014 auto-configures DataSource and JsdbcTemplate beans from config",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -33,13 +33,15 @@
   "dependencies": {
     "@alt-javascript/boot": "3.0.4",
     "@alt-javascript/jsdbc-core": "^1.0.0",
-    "@alt-javascript/jsdbc-template": "3.0.4"
+    "@alt-javascript/jsdbc-template": "*",
+    "@alt-javascript/cdi": "3.0.4"
   },
   "devDependencies": {
     "@alt-javascript/config": "3.0.4",
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
     "chai": "^4.3.7",
-    "mocha": "^11.7.5"
+    "mocha": "^11.7.5",
+    "@alt-javascript/cdi": "3.0.4"
   },
   "license": "MIT",
   "repository": {

@@ -48,21 +48,14 @@
  * An existing `dataSource` bean is never replaced.
  */
 import { Boot } from '@alt-javascript/boot';
-import {
-  jsdbcAutoConfiguration,
-  JsdbcTemplate,
-  NamedParameterJsdbcTemplate,
-  ConfiguredDataSource,
-} from '@alt-javascript/jsdbc-template';
+import { JsdbcTemplate, NamedParameterJsdbcTemplate } from '@alt-javascript/jsdbc-template';
+import { jsdbcAutoConfiguration, ConfiguredDataSource } from './JsdbcAutoConfiguration.js';
 
 /**
  * Returns the CDI component definitions that register JSDBC beans.
  *
- * Use this when you want to compose the components yourself (e.g. passing
- * them to `new Context([...jsdbcStarter(), ...yourComponents])`).
- *
- * Equivalent to `jsdbcAutoConfiguration()` from `@alt-javascript/jsdbc-template`
- * but re-exported here for a single import point.
+ * Use this when composing contexts manually:
+ *   new Context([...jsdbcStarter(), ...yourComponents])
  *
  * @returns {Array} CDI component definitions
  */
@@ -73,9 +66,9 @@ export function jsdbcStarter() {
 /**
  * Boot the application with JSDBC auto-configuration.
  *
- * Calls `Boot.boot()` with `jsdbcAutoConfiguration()` prepended to the provided
- * contexts. Equivalent to calling `Boot.boot()` directly with `jsdbcStarter()`
- * merged into contexts, but more ergonomic for the common case.
+ * Calls `Boot.boot()` with `jsdbcAutoConfiguration()` appended after user contexts
+ * so that a custom `dataSource` bean registered first is correctly detected by
+ * the conditional and not overwritten.
  *
  * @param {object} options
  * @param {Array}  options.contexts  — CDI Context array (your components)
@@ -88,7 +81,6 @@ export async function jsdbcTemplateStarter(options) {
 
   // User contexts go FIRST so any custom dataSource bean is registered before
   // jsdbcAutoConfiguration() evaluates its condition (which checks !components.dataSource).
-  // jsdbcAutoConfiguration() then sees the existing bean and skips its own dataSource.
   const applicationContext = await Boot.boot({
     config,
     contexts: [...contexts, jsdbcAutoConfiguration()],

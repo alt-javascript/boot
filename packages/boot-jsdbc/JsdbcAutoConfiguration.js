@@ -1,37 +1,35 @@
 /**
- * JsdbcAutoConfiguration — Spring Boot-style auto-configuration for JSDBC.
+ * JsdbcAutoConfiguration — CDI auto-configuration for JSDBC.
+ *
+ * Moved here from @alt-javascript/jsdbc-template (breaking change, bug fix):
+ * auto-configuration is boot infrastructure and belongs in boot-jsdbc, not
+ * in the template library that developers use standalone.
  *
  * Registers DataSource, JsdbcTemplate, and NamedParameterJsdbcTemplate
- * as CDI context components when `jsdbc.url` is present in config.
- *
- * Usage:
- *   import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
- *   const context = new Context([...jsdbcAutoConfiguration(), ...yourComponents]);
+ * as CDI beans when `jsdbc.url` is present in config.
  *
  * Config keys:
- *   jsdbc.url      — JSDBC connection URL (required)
- *   jsdbc.username — database username (optional)
- *   jsdbc.password — database password (optional)
- *   jsdbc.pool.enabled — enable connection pooling (default: false)
- *   jsdbc.pool.min — minimum pool size (default: 0)
- *   jsdbc.pool.max — maximum pool size (default: 10)
- *   jsdbc.pool.acquireTimeoutMillis — acquire timeout (default: 30000)
- *   jsdbc.pool.idleTimeoutMillis — idle timeout (default: 30000)
+ *   jsdbc.url                       — JSDBC connection URL (required)
+ *   jsdbc.username                  — database username (optional)
+ *   jsdbc.password                  — database password (optional)
+ *   jsdbc.pool.enabled              — enable connection pooling (default: false)
+ *   jsdbc.pool.min                  — min pool size (default: 0)
+ *   jsdbc.pool.max                  — max pool size (default: 10)
+ *   jsdbc.pool.acquireTimeoutMillis — acquire timeout ms (default: 30000)
+ *   jsdbc.pool.idleTimeoutMillis    — idle timeout ms (default: 30000)
  */
 import { conditionalOnProperty } from '@alt-javascript/cdi';
 import { DataSource, PooledDataSource, SingleConnectionDataSource } from '@alt-javascript/jsdbc-core';
-import JsdbcTemplate from './JsdbcTemplate.js';
-import NamedParameterJsdbcTemplate from './NamedParameterJsdbcTemplate.js';
+import { JsdbcTemplate, NamedParameterJsdbcTemplate } from '@alt-javascript/jsdbc-template';
 
 /**
- * CDI-managed DataSource that reads jsdbc.* config via the aware interface.
- * Delegates all DataSource methods to an inner DataSource or PooledDataSource
+ * CDI-managed DataSource that reads jsdbc.* config via the ApplicationContext aware interface.
+ * Delegates all DataSource operations to an inner DataSource or PooledDataSource
  * created during init().
  */
 export class ConfiguredDataSource {
   constructor() {
     this._delegate = null;
-    this._config = null;
     this._applicationContext = null;
   }
 
@@ -87,8 +85,6 @@ export class ConfiguredDataSource {
   }
 
   /**
-   * Detect in-memory database URLs where each getConnection() would create
-   * a separate empty database. These need SingleConnectionDataSource.
    * @param {string} url
    * @returns {boolean}
    */
@@ -98,16 +94,16 @@ export class ConfiguredDataSource {
 }
 
 /**
- * Returns an array of CDI component definitions that auto-configure JSDBC.
+ * Returns CDI component definitions that auto-configure JSDBC beans.
  *
- * All components are conditional on `jsdbc.url` being present in config:
- * - `dataSource` — ConfiguredDataSource that reads jsdbc.* from config
- * - `jsdbcTemplate` — JsdbcTemplate wrapping the dataSource
- * - `namedParameterJsdbcTemplate` — NamedParameterJsdbcTemplate wrapping the dataSource
+ * Components registered (all conditional on jsdbc.url being present):
+ *   dataSource                  — ConfiguredDataSource (reads jsdbc.* from config)
+ *   jsdbcTemplate               — JsdbcTemplate wrapping dataSource
+ *   namedParameterJsdbcTemplate — NamedParameterJsdbcTemplate wrapping dataSource
  *
- * If a `dataSource` bean is already registered, the auto-configured one is skipped.
+ * An existing `dataSource` bean is never replaced.
  *
- * @returns {Array} component definitions for CDI Context
+ * @returns {Array} CDI component definitions
  */
 export function jsdbcAutoConfiguration() {
   return [
