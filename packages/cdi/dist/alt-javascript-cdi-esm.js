@@ -1,14 +1,289 @@
+import _ from 'https://cdn.jsdelivr.net/npm/lodash-es/lodash.min.js';
+import { LoggerFactory } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3/dist/alt-javascript-logger-esm.js';
+import { ConfigFactory } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js';
+import { getGlobalRoot, detectBrowser } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js';
+// createRequire is Node-only; replaced with a no-op for browser ESM builds
+// The buildBanner() function below guards with detectBrowser() before calling createRequire()
+const createRequire = () => { throw new Error('createRequire is not available in browser'); };
+
 /* eslint-disable import/extensions */
-import _ from 'lodash';
-import { LoggerFactory, loggerFactory as defaultLoggerFactory } from '@alt-javascript/logger';
-import { config as defaultConfig, ConfigFactory } from '@alt-javascript/config';
-import {
-  Context, Component, Property, Scopes,
-} from './context/index.js';
-import BeanPostProcessor from './BeanPostProcessor.js';
-import ApplicationEventPublisher from './events/ApplicationEventPublisher.js';
-import ContextRefreshedEvent from './events/ContextRefreshedEvent.js';
-import ContextClosedEvent from './events/ContextClosedEvent.js';
+
+/**
+ * A named collection of component definitions.
+ * Passed to ApplicationContext to define the beans in the context.
+ *
+ * @example
+ * const ctx = new Context([new Singleton(MyService), new Singleton(MyRepo)]);
+ */
+class Context {
+    constructor(components,profile) {
+        this.components = (components || []) ;
+        this.components = (_.isArray(this.components) ? this.components : [this.components]) ;
+        this.profile = profile;
+    }
+}
+
+/**
+ * Base component definition. Wraps a class reference or factory with metadata
+ * (name, scope, properties, lifecycle hooks, AOP config).
+ *
+ * Usually created via convenience subclasses: Singleton, Prototype, Service, Transient.
+ *
+ * @example
+ * new Component({ Reference: MyClass, name: 'myClass', scope: 'singleton' })
+ */
+class Component {
+    constructor(options) {
+        this.Reference = options?.Reference || (options.factory || options.wireFactory ? null : options );
+        this.name = options?.name;
+        this.qualifier = options?.qualifier;
+        this.scope = options?.scope;
+        this.properties = options?.properties;
+        this.profiles = options?.profiles;
+        this.factory = options?.factory;
+        this.factoryFunction = options?.factoryFunction;
+        this.factoryArgs = options?.factoryArgs;
+        this.wireFactory = options?.wireFactory;
+        this.isActive = true;
+        this.instance = null;
+
+        this.isClass = false;
+        this.require = null;
+    }
+}
+
+/** Property definition — binds a config value to a component property via placeholder resolution. */
+const Property = class Property {
+  constructor(options) {
+    this.name = options?.name;
+    this.reference = options?.ref || options?.reference;
+    this.value = options?.value;
+    this.defaultValue = options?.defaultValue;
+  }
+};
+
+/** Available component scopes. */
+class Scopes {
+    static SINGLETON = 'singleton';
+    static SERVICE = 'singleton';
+    static PROTOTYPE = 'prototype';
+    static TRANSIENT = 'prototype';
+}
+
+/* eslint-disable import/extensions */
+
+/** Prototype-scoped component — new instance on each get() call. */
+class Prototype extends Component {
+  constructor(optionsArg) {
+    const options = (optionsArg?.Reference
+            || optionsArg.factory
+            || optionsArg.wireFactory) ? optionsArg : { Reference: optionsArg };
+    options.scope = Scopes.PROTOTYPE;
+    super(options);
+  }
+}
+
+/* eslint-disable import/extensions */
+
+/** Singleton-scoped component — one shared instance per ApplicationContext. */
+class Singleton extends Component {
+    constructor(optionsArg) {
+        let options = (optionsArg?.Reference
+            || optionsArg.factory
+            || optionsArg.wireFactory) ? optionsArg : {Reference: optionsArg};
+        options.scope = Scopes.SINGLETON;
+        super (options);
+    }
+}
+
+/* eslint-disable import/extensions */
+
+/** Service component — singleton-scoped, semantic alias for application services. */
+class Service extends Component {
+    constructor(optionsArg) {
+        let options = (optionsArg?.Reference
+            || optionsArg.factory
+            || optionsArg.wireFactory) ? optionsArg : {Reference: optionsArg};
+        options.scope = Scopes.SINGLETON;
+        super (options);
+    }
+}
+
+/* eslint-disable import/extensions */
+
+/** Transient-scoped component — alias for prototype scope. */
+class Transient extends Component {
+    constructor(optionsArg) {
+        let options = (optionsArg?.Reference
+            || optionsArg.factory
+            || optionsArg.wireFactory) ? optionsArg : {Reference: optionsArg};
+        options.scope = Scopes.PROTOTYPE;
+        super (options);
+    }
+}
+
+/**
+ * BeanPostProcessor — hook into the ApplicationContext bean lifecycle.
+ *
+ * Implement postProcessBeforeInitialization and/or postProcessAfterInitialization
+ * to intercept bean creation. Register as a context component like any other bean.
+ *
+ * ApplicationContext detects BeanPostProcessor instances automatically and calls
+ * them for every singleton during the lifecycle.
+ *
+ * The default implementations return the instance unchanged.
+ */
+class BeanPostProcessor {
+  /**
+   * Called after dependency injection but before init() for each singleton.
+   *
+   * @param {Object} instance — the bean instance
+   * @param {string} name — the bean name in the context
+   * @returns {Object} the (possibly modified or replaced) bean instance
+   */
+  postProcessBeforeInitialization(instance, name) {
+    return instance;
+  }
+
+  /**
+   * Called after init() for each singleton.
+   *
+   * @param {Object} instance — the bean instance
+   * @param {string} name — the bean name in the context
+   * @returns {Object} the (possibly modified or replaced) bean instance
+   */
+  postProcessAfterInitialization(instance, name) {
+    return instance;
+  }
+}
+
+/**
+ * Isomorphic application event publisher.
+ *
+ * No dependency on Node's EventEmitter — works in browser ESM.
+ * Subscribe by event type (class constructor or string name).
+ * Publish events to all matching subscribers.
+ */
+class ApplicationEventPublisher {
+  constructor() {
+    /** @type {Map<string, Array<Function>>} event type name → listener functions */
+    this.listeners = new Map();
+    /** Wildcard listeners that receive all events */
+    this.wildcardListeners = [];
+  }
+
+  /**
+   * Subscribe to an event type.
+   *
+   * @param {Function|string} eventType — event class constructor or string type name, or '*' for all
+   * @param {Function} listener — callback(event)
+   * @returns {Function} unsubscribe function
+   */
+  on(eventType, listener) {
+    if (typeof listener !== 'function') {
+      throw new Error('ApplicationEventPublisher.on: listener must be a function');
+    }
+
+    if (eventType === '*' || eventType === 'all') {
+      this.wildcardListeners.push(listener);
+      return () => {
+        const idx = this.wildcardListeners.indexOf(listener);
+        if (idx >= 0) this.wildcardListeners.splice(idx, 1);
+      };
+    }
+
+    const typeName = typeof eventType === 'string' ? eventType : eventType.name;
+
+    if (!this.listeners.has(typeName)) {
+      this.listeners.set(typeName, []);
+    }
+    this.listeners.get(typeName).push(listener);
+
+    return () => {
+      const arr = this.listeners.get(typeName);
+      if (arr) {
+        const idx = arr.indexOf(listener);
+        if (idx >= 0) arr.splice(idx, 1);
+      }
+    };
+  }
+
+  /**
+   * Publish an event to all matching listeners.
+   *
+   * @param {ApplicationEvent|Object} event — must have constructor.name or type property
+   */
+  publish(event) {
+    const typeName = event?.constructor?.name !== 'Object'
+      ? event.constructor.name
+      : event.type;
+
+    // Type-specific listeners
+    if (typeName && this.listeners.has(typeName)) {
+      for (const listener of this.listeners.get(typeName)) {
+        listener(event);
+      }
+    }
+
+    // String type property (if different from class name)
+    if (event.type && event.type !== typeName && this.listeners.has(event.type)) {
+      for (const listener of this.listeners.get(event.type)) {
+        listener(event);
+      }
+    }
+
+    // Wildcard listeners
+    for (const listener of this.wildcardListeners) {
+      listener(event);
+    }
+  }
+
+  /** Remove all listeners. */
+  clear() {
+    this.listeners.clear();
+    this.wildcardListeners = [];
+  }
+
+  /** @returns {number} total registered listeners including wildcards */
+  get listenerCount() {
+    let count = this.wildcardListeners.length;
+    for (const arr of this.listeners.values()) {
+      count += arr.length;
+    }
+    return count;
+  }
+}
+
+/**
+ * Base class for application events.
+ *
+ * All application events carry a source (the object that published the event)
+ * and a timestamp. Subclass for specific event types.
+ */
+class ApplicationEvent {
+  constructor(source) {
+    this.source = source;
+    this.timestamp = new Date();
+  }
+}
+
+/** Published when the ApplicationContext has been fully initialized. */
+class ContextRefreshedEvent extends ApplicationEvent {
+  constructor(source) {
+    super(source);
+    this.type = 'ContextRefreshedEvent';
+  }
+}
+
+/** Published when the ApplicationContext is being closed/destroyed. */
+class ContextClosedEvent extends ApplicationEvent {
+  constructor(source) {
+    super(source);
+    this.type = 'ContextClosedEvent';
+  }
+}
+
+/* eslint-disable import/extensions */
 
 /**
  * Spring-inspired IoC application context for JavaScript.
@@ -37,7 +312,7 @@ import ContextClosedEvent from './events/ContextClosedEvent.js';
  * await appCtx.start();
  * const svc = appCtx.get('myService');
  */
-export default class ApplicationContext {
+class ApplicationContext {
   // eslint-disable-next-line
   static DEFAULT_CONTEXT_NAME = 'default';
 
@@ -68,7 +343,7 @@ export default class ApplicationContext {
     this.configContextPath = options?.configContextPath
         || (typeof (process) !== 'undefined' && process?.env?.NODE_CONFIG_CONTEXT_PATH)
         || ApplicationContext.DEFAULT_CONFIG_CONTEXT_PATH;
-    this.config = options?.config || defaultConfig;
+    this.config = options?.config || ConfigFactory.getConfig({});
     if (options?.config) {
       // eslint-disable-next-line no-param-reassign
       delete options.config;
@@ -113,6 +388,7 @@ export default class ApplicationContext {
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
+    this.printBanner();
     this.registerEventPublisher();
     this.createSingletons();
     this.injectSingletonDependencies();
@@ -126,6 +402,41 @@ export default class ApplicationContext {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
   }
 
+  /**
+   * Print the startup banner.
+   *
+   * The banner is inlined — no filesystem access required, works in browser and Node.
+   *
+   * Controlled by config key `boot.banner-mode`:
+   * - `console` (default) — print to stdout via console.log
+   * - `log` — print via the context logger (info level)
+   * - `off` — skip banner entirely
+   */
+  printBanner() {
+    // Local config wins. If it doesn't have banner-mode, check the global root
+    // (set by Boot.test() to suppress banner in test processes).
+    const globalConfig = getGlobalRoot('config');
+    const mode = this.config.has('boot.banner-mode')
+      ? this.config.get('boot.banner-mode')
+      : (globalConfig && globalConfig.has('boot.banner-mode'))
+        ? globalConfig.get('boot.banner-mode')
+        : 'console';
+
+    if (mode === 'off') {
+      this.logger.verbose('Banner mode is off, skipping.');
+      return;
+    }
+
+    // eslint-disable-next-line no-use-before-define
+    const banner = buildBanner();
+
+    if (mode === 'log') {
+      this.logger.info(banner);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(banner);
+    }
+  }
 
   /** Detect and load context component definitions from the config object. */
   detectConfigContext() {
@@ -137,6 +448,46 @@ export default class ApplicationContext {
       }
     }
     this.logger.verbose('Detecting config contexts completed.');
+  }
+
+  /** Register framework components (config, loggerFactory, loggerCategoryCache, logger, fetch) as context singletons. */
+  detectGlobalContextComponents() {
+    this.logger.verbose('Detecting global context components started.');
+
+    if (!this.components.config && getGlobalRoot('config')) {
+      this.deriveContextComponent({
+        Reference: getGlobalRoot('config'),
+        name: 'config',
+      });
+    }
+    if (!this.components.loggerFactory && getGlobalRoot('loggerFactory')) {
+      this.deriveContextComponent({
+        Reference: getGlobalRoot('loggerFactory'),
+        name: 'loggerFactory',
+      });
+    }
+    if (!this.components.loggerCategoryCache && getGlobalRoot('loggerCategoryCache')) {
+      this.deriveContextComponent({
+        Reference: getGlobalRoot('loggerCategoryCache'),
+        name: 'loggerCategoryCache',
+      });
+    }
+    if (!this.components.logger) {
+      this.deriveContextComponent({
+        scope: Scopes.PROTOTYPE,
+        wireFactory: 'loggerFactory',
+        factoryFunction: 'getLogger',
+        name: 'logger',
+      });
+    }
+    if (!this.components.fetch && getGlobalRoot('fetch')) {
+      this.deriveContextComponent({
+        Reference: getGlobalRoot('fetch'),
+        name: 'fetch',
+      });
+    }
+
+    this.logger.verbose('Detecting global context components completed.');
   }
 
   /** Parse all context definitions: config-driven, explicit, and global framework components. */
@@ -158,31 +509,7 @@ export default class ApplicationContext {
         throw new Error(msg);
       }
     }
-    // Register default infrastructure components so beans with `this.logger = null`,
-    // `this.config = null`, etc. are always autowired — even when no explicit
-    // loggerFactory or config is in the provided contexts.
-    // When Boot.boot() provides these via the root context, those take precedence
-    // (they're parsed first, registration is first-write wins).
-    if (!this.components.loggerFactory) {
-      await this.deriveContextComponent({
-        Reference: defaultLoggerFactory,
-        name: 'loggerFactory',
-      });
-    }
-    if (!this.components.logger) {
-      await this.deriveContextComponent({
-        scope: Scopes.PROTOTYPE,
-        wireFactory: 'loggerFactory',
-        factoryFunction: 'getLogger',
-        name: 'logger',
-      });
-    }
-    if (!this.components.config) {
-      await this.deriveContextComponent({
-        Reference: this.config,
-        name: 'config',
-      });
-    }
+    this.detectGlobalContextComponents();
     this.logger.verbose('Parsing configured contexts completed.');
   }
 
@@ -381,13 +708,10 @@ export default class ApplicationContext {
     const placeholder = placeholderArg.substring(2, placeholderArg.length - 1);
     const tuple = placeholder.split(':');
     const path = tuple[0];
-    const rawDefault = tuple[1] || undefined;
-    const defaultValue = rawDefault !== undefined
-      ? (() => { try { return JSON.parse(rawDefault); } catch { return rawDefault; } })()
-      : undefined;
+    const defaultValue = tuple[1] || undefined;
     let returnValue = null;
     try {
-      returnValue = this.config.get(path, defaultValue);
+      returnValue = this.config.get(path, defaultValue ? JSON.parse(defaultValue) : defaultValue);
     } catch (e) {
       const msg = `Failed to resolve placeholder component property value (${path}) from config.`;
       this.logger.error(msg);
@@ -871,3 +1195,430 @@ export default class ApplicationContext {
   }
 }
 
+const BANNER_ART = `  ____        _ _        _                                _       _    ____  
+ / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \\ \\ \\
+/ / /   / _\` | | __|____| |/ _\` \\ \\ / / _\` / __|/ __| '__| | '_ \\| __|  \\ \\ \\
+\\ \\ \\  | (_| | | ||_____| | (_| |\\ V / (_| \\__ \\ (__| |  | | |_) | |_   / / /
+ \_\_\  \__,_|_|\__|   _/ |\__,_| \_/ \__,_|___/\___|_|  |_| .__/ \__| /_/_/
+                       |__/                                  |_|`;
+
+/**
+ * Build the banner string, resolving the package version at runtime via createRequire.
+ * Synchronous — no async I/O. In a browser environment the version shows as "(browser)".
+ */
+function buildBanner() {
+  if (detectBrowser()) {
+    return `${BANNER_ART}\n@alt-javascript/boot :: (browser)`;
+  }
+  try {
+    const require = createRequire(import.meta.url);
+    // ./package.json works when running from source; ../package.json when running from dist/.
+    let pkg;
+    try { pkg = require('./package.json'); } catch { pkg = require('../package.json'); }
+    return `${BANNER_ART}\n@alt-javascript/boot :: ${pkg.version || '(unknown)'}`;
+  } catch {
+    return `${BANNER_ART}\n@alt-javascript/boot :: (unknown)`;
+  }
+}
+
+/**
+ * Auto-Discovery — Pure JS component scanning for @alt-javascript/cdi
+ *
+ * Classes declare static __component to self-identify as context components.
+ * The scan() function reads this metadata and returns component definitions.
+ * ComponentRegistry provides programmatic registration as a complement.
+ */
+
+/** Metadata key — classes declare this as a static property to opt in. */
+const COMPONENT_META_KEY = '__component';
+
+/**
+ * Programmatic component registry.
+ * Register classes/objects here and drain during ApplicationContext startup.
+ */
+class ComponentRegistry {
+  constructor() {
+    this.components = new Map();
+  }
+
+  /**
+   * Register a class or object as a component.
+   *
+   * @param {Function|Object} target — class constructor or plain object
+   * @param {Object} [options] — component options (scope, name, profiles, properties, etc.)
+   * @returns {Function|Object} the target (for chaining)
+   */
+  register(target, options) {
+    const name = options?.name
+      || (target?.name ? target.name.charAt(0).toLowerCase() + target.name.slice(1) : undefined);
+
+    if (!name) {
+      throw new Error('ComponentRegistry.register: name is required (provide options.name or use a named class)');
+    }
+
+    const meta = {
+      Reference: target,
+      name,
+      scope: options?.scope || 'singleton',
+      qualifier: options?.qualifier,
+      profiles: options?.profiles,
+      properties: options?.properties,
+      condition: options?.condition,
+      factory: options?.factory,
+      factoryFunction: options?.factoryFunction,
+      factoryArgs: options?.factoryArgs,
+      wireFactory: options?.wireFactory,
+      require: options?.require,
+    };
+
+    this.components.set(name, meta);
+    return target;
+  }
+
+  /**
+   * Drain all registered components as an array. Clears the registry.
+   * @returns {Array}
+   */
+  drain() {
+    const result = Array.from(this.components.values());
+    this.components.clear();
+    return result;
+  }
+
+  /** @returns {number} */
+  get size() {
+    return this.components.size;
+  }
+
+  /** Clear all registrations. */
+  clear() {
+    this.components.clear();
+  }
+}
+
+/** Default singleton registry instance. */
+const defaultRegistry = new ComponentRegistry();
+
+/**
+ * Scan classes for static __component metadata and return component definitions.
+ *
+ * @param {Array<Function|Object>} classes — classes to scan
+ * @returns {Array} component definitions
+ */
+function scan(classes) {
+  const components = [];
+
+  for (const cls of classes) {
+    if (cls == null) continue;
+
+    const meta = cls[COMPONENT_META_KEY];
+    if (meta == null) continue;
+
+    const options = meta === true ? {}
+      : (typeof meta === 'string' ? { scope: meta } : meta);
+
+    const name = options.name
+      || (cls.name ? cls.name.charAt(0).toLowerCase() + cls.name.slice(1) : undefined);
+
+    if (!name) continue;
+
+    components.push({
+      Reference: cls,
+      name,
+      scope: options.scope || 'singleton',
+      qualifier: options.qualifier,
+      profiles: options.profiles,
+      properties: options.properties,
+      condition: options.condition,
+    });
+  }
+
+  return components;
+}
+
+/**
+ * Convenience: scan classes AND drain the default registry, merged.
+ *
+ * @param {Array<Function|Object>} [classes] — classes to scan
+ * @returns {Array} merged component definitions
+ */
+function discover(classes) {
+  const scanned = classes ? scan(classes) : [];
+  const registered = defaultRegistry.drain();
+  return [...scanned, ...registered];
+}
+
+/**
+ * Conditions — Conditional bean registration for @alt-javascript/cdi
+ *
+ * Condition functions return predicates evaluated during context preparation
+ * to decide whether a component should be registered.
+ */
+
+/**
+ * Register only if a config property has the expected value.
+ *
+ * @param {string} path — config property path (dot notation)
+ * @param {*} [expectedValue] — expected value (if omitted, checks existence only)
+ * @param {*} [matchIfMissing=false] — register if property doesn't exist
+ * @returns {Function} condition predicate(config, components)
+ */
+function conditionalOnProperty(path, expectedValue, matchIfMissing = false) {
+  return function conditionOnProperty(config) {
+    if (!config || typeof config.has !== 'function') {
+      return matchIfMissing;
+    }
+    if (!config.has(path)) {
+      return matchIfMissing;
+    }
+    if (typeof expectedValue === 'undefined') {
+      return true;
+    }
+    const actual = config.get(path);
+    return actual === expectedValue || String(actual) === String(expectedValue);
+  };
+}
+
+/**
+ * Register only if a bean with the given name is NOT already registered.
+ *
+ * @param {string} beanName
+ * @returns {Function} condition predicate(config, components)
+ */
+function conditionalOnMissingBean(beanName) {
+  return function conditionOnMissingBean(config, components) {
+    return !components || !components[beanName];
+  };
+}
+
+/**
+ * Register only if a bean with the given name IS already registered.
+ *
+ * @param {string} beanName
+ * @returns {Function} condition predicate(config, components)
+ */
+function conditionalOnBean(beanName) {
+  return function conditionOnBean(config, components) {
+    return components && !!components[beanName];
+  };
+}
+
+/**
+ * Register only if a class reference is available.
+ *
+ * @param {string|Function} classRef — class constructor or global name string
+ * @returns {Function} condition predicate(config, components)
+ */
+function conditionalOnClass(classRef) {
+  return function conditionOnClass() {
+    if (typeof classRef === 'function') return true;
+    if (typeof classRef === 'string') {
+      try {
+        return typeof globalThis[classRef] !== 'undefined';
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  };
+}
+
+/**
+ * Compose conditions with AND logic.
+ *
+ * @param {...Function} conditions
+ * @returns {Function} combined condition predicate
+ */
+function allOf(...conditions) {
+  return function combinedCondition(config, components, activeProfiles) {
+    return conditions.every((c) => c(config, components, activeProfiles));
+  };
+}
+
+/**
+ * Compose conditions with OR logic.
+ *
+ * @param {...Function} conditions
+ * @returns {Function} combined condition predicate
+ */
+function anyOf(...conditions) {
+  return function combinedCondition(config, components, activeProfiles) {
+    return conditions.some((c) => c(config, components, activeProfiles));
+  };
+}
+
+/**
+ * Register only if one or more profiles are active.
+ * Supports negation: '!test' means "register if 'test' is NOT active".
+ *
+ * Analogous to Spring's @Profile annotation.
+ *
+ * @param {...string} profileNames — profile names (prefix with ! for negation)
+ * @returns {Function} condition predicate(config, components, activeProfiles)
+ *
+ * @example
+ * // Active when 'production' profile is active
+ * { condition: conditionalOnProfile('production') }
+ *
+ * // Active when 'test' profile is NOT active
+ * { condition: conditionalOnProfile('!test') }
+ *
+ * // Active when 'dev' OR 'staging' profile is active
+ * { condition: conditionalOnProfile('dev', 'staging') }
+ */
+function conditionalOnProfile(...profileNames) {
+  return function conditionOnProfile(config, components, activeProfiles) {
+    const active = activeProfiles || [];
+    const positive = profileNames.filter((p) => !p.startsWith('!'));
+    const negated = profileNames.filter((p) => p.startsWith('!')).map((p) => p.substring(1));
+
+    // All negations must hold (none of the negated profiles are active)
+    const negationsPass = negated.length === 0
+      || negated.every((n) => !active.includes(n));
+
+    // At least one positive profile must be active (if any specified)
+    const positivesPass = positive.length === 0
+      || positive.some((p) => active.includes(p));
+
+    return negationsPass && positivesPass;
+  };
+}
+
+/**
+ * Filter component definitions by evaluating their conditions.
+ *
+ * @param {Array} componentDefs — component definitions with optional `condition`
+ * @param {Object} config — config with has()/get()
+ * @param {Object} [components={}] — existing registered components
+ * @param {string[]} [activeProfiles=[]] — active profile names
+ * @returns {Array} filtered definitions
+ */
+function evaluateConditions(componentDefs, config, components = {}, activeProfiles = []) {
+  return componentDefs.filter((def) => {
+    if (!def.condition) return true;
+    if (typeof def.condition === 'function') {
+      return def.condition(config, components, activeProfiles);
+    }
+    return true;
+  });
+}
+
+/**
+ * AOP — Proxy-based method interception for @alt-javascript/cdi
+ *
+ * Uses JavaScript Proxy to intercept method calls with before, after,
+ * afterReturning, afterThrowing, and around advice types.
+ */
+
+/**
+ * Match a method name against a pattern.
+ *
+ * @param {string} methodName
+ * @param {string|RegExp|Function} pattern — exact name, wildcard ('get*'), regex, or predicate
+ * @returns {boolean}
+ */
+function matchMethod(methodName, pattern) {
+  if (typeof pattern === 'string') {
+    if (pattern.includes('*')) {
+      const regex = new RegExp(`^${pattern.replace(/\*/g, '.*')}$`);
+      return regex.test(methodName);
+    }
+    return methodName === pattern;
+  }
+  if (pattern instanceof RegExp) {
+    return pattern.test(methodName);
+  }
+  if (typeof pattern === 'function') {
+    return pattern(methodName);
+  }
+  return false;
+}
+
+/**
+ * Create an AOP proxy around a target object.
+ *
+ * @param {Object} target — the object to proxy
+ * @param {Array<Object>} aspects — array of aspect definitions, each with:
+ *   - pointcut: string|RegExp|Function — which methods to intercept
+ *   - before: Function(args, methodName, target) — called before method
+ *   - after: Function(result, args, methodName, target) — called after (always)
+ *   - afterReturning: Function(result, args, methodName, target) — after success
+ *   - afterThrowing: Function(error, args, methodName, target) — after exception
+ *   - around: Function(proceed, args, methodName, target) — wraps entire call
+ * @returns {Proxy} proxied object
+ */
+function createProxy(target, aspects) {
+  if (!target || typeof target !== 'object') {
+    throw new Error('createProxy: target must be an object');
+  }
+  if (!Array.isArray(aspects) || aspects.length === 0) {
+    return target;
+  }
+
+  return new Proxy(target, {
+    get(obj, prop, receiver) {
+      const value = Reflect.get(obj, prop, receiver);
+
+      if (typeof value !== 'function') {
+        return value;
+      }
+
+      const matchingAspects = aspects.filter((a) => matchMethod(prop, a.pointcut));
+      if (matchingAspects.length === 0) {
+        return value;
+      }
+
+      return function intercepted(...args) {
+        const methodName = prop;
+
+        // Before advice
+        for (const aspect of matchingAspects) {
+          if (aspect.before) {
+            aspect.before(args, methodName, obj);
+          }
+        }
+
+        // Build proceed chain for around advice
+        let proceed = () => value.apply(obj, args);
+        const aroundAspects = matchingAspects.filter((a) => a.around);
+        for (let i = aroundAspects.length - 1; i >= 0; i--) {
+          const currentProceed = proceed;
+          const aspect = aroundAspects[i];
+          proceed = () => aspect.around(currentProceed, args, methodName, obj);
+        }
+
+        let result;
+        let error;
+        try {
+          result = proceed();
+
+          for (const aspect of matchingAspects) {
+            if (aspect.afterReturning) {
+              aspect.afterReturning(result, args, methodName, obj);
+            }
+          }
+        } catch (e) {
+          error = e;
+          for (const aspect of matchingAspects) {
+            if (aspect.afterThrowing) {
+              aspect.afterThrowing(e, args, methodName, obj);
+            }
+          }
+        } finally {
+          for (const aspect of matchingAspects) {
+            if (aspect.after) {
+              aspect.after(error || result, args, methodName, obj);
+            }
+          }
+        }
+
+        if (error) {
+          throw error;
+        }
+        return result;
+      };
+    },
+  });
+}
+
+export { ApplicationContext, ApplicationEvent, ApplicationEventPublisher, BeanPostProcessor, COMPONENT_META_KEY, Component, ComponentRegistry, Context, ContextClosedEvent, ContextRefreshedEvent, Property, Prototype, Scopes, Service, Singleton, Transient, allOf, anyOf, conditionalOnBean, conditionalOnClass, conditionalOnMissingBean, conditionalOnProfile, conditionalOnProperty, createProxy, defaultRegistry, discover, evaluateConditions, matchMethod, scan };
