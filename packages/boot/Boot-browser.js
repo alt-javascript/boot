@@ -5,18 +5,43 @@
  * Mirrors Boot.js but targets browser ESM bundles.
  * Config source: explicit options.config (POJO or config object) → window.config.
  * CDI: delegated to @alt-javascript/cdi ApplicationContext (loaded dynamically).
- * Banner: suppressed by default in browser (no console spam on CDN pages).
+ *
+ * Profile resolution is automatic: if the config POJO contains a
+ * `profiles.urls` map, BrowserProfileResolver resolves the active profile
+ * from window.location and wraps the POJO in a ProfileAwareConfig — no
+ * boilerplate needed in application code:
+ *
+ *   await vueStarter({
+ *     config: {
+ *       app: { env: 'default' },
+ *       profiles: {
+ *         urls: { 'localhost:5173': 'dev', '127.0.0.1:5173': 'local' },
+ *         dev:   { app: { env: 'development' } },
+ *         local: { app: { env: 'local' } },
+ *       },
+ *     },
+ *     ...
+ *   });
  */
-import { ValueResolvingConfig, EphemeralConfig, ConfigFactory } from '@alt-javascript/config/browser/index.js';
+import {
+  ConfigFactory, EphemeralConfig, BrowserProfileResolver, ProfileAwareConfig,
+} from '@alt-javascript/config/browser/index.js';
 import {
   LoggerCategoryCache, LoggerFactory, ConfigurableLogger,
 } from '@alt-javascript/logger';
-import { getGlobalRef, getGlobalRoot, detectBrowser } from '@alt-javascript/common';
+import { getGlobalRef, getGlobalRoot } from '@alt-javascript/common';
 
 export default class Boot {
   /**
    * Detect and resolve config from: explicit options.config → window.config.
-   * Wraps plain POJOs in ValueResolvingConfig automatically.
+   *
+   * Wrapping rules (applied in order):
+   *   1. Already has has()/get() → pass through unchanged.
+   *   2. Plain POJO with profiles.urls → BrowserProfileResolver resolves
+   *      active profiles from window.location, wrapped in ProfileAwareConfig.
+   *      ProfileAwareConfig satisfies the has()/get() duck-type, so it is
+   *      then wrapped by ConfigFactory.getConfig() for placeholder resolution.
+   *   3. Plain POJO without profiles.urls → ConfigFactory.getConfig(EphemeralConfig).
    */
   static detectConfig(options) {
     const configArg = options && options.config;
@@ -28,15 +53,27 @@ export default class Boot {
 
     $config = configArg || $config;
 
-    if ($config) {
-      // Duck-type: pass through if already a config interface
-      if (typeof $config.has !== 'function' || typeof $config.get !== 'function') {
-        $config = ConfigFactory.getConfig(new EphemeralConfig($config));
-      }
-    } else {
-      throw new Error("Unable to detect config. Pass config: { ... } to Boot.boot().");
+    if (!$config) {
+      throw new Error('Unable to detect config. Pass config: { ... } to Boot.boot().');
     }
-    return $config;
+
+    // Already a config object — pass through.
+    if (typeof $config.has === 'function' && typeof $config.get === 'function') {
+      return $config;
+    }
+
+    // Plain POJO — check for URL→profile mapping and auto-resolve.
+    if ($config.profiles && $config.profiles.urls) {
+      const activeProfiles = BrowserProfileResolver.resolve({
+        urlMappings: $config.profiles.urls,
+      });
+      // ProfileAwareConfig satisfies has()/get() — return directly.
+      // Placeholder resolution (${...}) is not applied to profile-aware configs
+      // in browser builds; use explicit values in profile sections instead.
+      return new ProfileAwareConfig($config, activeProfiles);
+    }
+
+    return ConfigFactory.getConfig(new EphemeralConfig($config));
   }
 
   /**
@@ -46,15 +83,16 @@ export default class Boot {
    *   { config, contexts, run, loggerFactory, loggerCategoryCache, fetch }
    *
    * config may be a plain POJO — wrapped automatically.
+   * Profile resolution from URL is automatic when profiles.urls is present.
    * run defaults to true; pass run: false to skip the CDI run phase.
    *
    * @param {object} [options]
-   * @returns {Promise<ApplicationContext|undefined>}
+   * @returns {Promise<import('@alt-javascript/cdi').ApplicationContext|undefined>}
    */
   static async boot(options) {
-    const loggerFactoryArg     = options && options.loggerFactory;
+    const loggerFactoryArg       = options && options.loggerFactory;
     const loggerCategoryCacheArg = options && options.loggerCategoryCache;
-    const fetchArg             = options && options.fetch;
+    const fetchArg               = options && options.fetch;
 
     // Normalise run: undefined/null → true; string 'false' → false
     let runPhase = true;
@@ -66,11 +104,11 @@ export default class Boot {
 
     const $config = Boot.detectConfig(options);
 
-    let $loggerCategoryCache = loggerCategoryCacheArg
+    const $loggerCategoryCache = loggerCategoryCacheArg
       || (typeof window !== 'undefined' && window?.loggerCategoryCache)
       || new LoggerCategoryCache();
 
-    let $loggerFactory = loggerFactoryArg
+    const $loggerFactory = loggerFactoryArg
       || new LoggerFactory($config, $loggerCategoryCache, ConfigurableLogger.DEFAULT_CONFIG_PATH);
 
     let $fetch = fetchArg;
@@ -82,7 +120,6 @@ export default class Boot {
     $globalref.boot.contexts.root.loggerFactory       = $loggerFactory;
     $globalref.boot.contexts.root.fetch               = $fetch;
 
-    // Boot the CDI ApplicationContext if contexts were provided
     if (options && options.contexts) {
       const { ApplicationContext, Context, Singleton } = await import('@alt-javascript/cdi');
       const rootContext = new Context([

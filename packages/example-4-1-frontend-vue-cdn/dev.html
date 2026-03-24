@@ -11,13 +11,13 @@
     No internet connection required.
 
     HTML-first pattern: Vue directives live in the markup below.
-    Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf) where
-    the server generates the HTML and Vue progressively enhances it.
+    Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf).
 
-    URL → Profile mapping (BrowserProfileResolver):
+    URL → profile mapping is automatic: Boot.boot() reads profiles.urls from
+    the config POJO and resolves the active profile from window.location.
+    No manual BrowserProfileResolver wiring needed.
       localhost:3000  → dev   (green badge)
       127.0.0.1:3000  → local (blue badge)
-    Try both URLs to see the profile badge change.
   -->
   <script type="importmap">
   {
@@ -35,20 +35,15 @@
 
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    h1 { font-size: 1.4rem; margin: 0; }
     .title-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem; }
     .profile-badge {
-      display: inline-block;
-      padding: 0.15rem 0.5rem;
-      border-radius: 3px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 3px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
     }
-    .profile-badge.dev   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-    .profile-badge.local { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
-    .profile-badge.default { background: #f5f5f5; color: #555; border: 1px solid #ccc; }
+    .profile-badge.dev     { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .profile-badge.local   { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .profile-badge.default { background: #f5f5f5; color: #555;    border: 1px solid #ccc; }
     .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
     input[type=text] { padding: 0.4rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
     button { padding: 0.4rem 0.8rem; font-size: 1rem; cursor: pointer; margin-left: 0.4rem; border-radius: 4px; border: 1px solid #bbb; }
@@ -62,8 +57,7 @@
 </head>
 <body>
 
-  <!-- HTML-first: directives in markup, not in JS template strings.
-       activeProfile and appEnv are exposed by setup() below. -->
+  <!-- HTML-first: directives in markup; activeProfile/appEnv exposed by setup(). -->
   <div id="app">
     <div class="title-row">
       <h1>@alt-javascript/boot — Vue CDN</h1>
@@ -71,7 +65,7 @@
     </div>
     <p class="subtitle">
       Profile: <strong>{{ activeProfile }}</strong> · env: <em>{{ appEnv }}</em> ·
-      <code>vueStarter()</code> + <code>BrowserProfileResolver</code>
+      profile resolved automatically by <code>Boot.boot()</code>
     </p>
 
     <div>
@@ -93,58 +87,42 @@
   <script type="module">
     import { createApp, ref } from 'vue';
     import { vueStarter } from '@alt-javascript/boot-vue';
-    import { BrowserProfileResolver, ProfileAwareConfig } from '@alt-javascript/config';
     import { Context, Singleton } from '@alt-javascript/cdi';
     import { TodoService } from './src/services.js';
 
-    // Config POJO with URL → profile mapping and per-profile overrides.
-    // BrowserProfileResolver reads window.location to pick the active profile.
-    //   localhost:3000   → dev   (try http://localhost:3000/dev)
-    //   127.0.0.1:3000   → local (try http://127.0.0.1:3000/dev)
-    const configObject = {
-      boot: { 'banner-mode': 'off' },
-      app: {
-        name: 'Vue CDN Todo',
-        version: '1.0.0',
-        env: 'default',
-      },
-      logging: { level: { ROOT: 'info' } },
-      profiles: {
-        urls: {
-          'localhost:3000':   'dev',
-          '127.0.0.1:3000':  'local',
-        },
-        dev: {
-          app: { env: 'development (localhost)' },
-          logging: { level: { ROOT: 'debug' } },
-        },
-        local: {
-          app: { env: 'local (127.0.0.1)' },
-          logging: { level: { ROOT: 'debug' } },
-        },
-      },
-    };
-
-    // Resolve active profiles from the current URL, then build a ProfileAwareConfig.
-    // Boot.boot() duck-types: has/get → passes through as-is (no re-wrapping).
-    const activeProfiles = BrowserProfileResolver.resolve({
-      urlMappings: configObject.profiles.urls,
-    });
-    const config = new ProfileAwareConfig(configObject, activeProfiles);
-
+    // Plain POJO with profiles.urls — Boot.boot() auto-resolves the active
+    // profile from window.location and wraps in ProfileAwareConfig.
+    // No manual BrowserProfileResolver / ProfileAwareConfig wiring needed.
     await vueStarter({
       createApp,
       selector: '#app',
       contexts: [new Context([new Singleton(TodoService)])],
-      config,
+      config: {
+        boot: { 'banner-mode': 'off' },
+        app: { name: 'Vue CDN Todo', version: '1.0.0', env: 'default' },
+        logging: { level: { ROOT: 'info' } },
+        profiles: {
+          urls: {
+            'localhost:3000':  'dev',
+            '127.0.0.1:3000': 'local',
+          },
+          dev: {
+            app: { env: 'development (localhost)' },
+            logging: { level: { ROOT: 'debug' } },
+          },
+          local: {
+            app: { env: 'local (127.0.0.1)' },
+            logging: { level: { ROOT: 'debug' } },
+          },
+        },
+      },
       setup(appCtx) {
-        const todoService = appCtx.get('todoService');
-        const todos    = ref(todoService.getAll());
-        const newTitle = ref('');
-
-        // Expose active profile info to the HTML directives.
-        const activeProfile = ref(activeProfiles[0] || 'default');
-        const appEnv        = ref(config.get('app.env', 'default'));
+        const todoService   = appCtx.get('todoService');
+        const todos         = ref(todoService.getAll());
+        const newTitle      = ref('');
+        // appCtx.config is the resolved ProfileAwareConfig — read profile info from it.
+        const activeProfile = ref((appCtx.config.activeProfiles?.[0]) || 'default');
+        const appEnv        = ref(appCtx.config.get('app.env', 'default'));
 
         function addTodo() {
           if (!newTitle.value.trim()) return;
@@ -160,7 +138,6 @@
           todoService.remove(id);
           todos.value = todoService.getAll();
         }
-
         return { todos, newTitle, addTodo, toggleTodo, removeTodo, activeProfile, appEnv };
       },
     });

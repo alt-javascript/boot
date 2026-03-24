@@ -38,7 +38,7 @@ function removeTodo(id) {
     </div>
     <p class="subtitle">
       Profile: <strong>{{ activeProfile }}</strong> · env: <em>{{ appEnv }}</em> ·
-      <code>inject('todoService')</code> + <code>BrowserProfileResolver</code>
+      profile resolved automatically by <code>Boot.boot()</code>
     </p>
 
     <div class="input-row">
