@@ -11,10 +11,9 @@ import { jsdbcTemplateStarter } from '@alt-javascript/boot-jsdbc';
 import { NoteRepository } from '../src/services.js';
 
 const BASE_CONFIG = {
-  boot: { 'banner-mode': 'off' },
+  boot: { 'banner-mode': 'off', datasource: { url: 'jsdbc:sqljs:memory' } },
   app: { name: 'test', version: '1.0.0' },
   logging: { level: { ROOT: 'error' } },
-  jsdbc: { url: 'jsdbc:sqljs:memory' },
 };
 
 describe('example-5-2-persistence-jsdbc', () => {

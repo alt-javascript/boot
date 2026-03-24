@@ -1,9 +1,9 @@
 /**
  * @alt-javascript/boot-jsdbc — Persistence starter for the alt-javascript framework.
  *
- * Auto-configures DataSource, JsdbcTemplate, and NamedParameterJsdbcTemplate
- * as CDI beans from `jsdbc.*` config properties, following Spring Boot's
- * DataSourceAutoConfiguration pattern.
+ * Auto-configures DataSource, JsdbcTemplate, NamedParameterJsdbcTemplate, and
+ * SchemaInitializer as CDI beans from boot.datasource.* config properties,
+ * following Spring Boot's DataSourceAutoConfiguration pattern.
  *
  * The starter is driver-agnostic. Import the jsdbc driver package alongside
  * this starter — drivers self-register with DriverManager on import:
@@ -13,92 +13,100 @@
  *   import '@alt-javascript/jsdbc-pg';      // PostgreSQL
  *   import '@alt-javascript/jsdbc-mysql';   // MySQL / MariaDB
  *
- * Usage:
+ * Primary datasource usage:
  *   import '@alt-javascript/jsdbc-sqljs';
  *   import { jsdbcTemplateStarter } from '@alt-javascript/boot-jsdbc';
- *   import { Context, Singleton } from '@alt-javascript/cdi';
  *
  *   const { applicationContext } = await jsdbcTemplateStarter({
  *     contexts: [new Context([new Singleton(UserRepository)])],
  *     config: {
  *       app: { name: 'my-app' },
- *       jsdbc: { url: 'jsdbc:sqljs:memory' },
+ *       boot: { datasource: { url: 'jsdbc:sqljs:memory' } },
  *     },
  *   });
  *
- *   const repo = applicationContext.get('userRepository');
- *   // repo.jsdbcTemplate is auto-wired — ready to use
+ * Secondary (named) datasource usage:
+ *   import { DataSourceBuilder } from '@alt-javascript/boot-jsdbc';
  *
- * Config keys (all under `jsdbc.*`):
- *   jsdbc.url                       — JSDBC connection URL (required)
- *   jsdbc.username                  — database username (optional)
- *   jsdbc.password                  — database password (optional)
- *   jsdbc.pool.enabled              — enable connection pooling (default: false)
- *   jsdbc.pool.min                  — min pool size (default: 0)
- *   jsdbc.pool.max                  — max pool size (default: 10)
- *   jsdbc.pool.acquireTimeoutMillis — acquire timeout ms (default: 30000)
- *   jsdbc.pool.idleTimeoutMillis    — idle timeout ms (default: 30000)
+ *   const reportingComponents = DataSourceBuilder
+ *     .create()
+ *     .prefix('boot.datasource.reporting')
+ *     .beanNames({ dataSource: 'reportingDataSource', jsdbcTemplate: 'reportingJsdbcTemplate' })
+ *     .build();
  *
- * Beans registered in CDI context:
- *   dataSource                   — ConfiguredDataSource (reads jsdbc.* from config)
- *   jsdbcTemplate                — JsdbcTemplate wrapping dataSource
- *   namedParameterJsdbcTemplate  — NamedParameterJsdbcTemplate wrapping dataSource
+ * Schema/data initialisation:
+ *   - SchemaInitializer runs config/schema.sql then config/data.sql on start
+ *   - Disable with boot.datasource.initialize = false
+ *   - Custom paths via boot.datasource.schema / boot.datasource.data
  *
- * All three are conditional on `jsdbc.url` being present in config.
- * An existing `dataSource` bean is never replaced.
+ * Config keys (default prefix 'boot.datasource'):
+ *   boot.datasource.url                       — JSDBC connection URL (required)
+ *   boot.datasource.username                  — database username (optional)
+ *   boot.datasource.password                  — database password (optional)
+ *   boot.datasource.initialize                — run schema/data SQL on start (default: true)
+ *   boot.datasource.schema                    — path to schema SQL (default: config/schema.sql)
+ *   boot.datasource.data                      — path to data SQL (default: config/data.sql)
+ *   boot.datasource.pool.enabled              — enable connection pooling (default: false)
+ *   boot.datasource.pool.min                  — min pool size (default: 0)
+ *   boot.datasource.pool.max                  — max pool size (default: 10)
+ *   boot.datasource.pool.acquireTimeoutMillis — acquire timeout ms (default: 30000)
+ *   boot.datasource.pool.idleTimeoutMillis    — idle timeout ms (default: 30000)
  */
 import { Boot } from '@alt-javascript/boot';
 import { JsdbcTemplate, NamedParameterJsdbcTemplate } from '@alt-javascript/jsdbc-template';
-import { jsdbcAutoConfiguration, ConfiguredDataSource } from './JsdbcAutoConfiguration.js';
+import {
+  jsdbcAutoConfiguration,
+  ConfiguredDataSource,
+  DataSourceBuilder,
+  SchemaInitializer,
+  DEFAULT_PREFIX,
+} from './JsdbcAutoConfiguration.js';
+
+export { JsdbcTemplate, NamedParameterJsdbcTemplate };
+export {
+  jsdbcAutoConfiguration,
+  ConfiguredDataSource,
+  DataSourceBuilder,
+  SchemaInitializer,
+  DEFAULT_PREFIX,
+};
 
 /**
- * Returns the CDI component definitions that register JSDBC beans.
+ * Returns CDI component definitions for the primary datasource.
+ * Equivalent to jsdbcAutoConfiguration(options).
  *
- * Use this when composing contexts manually:
- *   new Context([...jsdbcStarter(), ...yourComponents])
- *
+ * @param {object} [options]
+ * @param {string} [options.prefix='boot.datasource'] — config key prefix
  * @returns {Array} CDI component definitions
  */
-export function jsdbcStarter() {
-  return jsdbcAutoConfiguration();
+export function jsdbcStarter(options) {
+  return jsdbcAutoConfiguration(options);
 }
 
 /**
  * Boot the application with JSDBC auto-configuration.
  *
- * Calls `Boot.boot()` with `jsdbcAutoConfiguration()` appended after user contexts
- * so that a custom `dataSource` bean registered first is correctly detected by
- * the conditional and not overwritten.
- *
  * @param {object} options
- * @param {Array}  options.contexts  — CDI Context array (your components)
- * @param {object} [options.config]  — config object (POJO or IConfig instance)
+ * @param {Array}  options.contexts    — CDI Context array (your components)
+ * @param {object} [options.config]   — config object (POJO or IConfig instance)
+ * @param {string} [options.prefix]   — config prefix (default: 'boot.datasource')
  * @param {object} [options.startOptions] — forwarded to ApplicationContext.start()
  * @returns {Promise<{applicationContext: ApplicationContext}>}
  */
 export async function jsdbcTemplateStarter(options) {
-  const { contexts = [], config, startOptions } = options;
+  const { contexts = [], config, prefix, startOptions } = options;
 
   // User contexts go FIRST so any custom dataSource bean is registered before
   // jsdbcAutoConfiguration() evaluates its condition (which checks !components.dataSource).
   const applicationContext = await Boot.boot({
     config,
-    contexts: [...contexts, jsdbcAutoConfiguration()],
+    contexts: [...contexts, jsdbcAutoConfiguration({ prefix })],
     run: false,
     ...startOptions,
   });
 
   return { applicationContext };
 }
-
-// Re-export template classes for convenience — callers only need this package
-// alongside a driver package.
-export {
-  JsdbcTemplate,
-  NamedParameterJsdbcTemplate,
-  ConfiguredDataSource,
-  jsdbcAutoConfiguration,
-};
 
 /** @deprecated Use jsdbcTemplateStarter() */
 export const jsdbcAutoConfigurationStarter = jsdbcTemplateStarter;

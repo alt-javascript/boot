@@ -22,10 +22,9 @@ import {
 // ---------------------------------------------------------------------------
 
 const IN_MEMORY_CONFIG = {
-  boot: { 'banner-mode': 'off' },
+  boot: { 'banner-mode': 'off', datasource: { url: 'jsdbc:sqljs:memory' } },
   app: { name: 'boot-jsdbc-test', version: '1.0.0' },
   logging: { level: { ROOT: 'error' } },
-  jsdbc: { url: 'jsdbc:sqljs:memory' },
 };
 
 // ---------------------------------------------------------------------------
@@ -123,7 +122,7 @@ describe('boot-jsdbc', () => {
       assert.equal(note.text, 'The answer');
     });
 
-    it('does not register beans when jsdbc.url is absent from config', async () => {
+    it('does not register beans when boot.datasource.url is absent from config', async () => {
       const { applicationContext } = await jsdbcTemplateStarter({
         config: {
           boot: { 'banner-mode': 'off' },

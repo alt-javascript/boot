@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-jsdbc",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "JSDBC persistence starter for @alt-javascript boot \u2014 auto-configures DataSource and JsdbcTemplate beans from config",
   "type": "module",
   "main": "index.js",
