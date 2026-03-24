@@ -1,60 +1,65 @@
-# S09 UAT — No-Build Web App (`example-no-build-web`)
+# S09 UAT — No-Build Vue CDN Example
 
-**Status:** ⏳ Pending implementation
+**Status:** Ready for human sign-off
 
 ---
+
+## Package
+
+`packages/example-4-1-frontend-vue-cdn`
+
+## What this demonstrates
+
+- Vue 3 CDN app — zero build step, pure `<script type="module">` in HTML
+- CDI `ApplicationContext` bootstrapped in the browser via importmap
+- `TodoService` CDI bean wired and provided to Vue via `app.provide()`
+- Two delivery modes:
+  - `index.html` — jsDelivr CDN importmap (requires internet)
+  - `dev.html` — local importmap served by `server.js` (no internet needed)
+- `npm test` — CDI service layer tested in Node (framework-agnostic service)
+- `npm run serve` — local dev server at `http://localhost:3000/dev`
 
 ## How to run
 
 ```bash
-cd packages/example-no-build-web
-npm install
-npx serve .
+cd packages/example-4-1-frontend-vue-cdn
+
+# Unit tests (Node — tests the CDI service layer)
+npm test
+
+# Local browser demo (no internet, no build step)
+npm run serve
+# Open: http://localhost:3000/dev
 ```
 
-Open http://localhost:3000 in a browser and check the console
+## Expected behaviour
 
----
+- Page loads showing two seeded todos
+- "Add" button adds a new todo
+- Checkbox toggles done/strikethrough
+- ✕ button removes a todo
+- All reactivity driven by Vue; all business logic in CDI beans
+
+## Evidence from implementation run
+
+- 5/5 unit tests pass (TodoService CDI bean)
+- Browser: Vue app mounts, todos render from CDI-seeded service
+- Add/toggle/remove interactions verified in browser
 
 ## Acceptance Checklist
 
-**All boxes must be checked before the next slice begins.**
-
-### Runs without errors
-
-- [ ] Start command completes without errors
-- [ ] No unhandled promise rejections or uncaught exceptions
-
-### Config loading
-
-- [ ] Default config loads and values are used
-- [ ] A profile override changes at least one value visibly
-
-### Logging
-
-- [ ] Log lines appear in **text** format by default
-- [ ] JSON log format switchable via config
-- [ ] Log level respected
-
-### Dependency injection
-
-- [ ] At least one service with an autowired dependency runs correctly
-- [ ] Service produces verifiably correct output
-
-### Boilerplate check
-
-- [ ] Entry point is minimal — no unnecessary ceremony
-
-### Framework-specific
-
-- [ ] Adapter boots correctly (routes registered / handler wired / app mounted)
-- [ ] At least one request/invocation returns expected response
+- [ ] `npm test` — 5 service tests pass
+- [ ] `npm run serve` + open `http://localhost:3000/dev` — Vue app renders with 2 seeded todos
+- [ ] Add a todo via the input — new item appears reactively
+- [ ] Toggle a todo — strikethrough applied
+- [ ] Remove a todo — item disappears
+- [ ] No build step — page is plain HTML + ES modules
 
 ---
 
 ## Feedback Notes
 
-> _(Free text — observations, issues, suggestions)_
+> _(Add observations, issues, or suggestions before signing off)_
 
 ---
 

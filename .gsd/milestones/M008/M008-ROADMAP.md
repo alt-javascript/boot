@@ -57,7 +57,7 @@ All 14 example packages run correctly, UAT sign-off exists for each slice, and t
 - [x] **S05: Koa** `risk:low` `depends:[S01]`
 - [x] **S06: AWS Lambda** `risk:medium` `depends:[S01]`
 - [x] **S07: Azure Function** `risk:medium` `depends:[S01]`
-- [ ] **S08: Cloudflare Worker** `risk:medium` `depends:[S01]`
+- [x] **S08: Cloudflare Worker** `risk:medium` `depends:[S01]`
 - [ ] **S09: No-Build Web App (Vue CDN)** `risk:medium` `depends:[S01]`
 - [ ] **S10: Vue (Vite)** `risk:low` `depends:[S09]`
 - [ ] **S11: React** `risk:low` `depends:[S09]`

@@ -1,0 +1,21 @@
+{
+  "name": "@alt-javascript/example-4-1-frontend-vue-cdn",
+  "version": "1.0.0",
+  "description": "Step 4.1 — Vue 3 CDN (no-build): CDI services bridged into Vue via createCdiApp",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js",
+    "serve": "node server.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-vue": "*",
+    "@alt-javascript/cdi": "*"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5",
+    "vue": "^3.4.21"
+  },
+  "private": true
+}
