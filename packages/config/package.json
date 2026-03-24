@@ -20,6 +20,13 @@
   },
   "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "browser": "./browser/index.js",
+      "default": "./index.js"
+    },
+    "./browser/index.js": "./browser/index.js"
+  },
   "files": [
     "*.js",
     "browser/",

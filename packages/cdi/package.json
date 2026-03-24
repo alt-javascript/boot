@@ -18,6 +18,12 @@
   },
   "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "default": "./index.js"
+    },
+    "./context/index.js": "./context/index.js"
+  },
   "files": [
     "*.js",
     "context/",

@@ -21,6 +21,11 @@
   },
   "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "default": "./index.js"
+    }
+  },
   "files": [
     "*.js",
     "browser/",
