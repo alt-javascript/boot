@@ -1,0 +1,53 @@
+{
+  "name": "@alt-javascript/flyway",
+  "version": "1.0.0",
+  "description": "Flyway-inspired database migration engine for JavaScript \u2014 versioned migrations, checksum verification, schema history tracking",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
+  "keywords": [
+    "flyway",
+    "database",
+    "migration",
+    "schema",
+    "versioned",
+    "jsdbc",
+    "jdbc",
+    "sql"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/jsdbc-core": "^1.0.0",
+    "@alt-javascript/jsdbc-template": "*"
+  },
+  "devDependencies": {
+    "@alt-javascript/jsdbc-sqljs": "^1.0.0",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/flyway"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/flyway#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

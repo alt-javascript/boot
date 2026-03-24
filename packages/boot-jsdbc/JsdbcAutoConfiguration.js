@@ -33,6 +33,7 @@ export class ConfiguredDataSource {
     this._delegate = null;
     this._applicationContext = null;
     this._prefix = DEFAULT_PREFIX; // overridden by DataSourceBuilder
+    this._connectionPromise = null; // mutex: prevents concurrent getConnection() from creating two connections
   }
 
   setApplicationContext(ctx) {
@@ -69,9 +70,25 @@ export class ConfiguredDataSource {
     }
   }
 
-  /** @returns {Promise<Connection>} */
+  /**
+   * Get a connection from the underlying datasource.
+   *
+   * For SingleConnectionDataSource (in-memory), concurrent callers share one
+   * connection. A promise-mutex ensures only one connection is ever created
+   * even when multiple async callers race to getConnection() simultaneously.
+   *
+   * @returns {Promise<Connection>}
+   */
   async getConnection() {
-    return this._delegate.getConnection();
+    // Fast path: delegate is not a SingleConnectionDataSource (pool or regular DS)
+    if (!(this._delegate instanceof SingleConnectionDataSource)) {
+      return this._delegate.getConnection();
+    }
+    // Mutex path: share one initialization promise across concurrent callers
+    if (!this._connectionPromise) {
+      this._connectionPromise = this._delegate.getConnection();
+    }
+    return this._connectionPromise;
   }
 
   /** @returns {string} */
