@@ -61,6 +61,13 @@ npm run serve
 
 > _(Add observations, issues, or suggestions before signing off)_
 
+The vue cdn example should be html first, with the page structure directly declared as html,
+not with a template constant in the script tag, that is VUE without template compilation,
+aimed for use either in nobuild, or page serving applications (ruby-on-rails, spring mvc with thymelaef)
+like other frameworks like backbone.js.
+
+The current is a hybrid that satisfies niether the serverside rendered pages or CLI first modes.
+
 ---
 
 ## Sign-Off

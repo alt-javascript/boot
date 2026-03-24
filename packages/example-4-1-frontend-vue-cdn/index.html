@@ -6,20 +6,21 @@
   <title>@alt-javascript/boot — Vue CDN Example</title>
 
   <!--
-    Import map — resolves bare specifiers to CDN URLs (jsDelivr ESM).
-    For local development, run: npm run serve
-    The dev server repoints these to local packages automatically via dev.html.
+    Import map — jsDelivr CDN (requires internet).
+    For local development without internet: use dev.html + npm run serve.
+
+    HTML-first pattern: Vue directives live in the HTML, not in a JS template string.
+    Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf).
   -->
   <script type="importmap">
   {
     "imports": {
-      "vue":                           "https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.esm-browser.js",
-      "@alt-javascript/common":        "https://cdn.jsdelivr.net/npm/@alt-javascript/common@3.0.4/dist/alt-javascript-common-esm.js",
-      "@alt-javascript/config":        "https://cdn.jsdelivr.net/npm/@alt-javascript/config@3.0.4/dist/alt-javascript-config-esm.js",
-      "@alt-javascript/logger":        "https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3.0.4/dist/alt-javascript-logger-esm.js",
-      "@alt-javascript/cdi":           "https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3.0.4/dist/alt-javascript-cdi-esm.js",
-      "@alt-javascript/boot":          "https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3.0.4/dist/alt-javascript-boot-esm.js",
-      "@alt-javascript/boot-vue":      "https://cdn.jsdelivr.net/npm/@alt-javascript/boot-vue@3.0.4/dist/alt-javascript-boot-vue-esm.js"
+      "vue":                          "https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.esm-browser.js",
+      "@alt-javascript/common":       "https://cdn.jsdelivr.net/npm/@alt-javascript/common@3.0.4/dist/alt-javascript-common-esm.js",
+      "@alt-javascript/config":       "https://cdn.jsdelivr.net/npm/@alt-javascript/config@3.0.4/dist/alt-javascript-config-esm.js",
+      "@alt-javascript/logger":       "https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3.0.4/dist/alt-javascript-logger-esm.js",
+      "@alt-javascript/cdi":          "https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3.0.4/dist/alt-javascript-cdi-esm.js",
+      "@alt-javascript/boot-vue":     "https://cdn.jsdelivr.net/npm/@alt-javascript/boot-vue@3.0.4/dist/alt-javascript-boot-vue-esm.js"
     }
   }
   </script>
@@ -39,7 +40,36 @@
   </style>
 </head>
 <body>
-  <div id="app">Loading…</div>
+
+  <!-- ============================================================
+    HTML-first Vue template — directives live in the markup.
+    A server-side template engine (Thymeleaf, ERB, Jinja) can pre-render
+    this HTML with real data; Vue picks up from there.
+  ============================================================= -->
+  <div id="app">
+    <h1>@alt-javascript/boot — Vue CDN</h1>
+    <p class="subtitle">
+      CDI beans wired via <code>ApplicationContext</code>, bound to plain HTML via Vue.
+      No build step. No JS template strings.
+    </p>
+
+    <div>
+      <input v-model="newTitle" type="text" placeholder="New todo…" @keyup.enter="addTodo" />
+      <button class="primary" @click="addTodo">Add</button>
+    </div>
+
+    <ul>
+      <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
+        <input type="checkbox" :checked="todo.done" @change="toggleTodo(todo.id)" />
+        <span>{{ todo.title }}</span>
+        <button @click="removeTodo(todo.id)">✕</button>
+      </li>
+    </ul>
+
+    <p class="banner">
+      Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi
+    </p>
+  </div>
 
   <script type="module">
     import { createApp, ref } from 'vue';
@@ -54,22 +84,22 @@
       logging: { level: { ROOT: 'info' } },
     });
 
-    // Provide CDI infrastructure singletons explicitly — normally Boot.boot() does this.
     const loggerCategoryCache = new LoggerCategoryCache();
     const loggerFactory = new LoggerFactory(config, loggerCategoryCache);
 
     const context = new Context([
-      new Singleton({ Reference: config, name: 'config' }),
-      new Singleton({ Reference: loggerFactory, name: 'loggerFactory' }),
+      new Singleton({ Reference: config,              name: 'config' }),
+      new Singleton({ Reference: loggerFactory,       name: 'loggerFactory' }),
       new Singleton({ Reference: loggerCategoryCache, name: 'loggerCategoryCache' }),
       new Singleton(TodoService),
     ]);
+
     const appCtx = new ApplicationContext({ contexts: [context], config });
     await appCtx.start({ run: false });
 
     const todoService = appCtx.get('todoService');
 
-    const App = {
+    createApp({
       setup() {
         const todos = ref(todoService.getAll());
         const newTitle = ref('');
@@ -93,32 +123,8 @@
 
         return { todos, newTitle, addTodo, toggleTodo, removeTodo };
       },
-
-      template: `
-        <h1>@alt-javascript/boot — Vue CDN</h1>
-        <p class="subtitle">CDI beans in Vue via ApplicationContext. No build step.</p>
-
-        <div>
-          <input v-model="newTitle" type="text" placeholder="New todo…" @keyup.enter="addTodo" />
-          <button class="primary" @click="addTodo">Add</button>
-        </div>
-
-        <ul>
-          <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-            <input type="checkbox" :checked="todo.done" @change="toggleTodo(todo.id)" />
-            <span>{{ todo.title }}</span>
-            <button @click="removeTodo(todo.id)">✕</button>
-          </li>
-        </ul>
-
-        <p class="banner">Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi</p>
-      `,
-    };
-
-    const vueApp = createApp(App);
-    vueApp.provide('applicationContext', appCtx);
-    vueApp.provide('todoService', todoService);
-    vueApp.mount('#app');
+    }).mount('#app');
   </script>
+
 </body>
 </html>
