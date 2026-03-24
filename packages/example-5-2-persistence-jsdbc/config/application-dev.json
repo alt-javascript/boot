@@ -1,0 +1,8 @@
+{
+  "logging": {
+    "level": { "ROOT": "debug" }
+  },
+  "jsdbc": {
+    "url": "jsdbc:sqljs:memory"
+  }
+}

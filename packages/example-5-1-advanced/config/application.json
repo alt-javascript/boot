@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Advanced CDI Example",
+    "version": "1.0.0",
+    "env": "default"
+  },
+  "boot": {
+    "banner-mode": "console"
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  },
+  "audit": {
+    "enabled": true,
+    "logLevel": "info"
+  }
+}

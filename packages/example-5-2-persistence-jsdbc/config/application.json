@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "Persistence Example",
+    "version": "1.0.0"
+  },
+  "boot": {
+    "banner-mode": "console"
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  },
+  "jsdbc": {
+    "url": "jsdbc:sqljs:memory"
+  }
+}
