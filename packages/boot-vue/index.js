@@ -86,7 +86,7 @@ export async function vueStarter(options) {
   //   CLI mode:   caller passes rootComponent (SFC) with its own setup()
   //   HTML-first: caller passes setup(appCtx) => reactive state; we build
   //               a minimal component that exposes it to the in-page directives
-  const root = rootComponent;
+  let root = rootComponent;
   if (!root) {
     root = setupFn
       ? { setup: () => setupFn(appCtx) }
