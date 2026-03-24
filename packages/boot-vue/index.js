@@ -1,131 +1,152 @@
 /**
- * @alt-javascript/boot-vue — Vue 3 integration for CDI.
+ * @alt-javascript/boot-vue — Vue 3 integration for @alt-javascript/boot.
  *
- * Bridges CDI ApplicationContext into Vue's reactive system via
- * Vue's provide/inject pattern.
+ * Bridges Boot CDI into Vue's reactive system via Vue's provide/inject pattern.
+ * Works in both HTML-first (CDN/no-build) and CLI-first (Vite/webpack) modes.
  *
- * CDN usage (no build step):
+ * ## HTML-first (CDN / server-rendered pages)
+ *
+ *   <!-- directives live in the HTML — no JS template string -->
+ *   <div id="app">
+ *     <ul><li v-for="item in items" :key="item.id">{{ item.name }}</li></ul>
+ *   </div>
+ *
  *   <script type="module">
- *     import { createCdiApp } from '@alt-javascript/boot-vue';
- *     const app = await createCdiApp({ contexts, config, rootComponent });
- *     app.mount('#app');
+ *     import { createApp, ref } from 'vue';
+ *     import { vueStarter } from '@alt-javascript/boot-vue';
+ *     import { Context, Singleton } from '@alt-javascript/cdi';
+ *     import { MyService } from './services.js';
+ *
+ *     await vueStarter({
+ *       createApp,
+ *       selector: '#app',
+ *       contexts: [new Context([new Singleton(MyService)])],
+ *       config: { app: { name: 'My App' } },   // plain POJO — Boot wraps it
+ *       setup(appCtx) {
+ *         const myService = appCtx.get('myService');
+ *         const items = ref(myService.getAll());
+ *         return { items };   // exposed to v-for, v-model etc. in the HTML
+ *       },
+ *     });
  *   </script>
  *
- * Vite/CLI usage:
- *   import { cdiPlugin } from '@alt-javascript/boot-vue';
- *   const app = createApp(App);
- *   app.use(cdiPlugin, { contexts, config });
- *   app.mount('#app');
+ * ## CLI-first (Vite / Vue CLI)
  *
- * In components, access CDI beans via inject:
- *   const todoService = inject('todoService');
- *   const ctx = inject('applicationContext');
+ *   import { createApp } from 'vue';
+ *   import { vueStarter } from '@alt-javascript/boot-vue';
+ *   import App from './App.vue';
+ *
+ *   await vueStarter({
+ *     createApp,
+ *     rootComponent: App,        // SFC — setup() lives inside the component
+ *     selector: '#app',
+ *     contexts: [...],
+ *     config: { ... },
+ *   });
+ *   // All CDI beans also injectable via inject('myService') inside SFCs
  */
-import { ApplicationContext, Context } from '@alt-javascript/cdi';
 import { Boot } from '@alt-javascript/boot';
 
 /**
- * Boot CDI and create a Vue app with all singletons provided.
+ * Boot CDI and mount a Vue app with all singletons provided via inject().
  *
- * For CDN usage where Vue is loaded globally (window.Vue).
- * For Vite/CLI usage, pass the Vue createApp function.
+ * Config may be a plain POJO — Boot.boot() wraps it in ValueResolvingConfig,
+ * enabling profile overlays, ${placeholder} resolution, and config chaining.
  *
- * @param {object} options
- * @param {Array} options.contexts — CDI Context instances
- * @param {object} options.config — config object
- * @param {object} options.rootComponent — Vue root component definition
- * @param {Function} [options.createApp] — Vue.createApp (default: window.Vue?.createApp)
- * @param {Function} [options.onReady] — called with (app, ctx) after CDI boot, before mount
+ * All CDI singletons are provided to the Vue app by name.
+ *
+ * @param {object}   options
+ * @param {Function} options.createApp       — Vue.createApp function (required)
+ * @param {Array}    options.contexts        — CDI Context instances (required)
+ * @param {object}   [options.config]        — config POJO or config object
+ * @param {object}   [options.rootComponent] — Vue root component (CLI mode)
+ * @param {Function} [options.setup]         — (appCtx) => reactive state object
+ *                                             (HTML-first mode; replaces rootComponent.setup)
+ * @param {string}   [options.selector='#app'] — CSS selector to mount on
  * @returns {Promise<{ vueApp, applicationContext }>}
  */
-export async function createCdiApp(options) {
-  const { contexts, config, rootComponent, onReady } = options;
-  const createApp = options.createApp
-    || (typeof window !== 'undefined' && window.Vue?.createApp);
+export async function vueStarter(options) {
+  const {
+    createApp,
+    contexts,
+    rootComponent,
+    setup: setupFn,
+    onReady,
+    selector = '#app',
+  } = options;
 
-  if (!createApp) {
-    throw new Error(
-      'Vue createApp not found. Pass it as options.createApp or load Vue globally (window.Vue).',
-    );
+  if (!createApp) throw new Error('vueStarter: options.createApp is required.');
+  if (!contexts)  throw new Error('vueStarter: options.contexts is required.');
+
+  // Boot.boot() handles POJO → ValueResolvingConfig, logger setup, global
+  // registry, banner, and CDI wiring — exactly as in server-side examples.
+  const appCtx = await Boot.boot({ config: options.config, contexts, run: false });
+
+  // Determine root component:
+  //   CLI mode:   caller passes rootComponent (SFC) with its own setup()
+  //   HTML-first: caller passes setup(appCtx) => reactive state; we build
+  //               a minimal component that exposes it to the in-page directives
+  const root = rootComponent;
+  if (!root) {
+    root = setupFn
+      ? { setup: () => setupFn(appCtx) }
+      : {};
   }
 
-  // Populate global boot root (loggerFactory, loggerCategoryCache, config)
-  // so CDI beans can autowire loggers without caller boilerplate.
-  Boot.boot({ config });
+  const vueApp = createApp(root);
 
-  // Boot CDI
-  const appCtx = new ApplicationContext({ contexts, config });
-  await appCtx.start({ run: false });
-
-  // Create Vue app
-  const vueApp = createApp(rootComponent);
-
-  // Provide all CDI singletons to Vue's inject system
+  // Provide all CDI singletons so any component can inject('myService') etc.
   _provideContext(vueApp, appCtx);
 
   if (onReady) {
     await onReady(vueApp, appCtx);
   }
 
+  vueApp.mount(selector);
+
   return { vueApp, applicationContext: appCtx };
 }
 
+/** @deprecated Use vueStarter() */
+export async function createCdiApp(options) {
+  return vueStarter(options);
+}
+
 /**
- * Vue plugin that boots CDI and provides all singletons.
+ * Vue plugin for CLI-first usage when you want to keep your own createApp() call.
  *
- * Usage:
- *   app.use(cdiPlugin, { contexts, config });
+ *   const app = createApp(App);
+ *   await app.use(vuePlugin, { contexts, config });
+ *   app.mount('#app');
  *
- * Then in components:
- *   const todoService = inject('todoService');
+ * Then in any component:
+ *   const myService = inject('myService');
  */
-export const cdiPlugin = {
-  /**
-   * @param {import('vue').App} app
-   * @param {{ contexts: Array, config: object }} options
-   */
+export const vuePlugin = {
   async install(app, options) {
-    const { contexts, config } = options;
-
-    // Populate global boot root so CDI beans can autowire loggers without caller boilerplate.
-    Boot.boot({ config });
-
-    const appCtx = new ApplicationContext({ contexts, config });
-    await appCtx.start({ run: false });
-
+    const appCtx = await Boot.boot({
+      config: options.config,
+      contexts: options.contexts,
+      run: false,
+    });
     _provideContext(app, appCtx);
   },
 };
 
-/**
- * Provide all CDI singletons and the ApplicationContext itself
- * to a Vue app via app.provide().
- *
- * @param {import('vue').App} app — Vue app instance
- * @param {ApplicationContext} appCtx — booted CDI context
- */
+/** @deprecated Use vuePlugin */
+export const cdiPlugin = vuePlugin;
+
 function _provideContext(app, appCtx) {
-  // Provide the ApplicationContext itself
   app.provide('applicationContext', appCtx);
   app.provide('ctx', appCtx);
-
-  // Provide each singleton bean by name
-  const components = appCtx.components;
-  for (const name of Object.keys(components)) {
-    const component = components[name];
-    if (component.instance) {
-      app.provide(name, component.instance);
-    }
+  for (const name of Object.keys(appCtx.components)) {
+    const c = appCtx.components[name];
+    if (c.instance) app.provide(name, c.instance);
   }
 }
 
 /**
- * Resolve a CDI bean by name from the ApplicationContext.
- * Utility for use outside Vue's inject system (e.g. in setup scripts).
- *
- * @param {ApplicationContext} ctx
- * @param {string} name
- * @returns {*}
+ * Resolve a CDI bean by name. Utility for use outside Vue's inject system.
  */
 export function getBean(ctx, name) {
   return ctx.get(name);

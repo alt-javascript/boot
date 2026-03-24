@@ -10,8 +10,7 @@
     Run: npm run serve  then open http://localhost:3000/dev
     No internet connection required.
 
-    This is the HTML-first pattern: Vue directives live in the HTML.
-    The <script type="module"> only wires CDI and provides reactive state.
+    HTML-first pattern: Vue directives live in the markup below.
     Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf) where
     the server generates the HTML and Vue progressively enhances it.
   -->
@@ -23,7 +22,8 @@
       "@alt-javascript/config":       "/node_modules/@alt-javascript/config/dist/alt-javascript-config-esm.js",
       "@alt-javascript/logger":       "/node_modules/@alt-javascript/logger/dist/alt-javascript-logger-esm.js",
       "@alt-javascript/cdi":          "/node_modules/@alt-javascript/cdi/dist/alt-javascript-cdi-esm.js",
-      "@alt-javascript/boot-vue":     "/node_modules/@alt-javascript/boot-vue/dist/alt-javascript-boot-vue-esm.js"
+      "@alt-javascript/boot":         "/node_modules/@alt-javascript/boot/dist/alt-javascript-boot-esm.js",
+      "@alt-javascript/boot-vue":     "/node_modules/@alt-javascript/boot-vue/index.js"
     }
   }
   </script>
@@ -46,15 +46,15 @@
 
   <!-- ============================================================
     HTML-first Vue template.
-    Vue directives are declared directly in the markup — no JS template string.
-    The server (Rails, Spring MVC, Thymeleaf, etc.) can render this page
-    with server-side data and Vue progressively enhances it.
+    v-model, v-for, @click etc. live directly in the markup.
+    A server (Rails, Thymeleaf, ERB) can pre-render this HTML with
+    real data; Vue binds reactivity on top.
   ============================================================= -->
   <div id="app">
     <h1>@alt-javascript/boot — Vue CDN (local dev)</h1>
     <p class="subtitle">
-      CDI beans wired via <code>ApplicationContext</code>, bound to plain HTML via Vue.
-      No build step. No JS template strings. Local packages.
+      CDI beans provided via <code>vueStarter()</code>. Plain POJO config.
+      No build step. No template strings.
     </p>
 
     <div>
@@ -70,48 +70,32 @@
       </li>
     </ul>
 
-    <p class="banner">
-      Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi · Local packages
-    </p>
+    <p class="banner">Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi</p>
   </div>
 
   <script type="module">
     import { createApp, ref } from 'vue';
-    import { ApplicationContext, Context, Singleton } from '@alt-javascript/cdi';
-    import { EphemeralConfig } from '@alt-javascript/config';
-    import { LoggerFactory, LoggerCategoryCache } from '@alt-javascript/logger';
+    import { vueStarter } from '@alt-javascript/boot-vue';
+    import { Context, Singleton } from '@alt-javascript/cdi';
     import { TodoService } from './src/services.js';
 
-    // Config — in a server-rendered app this could come from window.__CONFIG__
-    // injected by the server template engine.
-    const config = new EphemeralConfig({
-      boot: { 'banner-mode': 'off' },
-      app: { name: 'Vue CDN Todo (local dev)', version: '1.0.0' },
-      logging: { level: { ROOT: 'info' } },
-    });
+    await vueStarter({
+      createApp,
+      selector: '#app',
+      contexts: [new Context([new Singleton(TodoService)])],
 
-    // Provide CDI infrastructure singletons explicitly.
-    // In a server-side app, Boot.boot() does this; in a pure browser app
-    // we register them by hand.
-    const loggerCategoryCache = new LoggerCategoryCache();
-    const loggerFactory = new LoggerFactory(config, loggerCategoryCache);
+      // Plain POJO — Boot.boot() wraps it in ValueResolvingConfig automatically.
+      // Profile overlays and ${placeholder} resolution work as in server examples.
+      config: {
+        boot: { 'banner-mode': 'off' },
+        app: { name: 'Vue CDN Todo', version: '1.0.0' },
+        logging: { level: { ROOT: 'info' } },
+      },
 
-    const context = new Context([
-      new Singleton({ Reference: config,              name: 'config' }),
-      new Singleton({ Reference: loggerFactory,       name: 'loggerFactory' }),
-      new Singleton({ Reference: loggerCategoryCache, name: 'loggerCategoryCache' }),
-      new Singleton(TodoService),
-    ]);
-
-    const appCtx = new ApplicationContext({ contexts: [context], config });
-    await appCtx.start({ run: false });
-
-    const todoService = appCtx.get('todoService');
-
-    // Mount Vue on the existing HTML — no App component, no template string.
-    // setup() returns reactive state that the HTML directives above bind to.
-    createApp({
-      setup() {
+      // setup(appCtx) returns reactive state bound to the HTML directives above.
+      // Same as writing a component's setup() — no boilerplate, no manual provide().
+      setup(appCtx) {
+        const todoService = appCtx.get('todoService');
         const todos = ref(todoService.getAll());
         const newTitle = ref('');
 
@@ -134,7 +118,7 @@
 
         return { todos, newTitle, addTodo, toggleTodo, removeTodo };
       },
-    }).mount('#app');
+    });
   </script>
 
 </body>

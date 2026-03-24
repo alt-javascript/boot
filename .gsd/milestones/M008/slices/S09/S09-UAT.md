@@ -61,6 +61,19 @@ npm run serve
 
 > _(Add observations, issues, or suggestions before signing off)_
 
+The HTML first approach is good, but this is not an idomatic binding of vue _into_ the Boot ecosytem,
+and is heavy on boiler plate that should be handled by the ESM dist coming from Boot-browser.
+
+Similar to all the other setup examples,  but adapted for the browser, the config should just be
+a plain pojo, and long with the context array, should be given to the browserified Boot.boot() which wraps
+and enhances the config (it should support the url -> profile mapping, placeholders etc).
+
+boot-vue createCdiApp does this work already but isn't used.  Why not?
+Given that it wraps Boot.boot() internally, it needs a better name vueStarter matches the pattern elsewhere,
+we need to consider how a CLI first idomatic Vue application is done as well, so that it
+works the same for a CLI built app (the common / contemporary way).
+
+### Done
 The vue cdn example should be html first, with the page structure directly declared as html,
 not with a template constant in the script tag, that is VUE without template compilation,
 aimed for use either in nobuild, or page serving applications (ruby-on-rails, spring mvc with thymelaef)

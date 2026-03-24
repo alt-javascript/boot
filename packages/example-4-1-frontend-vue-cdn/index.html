@@ -9,7 +9,7 @@
     Import map — jsDelivr CDN (requires internet).
     For local development without internet: use dev.html + npm run serve.
 
-    HTML-first pattern: Vue directives live in the HTML, not in a JS template string.
+    HTML-first pattern: Vue directives live in the markup, not in JS template strings.
     Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf).
   -->
   <script type="importmap">
@@ -20,6 +20,7 @@
       "@alt-javascript/config":       "https://cdn.jsdelivr.net/npm/@alt-javascript/config@3.0.4/dist/alt-javascript-config-esm.js",
       "@alt-javascript/logger":       "https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3.0.4/dist/alt-javascript-logger-esm.js",
       "@alt-javascript/cdi":          "https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3.0.4/dist/alt-javascript-cdi-esm.js",
+      "@alt-javascript/boot":         "https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3.0.4/dist/alt-javascript-boot-esm.js",
       "@alt-javascript/boot-vue":     "https://cdn.jsdelivr.net/npm/@alt-javascript/boot-vue@3.0.4/dist/alt-javascript-boot-vue-esm.js"
     }
   }
@@ -41,16 +42,11 @@
 </head>
 <body>
 
-  <!-- ============================================================
-    HTML-first Vue template — directives live in the markup.
-    A server-side template engine (Thymeleaf, ERB, Jinja) can pre-render
-    this HTML with real data; Vue picks up from there.
-  ============================================================= -->
+  <!-- HTML-first: directives in markup, not in JS template strings -->
   <div id="app">
     <h1>@alt-javascript/boot — Vue CDN</h1>
     <p class="subtitle">
-      CDI beans wired via <code>ApplicationContext</code>, bound to plain HTML via Vue.
-      No build step. No JS template strings.
+      CDI beans provided via <code>vueStarter()</code>. Plain POJO config. No build step.
     </p>
 
     <div>
@@ -66,41 +62,26 @@
       </li>
     </ul>
 
-    <p class="banner">
-      Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi
-    </p>
+    <p class="banner">Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi</p>
   </div>
 
   <script type="module">
     import { createApp, ref } from 'vue';
-    import { ApplicationContext, Context, Singleton } from '@alt-javascript/cdi';
-    import { EphemeralConfig } from '@alt-javascript/config';
-    import { LoggerFactory, LoggerCategoryCache } from '@alt-javascript/logger';
+    import { vueStarter } from '@alt-javascript/boot-vue';
+    import { Context, Singleton } from '@alt-javascript/cdi';
     import { TodoService } from './src/services.js';
 
-    const config = new EphemeralConfig({
-      boot: { 'banner-mode': 'off' },
-      app: { name: 'Vue CDN Todo', version: '1.0.0' },
-      logging: { level: { ROOT: 'info' } },
-    });
-
-    const loggerCategoryCache = new LoggerCategoryCache();
-    const loggerFactory = new LoggerFactory(config, loggerCategoryCache);
-
-    const context = new Context([
-      new Singleton({ Reference: config,              name: 'config' }),
-      new Singleton({ Reference: loggerFactory,       name: 'loggerFactory' }),
-      new Singleton({ Reference: loggerCategoryCache, name: 'loggerCategoryCache' }),
-      new Singleton(TodoService),
-    ]);
-
-    const appCtx = new ApplicationContext({ contexts: [context], config });
-    await appCtx.start({ run: false });
-
-    const todoService = appCtx.get('todoService');
-
-    createApp({
-      setup() {
+    await vueStarter({
+      createApp,
+      selector: '#app',
+      contexts: [new Context([new Singleton(TodoService)])],
+      config: {
+        boot: { 'banner-mode': 'off' },
+        app: { name: 'Vue CDN Todo', version: '1.0.0' },
+        logging: { level: { ROOT: 'info' } },
+      },
+      setup(appCtx) {
+        const todoService = appCtx.get('todoService');
         const todos = ref(todoService.getAll());
         const newTitle = ref('');
 
@@ -123,7 +104,7 @@
 
         return { todos, newTitle, addTodo, toggleTodo, removeTodo };
       },
-    }).mount('#app');
+    });
   </script>
 
 </body>

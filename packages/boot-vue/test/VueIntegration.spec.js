@@ -86,7 +86,7 @@ describe('Vue CDI Integration', () => {
         });
         assert.fail('should have thrown');
       } catch (err) {
-        assert.include(err.message, 'Vue createApp not found');
+        assert.include(err.message, 'options.createApp is required');
       }
     });
   });
