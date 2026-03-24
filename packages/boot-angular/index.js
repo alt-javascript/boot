@@ -29,6 +29,7 @@
  * Note: This package does NOT depend on Angular at runtime. It produces
  * provider config objects that Angular's bootstrapApplication() consumes.
  */
+import { Boot } from '@alt-javascript/boot';
 import { ApplicationContext } from '@alt-javascript/cdi';
 
 /**
@@ -103,4 +104,43 @@ export async function createCdiProvidersWithService(options) {
   providers.push({ provide: 'cdiService', useValue: cdiService });
 
   return { applicationContext, providers };
+}
+
+/**
+ * Boot CDI via Boot.boot() and produce Angular provider definitions.
+ *
+ * Mirrors the vueStarter/reactStarter pattern — calls Boot.boot() for full
+ * profile URL resolution, ${placeholder} expansion, banner, logger setup,
+ * and CDI wiring. Config may be a plain POJO.
+ *
+ * Returns Angular provider objects ready for bootstrapApplication():
+ *
+ *   const { providers } = await angularStarter({ contexts, config });
+ *   bootstrapApplication(AppComponent, { providers });
+ *
+ * @param {object} options
+ * @param {Array}  options.contexts — CDI Context instances (required)
+ * @param {object} [options.config] — config POJO or config object
+ * @returns {Promise<{ applicationContext, providers }>}
+ */
+export async function angularStarter(options) {
+  const { contexts } = options;
+  if (!contexts) throw new Error('angularStarter: options.contexts is required.');
+
+  const appCtx = await Boot.boot({ config: options.config, contexts, run: false });
+
+  const providers = [
+    { provide: 'applicationContext', useValue: appCtx },
+  ];
+
+  for (const name of Object.keys(appCtx.components)) {
+    if (appCtx.components[name].instance) {
+      providers.push({ provide: name, useValue: appCtx.components[name].instance });
+    }
+  }
+
+  const cdiService = new CdiService(appCtx);
+  providers.push({ provide: 'cdiService', useValue: cdiService });
+
+  return { applicationContext: appCtx, providers };
 }

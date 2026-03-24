@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "Angular Todo (dev)",
+    "env": "development (localhost)"
+  },
+  "logging": {
+    "level": {
+      "ROOT": "debug"
+    }
+  }
+}

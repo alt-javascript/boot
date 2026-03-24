@@ -28,11 +28,25 @@
     "test:azure": "npm test -w packages/boot-azure-function",
     "lint": "npm run lint --workspaces --if-present"
   },
-  "devDependencies": {
-    "rollup": "^4.59.0",
-    "rollup-plugin-esm-import-to-url": "^2.1.0"
+  "overrides": {
+    "vite": "^6.4.1"
   },
-  "description": "alt-javascript framework monorepo \u2014 IoC, DI, config, logging for pure JavaScript ESM",
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.3.1",
+    "@angular/build": "^21.2.3",
+    "@angular/common": "^21.2.5",
+    "@angular/compiler": "^21.2.5",
+    "@angular/compiler-cli": "^21.2.5",
+    "@angular/core": "^21.2.5",
+    "@angular/platform-browser": "^21.2.5",
+    "rollup": "^4.59.0",
+    "rollup-plugin-esm-import-to-url": "^2.1.0",
+    "rxjs": "^7.8.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1",
+    "zone.js": "^0.16.1"
+  },
+  "description": "alt-javascript framework monorepo — IoC, DI, config, logging for pure JavaScript ESM",
   "author": "Craig Parravicini",
   "contributors": [
     "Claude (Anthropic)"
@@ -48,5 +62,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@angular/forms": "^21.2.5"
   }
 }

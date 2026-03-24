@@ -81,6 +81,6 @@ npm run build
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24  
