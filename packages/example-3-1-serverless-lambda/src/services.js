@@ -1,11 +1,12 @@
 /**
- * example-3-2-servers-azure-function — services
+ * example-3-1-serverless-lambda — services
  *
  * Identical CDI patterns to all other examples.
+ * Lambda doesn't change the service layer at all.
  */
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-3-2-servers-azure-function/GreetingService';
+  static qualifier = '@alt-javascript/example-3-1-serverless-lambda/GreetingService';
 
   constructor() {
     this.logger = null;

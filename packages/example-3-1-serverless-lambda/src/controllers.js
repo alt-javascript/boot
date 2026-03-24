@@ -1,5 +1,5 @@
 /**
- * example-3-1-servers-lambda — controllers
+ * example-3-1-serverless-lambda — controllers
  *
  * Same static __routes convention.
  *
@@ -9,7 +9,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-3-1-servers-lambda/GreetingController';
+  static qualifier = '@alt-javascript/example-3-1-serverless-lambda/GreetingController';
 
   // API Gateway route key format: METHOD /path
   // Path params use {param} syntax (not :param)

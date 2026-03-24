@@ -1,5 +1,5 @@
 /**
- * example-3-1-servers-lambda — Lambda handler entry point
+ * example-3-1-serverless-lambda — Lambda handler entry point
  *
  * Uses the same Boot.boot() idiom as all other server examples.
  * The only Lambda-specific difference is { run: false } — this tells Boot

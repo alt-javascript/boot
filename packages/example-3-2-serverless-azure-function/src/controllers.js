@@ -1,5 +1,5 @@
 /**
- * example-3-2-servers-azure-function — controllers
+ * example-3-2-serverless-azure-function — controllers
  *
  * Same static __routes convention.
  *
@@ -9,7 +9,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-3-2-servers-azure-function/GreetingController';
+  static qualifier = '@alt-javascript/example-3-2-serverless-azure-function/GreetingController';
 
   static __routes = [
     { method: 'GET', path: '/health',       handler: 'health' },

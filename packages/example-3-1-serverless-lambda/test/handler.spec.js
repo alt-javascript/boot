@@ -1,5 +1,5 @@
 /**
- * example-3-1-servers-lambda — handler tests
+ * example-3-1-serverless-lambda — handler tests
  *
  * Tests the Lambda handler directly using API Gateway v2 event shapes.
  * No AWS account, no SAM, no network required.

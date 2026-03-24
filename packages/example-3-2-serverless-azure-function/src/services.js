@@ -1,9 +1,11 @@
 /**
- * example-3-3-servers-cloudflare-worker — services
+ * example-3-2-serverless-azure-function — services
+ *
+ * Identical CDI patterns to all other examples.
  */
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-3-3-servers-cloudflare-worker/GreetingService';
+  static qualifier = '@alt-javascript/example-3-2-serverless-azure-function/GreetingService';
 
   constructor() {
     this.logger = null;

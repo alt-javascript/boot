@@ -1,5 +1,5 @@
 /**
- * example-3-3-servers-cloudflare-worker — controllers
+ * example-3-3-serverless-cloudflare-worker — controllers
  *
  * Cloudflare difference: fetch() returns Web Standards Response objects.
  * Path params use :name syntax (same as Azure/Koa).
@@ -8,7 +8,7 @@
  */
 
 export class GreetingController {
-  static qualifier = '@alt-javascript/example-3-3-servers-cloudflare-worker/GreetingController';
+  static qualifier = '@alt-javascript/example-3-3-serverless-cloudflare-worker/GreetingController';
 
   static __routes = [
     { method: 'GET', path: '/health',      handler: 'health' },

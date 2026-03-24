@@ -1,5 +1,5 @@
 /**
- * example-3-2-servers-azure-function — handler tests
+ * example-3-2-serverless-azure-function — handler tests
  *
  * Tests the Azure Functions handler directly using simulated HTTP trigger requests.
  * No Azure account, no Azure Functions Core Tools required.

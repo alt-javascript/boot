@@ -1,5 +1,5 @@
 {
-  "name": "@alt-javascript/example-3-2-servers-azure-function",
+  "name": "@alt-javascript/example-3-2-serverless-azure-function",
   "version": "1.0.0",
   "description": "Step 3.2 — @alt-javascript/boot-azure-function: serverless handler with CDI wiring",
   "type": "module",

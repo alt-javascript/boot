@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Cloudflare Worker Example",
+    "name": "Lambda Example",
     "greeting": "Hello",
     "version": "1.0.0"
   },
@@ -8,7 +8,7 @@
     "format": "text",
     "level": {
       "ROOT": "info",
-      "@alt-javascript/example-3-3-servers-cloudflare-worker": "debug"
+      "@alt-javascript/example-3-1-serverless-lambda": "debug"
     }
   }
 }

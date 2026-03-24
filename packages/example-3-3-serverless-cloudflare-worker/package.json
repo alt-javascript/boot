@@ -1,7 +1,7 @@
 {
-  "name": "@alt-javascript/example-3-1-servers-lambda",
+  "name": "@alt-javascript/example-3-3-serverless-cloudflare-worker",
   "version": "1.0.0",
-  "description": "Step 3.1 — @alt-javascript/boot-lambda: serverless handler with CDI wiring",
+  "description": "Step 3.3 — @alt-javascript/boot-cloudflare-worker: serverless fetch handler with CDI wiring",
   "type": "module",
   "scripts": {
     "test": "mocha --recursive test/**/*.spec.js",
@@ -9,9 +9,9 @@
     "invoke:dev": "NODE_ACTIVE_PROFILES=dev node invoke.js"
   },
   "dependencies": {
-    "@alt-javascript/boot-lambda": "*",
-    "@alt-javascript/cdi": "*",
-    "@alt-javascript/config": "*"
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-cloudflare-worker": "*",
+    "@alt-javascript/cdi": "*"
   },
   "devDependencies": {
     "chai": "^4.3.7",

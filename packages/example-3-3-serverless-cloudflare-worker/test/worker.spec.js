@@ -1,5 +1,5 @@
 /**
- * example-3-3-servers-cloudflare-worker — worker tests
+ * example-3-3-serverless-cloudflare-worker — worker tests
  *
  * Tests the Worker fetch handler using Web Standards Request objects.
  * No Wrangler, no Miniflare, no network required.

@@ -1,5 +1,5 @@
 /**
- * example-3-3-servers-cloudflare-worker — Worker entry point
+ * example-3-3-serverless-cloudflare-worker — Worker entry point
  *
  * The default export { fetch } is what Cloudflare Workers runtime calls.
  * Boot.boot({ run: false }) wires CDI without starting any HTTP server.

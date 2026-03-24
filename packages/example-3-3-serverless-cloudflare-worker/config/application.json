@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Azure Function Example",
+    "name": "Cloudflare Worker Example",
     "greeting": "Hello",
     "version": "1.0.0"
   },
@@ -8,7 +8,7 @@
     "format": "text",
     "level": {
       "ROOT": "info",
-      "@alt-javascript/example-3-2-servers-azure-function": "debug"
+      "@alt-javascript/example-3-3-serverless-cloudflare-worker": "debug"
     }
   }
 }

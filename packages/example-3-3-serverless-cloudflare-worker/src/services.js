@@ -1,12 +1,9 @@
 /**
- * example-3-1-servers-lambda — services
- *
- * Identical CDI patterns to all other examples.
- * Lambda doesn't change the service layer at all.
+ * example-3-3-serverless-cloudflare-worker — services
  */
 
 export class GreetingService {
-  static qualifier = '@alt-javascript/example-3-1-servers-lambda/GreetingService';
+  static qualifier = '@alt-javascript/example-3-3-serverless-cloudflare-worker/GreetingService';
 
   constructor() {
     this.logger = null;

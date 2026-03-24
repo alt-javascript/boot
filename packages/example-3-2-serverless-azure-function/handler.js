@@ -1,5 +1,5 @@
 /**
- * example-3-2-servers-azure-function — Azure Functions handler entry point
+ * example-3-2-serverless-azure-function — Azure Functions handler entry point
  *
  * Identical Boot.boot() idiom to the Lambda example:
  * - { run: false } — CDI wires and inits all beans; run phase skipped
