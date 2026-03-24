@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Multi-DB Flyway Example",
+    "version": "1.0.0"
+  },
+  "boot": {
+    "banner-mode": "console",
+    "datasource": {
+      "url": "jsdbc:sqljs:memory"
+    },
+    "datasource-tags": {
+      "url": "jsdbc:sqljs:memory"
+    },
+    "flyway": {
+      "locations": "db/notes-migration"
+    },
+    "flyway-tags": {
+      "locations": "db/tags-migration",
+      "datasource": "tagsDataSource"
+    }
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  }
+}

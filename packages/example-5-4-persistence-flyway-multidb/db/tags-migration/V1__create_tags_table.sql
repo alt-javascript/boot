@@ -1,0 +1,5 @@
+-- Tags DB: V1 — create tags table
+CREATE TABLE IF NOT EXISTS tags (
+  id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT    NOT NULL UNIQUE
+);

@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "Flyway Persistence Example",
+    "version": "1.0.0"
+  },
+  "boot": {
+    "banner-mode": "console",
+    "datasource": {
+      "url": "jsdbc:sqljs:memory"
+    },
+    "flyway": {
+      "locations": "db/migration"
+    }
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  }
+}

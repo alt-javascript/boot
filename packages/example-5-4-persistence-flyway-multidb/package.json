@@ -1,0 +1,23 @@
+{
+  "name": "@alt-javascript/example-5-4-persistence-flyway-multidb",
+  "version": "1.0.0",
+  "description": "Step 5.4 — Multi-database deployment: two DataSources + independent Flyway runners in one context",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-flyway": "*",
+    "@alt-javascript/boot-jsdbc": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/flyway": "*",
+    "@alt-javascript/jsdbc-sqljs": "*"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "private": true
+}

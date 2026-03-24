@@ -1,0 +1,24 @@
+{
+  "name": "@alt-javascript/example-5-3-persistence-flyway",
+  "version": "1.0.0",
+  "description": "Step 5.3 — Flyway-inspired database migrations with @alt-javascript/boot-flyway",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "start:dev": "NODE_ACTIVE_PROFILES=dev node main.js",
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-flyway": "*",
+    "@alt-javascript/boot-jsdbc": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/flyway": "*",
+    "@alt-javascript/jsdbc-sqljs": "*"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "private": true
+}

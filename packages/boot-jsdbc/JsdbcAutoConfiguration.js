@@ -123,13 +123,30 @@ export class SchemaInitializer {
     this.dataSource = null;      // autowired
     this._applicationContext = null;
     this._prefix = DEFAULT_PREFIX;
+    this._initPromise = null;    // awaitable by tests and dependent beans
   }
 
   setApplicationContext(ctx) {
     this._applicationContext = ctx;
   }
 
-  async init() {
+  /**
+   * Wait for schema initialisation to complete.
+   * CDI does not await async init() — callers that need the schema applied
+   * before querying should call await schemaInitializer.ready() after start.
+   * @returns {Promise<void>}
+   */
+  async ready() {
+    if (this._initPromise) await this._initPromise;
+  }
+
+  init() {
+    // Store promise so ready() can await it; return it so CDI can observe errors
+    this._initPromise = this._doInit();
+    return this._initPromise;
+  }
+
+  async _doInit() {
     const config = this._applicationContext.config;
     const p = this._prefix;
 
@@ -159,11 +176,22 @@ export class SchemaInitializer {
   async _runFile(conn, filePath) {
     if (!existsSync(filePath)) return;
     const sql = readFileSync(filePath, 'utf8');
-    // Split on ; separating statements, skip blanks and comment-only lines
+    // Split on ; then strip leading -- line comments from each chunk before
+    // deciding whether the chunk is empty. A chunk like:
+    //   -- my comment\nCREATE TABLE ...
+    // should NOT be discarded — only chunks that are purely comments.
     const statements = sql
       .split(';')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'));
+      .map((s) => {
+        // Remove full-line comments (lines starting with --)
+        const stripped = s
+          .split('\n')
+          .filter((line) => !line.trim().startsWith('--'))
+          .join('\n')
+          .trim();
+        return stripped;
+      })
+      .filter((s) => s.length > 0);
     for (const stmt of statements) {
       const st = await conn.createStatement();
       await st.execute(stmt);

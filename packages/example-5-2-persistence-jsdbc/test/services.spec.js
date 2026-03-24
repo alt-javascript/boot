@@ -1,17 +1,32 @@
 /**
  * example-5-2-persistence-jsdbc — service tests
  *
- * Tests NoteRepository directly with jsdbcTemplateStarter() + in-memory sqljs.
- * No external database required.
+ * Schema and seed data are loaded from config/schema.sql + config/data.sql
+ * by SchemaInitializer (registered automatically by jsdbcTemplateStarter).
+ *
+ * No DDL or seed logic in test code — this mirrors the production boot path.
  */
 import { assert } from 'chai';
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
 import '@alt-javascript/jsdbc-sqljs';
 import { Context, Singleton } from '@alt-javascript/cdi';
 import { jsdbcTemplateStarter } from '@alt-javascript/boot-jsdbc';
 import { NoteRepository } from '../src/services.js';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const CONFIG_DIR = resolve(__dirname, '../config');
+
 const BASE_CONFIG = {
-  boot: { 'banner-mode': 'off', datasource: { url: 'jsdbc:sqljs:memory' } },
+  boot: {
+    'banner-mode': 'off',
+    datasource: {
+      url: 'jsdbc:sqljs:memory',
+      // Point SchemaInitializer at this example's SQL files
+      schema: `${CONFIG_DIR}/schema.sql`,
+      data: `${CONFIG_DIR}/data.sql`,
+    },
+  },
   app: { name: 'test', version: '1.0.0' },
   logging: { level: { ROOT: 'error' } },
 };
@@ -25,13 +40,15 @@ describe('example-5-2-persistence-jsdbc', () => {
       config: BASE_CONFIG,
       contexts: [new Context([new Singleton(NoteRepository)])],
     });
+    // SchemaInitializer.init() is async; CDI does not await it.
+    // Call ready() so schema.sql + data.sql are applied before querying.
+    await applicationContext.get('schemaInitializer').ready();
     repo = applicationContext.get('noteRepository');
-    await repo.init(); // create schema + seed 2 notes
   });
 
-  it('init() seeds 2 notes', async () => {
+  it('schema.sql + data.sql seed 3 notes via SchemaInitializer', async () => {
     const notes = await repo.findAll();
-    assert.equal(notes.length, 2);
+    assert.equal(notes.length, 3);
   });
 
   it('findAll() returns notes with id, title, body, done fields', async () => {
@@ -62,7 +79,7 @@ describe('example-5-2-persistence-jsdbc', () => {
     const notes = await repo.findAll();
     await repo.remove(notes[0].id);
     const remaining = await repo.findAll();
-    assert.equal(remaining.length, 1);
+    assert.equal(remaining.length, 2);
     assert.notEqual(remaining[0].id, notes[0].id);
   });
 
