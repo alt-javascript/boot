@@ -11,6 +11,10 @@
 
     HTML-first pattern: Vue directives live in the markup, not in JS template strings.
     Suitable for server-rendered pages (Rails, Spring MVC, Thymeleaf).
+
+    URL → Profile mapping (BrowserProfileResolver):
+      localhost        → dev   (green badge)
+      127.0.0.1        → local (blue badge)
   -->
   <script type="importmap">
   {
@@ -28,7 +32,20 @@
 
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    .title-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem; }
+    .profile-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .profile-badge.dev     { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .profile-badge.local   { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .profile-badge.default { background: #f5f5f5; color: #555;    border: 1px solid #ccc; }
     .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
     input[type=text] { padding: 0.4rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
     button { padding: 0.4rem 0.8rem; font-size: 1rem; cursor: pointer; margin-left: 0.4rem; border-radius: 4px; border: 1px solid #bbb; }
@@ -42,11 +59,16 @@
 </head>
 <body>
 
-  <!-- HTML-first: directives in markup, not in JS template strings -->
+  <!-- HTML-first: directives in markup.
+       activeProfile and appEnv are exposed by setup() below. -->
   <div id="app">
-    <h1>@alt-javascript/boot — Vue CDN</h1>
+    <div class="title-row">
+      <h1>@alt-javascript/boot — Vue CDN</h1>
+      <span class="profile-badge" :class="activeProfile">{{ activeProfile }}</span>
+    </div>
     <p class="subtitle">
-      CDI beans provided via <code>vueStarter()</code>. Plain POJO config. No build step.
+      Profile: <strong>{{ activeProfile }}</strong> · env: <em>{{ appEnv }}</em> ·
+      <code>vueStarter()</code> + <code>BrowserProfileResolver</code>
     </p>
 
     <div>
@@ -68,22 +90,46 @@
   <script type="module">
     import { createApp, ref } from 'vue';
     import { vueStarter } from '@alt-javascript/boot-vue';
+    import { BrowserProfileResolver, ProfileAwareConfig } from '@alt-javascript/config';
     import { Context, Singleton } from '@alt-javascript/cdi';
     import { TodoService } from './src/services.js';
+
+    const configObject = {
+      boot: { 'banner-mode': 'off' },
+      app: { name: 'Vue CDN Todo', version: '1.0.0', env: 'default' },
+      logging: { level: { ROOT: 'info' } },
+      profiles: {
+        urls: {
+          'localhost':   'dev',
+          '127.0.0.1':  'local',
+        },
+        dev: {
+          app: { env: 'development (localhost)' },
+          logging: { level: { ROOT: 'debug' } },
+        },
+        local: {
+          app: { env: 'local (127.0.0.1)' },
+          logging: { level: { ROOT: 'debug' } },
+        },
+      },
+    };
+
+    const activeProfiles = BrowserProfileResolver.resolve({
+      urlMappings: configObject.profiles.urls,
+    });
+    const config = new ProfileAwareConfig(configObject, activeProfiles);
 
     await vueStarter({
       createApp,
       selector: '#app',
       contexts: [new Context([new Singleton(TodoService)])],
-      config: {
-        boot: { 'banner-mode': 'off' },
-        app: { name: 'Vue CDN Todo', version: '1.0.0' },
-        logging: { level: { ROOT: 'info' } },
-      },
+      config,
       setup(appCtx) {
-        const todoService = appCtx.get('todoService');
-        const todos = ref(todoService.getAll());
-        const newTitle = ref('');
+        const todoService   = appCtx.get('todoService');
+        const todos         = ref(todoService.getAll());
+        const newTitle      = ref('');
+        const activeProfile = ref(activeProfiles[0] || 'default');
+        const appEnv        = ref(config.get('app.env', 'default'));
 
         function addTodo() {
           if (!newTitle.value.trim()) return;
@@ -91,18 +137,16 @@
           todos.value = todoService.getAll();
           newTitle.value = '';
         }
-
         function toggleTodo(id) {
           todoService.toggle(id);
           todos.value = todoService.getAll();
         }
-
         function removeTodo(id) {
           todoService.remove(id);
           todos.value = todoService.getAll();
         }
 
-        return { todos, newTitle, addTodo, toggleTodo, removeTodo };
+        return { todos, newTitle, addTodo, toggleTodo, removeTodo, activeProfile, appEnv };
       },
     });
   </script>
