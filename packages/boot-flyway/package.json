@@ -1,7 +1,7 @@
 {
   "name": "@alt-javascript/boot-flyway",
-  "version": "1.0.0",
-  "description": "Flyway-inspired database migration starter for @alt-javascript/boot — versioned SQL migrations with CDI auto-configuration",
+  "version": "3.0.4",
+  "description": "Flyway-inspired database migration starter for @alt-javascript/boot \u2014 versioned SQL migrations with CDI auto-configuration",
   "type": "module",
   "main": "index.js",
   "exports": {

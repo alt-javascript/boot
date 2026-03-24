@@ -1,8 +1,80 @@
 # Changelog
 
-## 3.0.4 — 2026-03-21
+## 3.0.4 — 2026-03-22
+
+### New packages
+
+- **`@alt-javascript/boot-jsdbc`** — CDI auto-configuration for SQL persistence via
+  `@alt-javascript/jsdbc`. Registers `dataSource`, `jsdbcTemplate`,
+  `namedParameterJsdbcTemplate`, and `schemaInitializer` beans from `boot.datasource.*` config.
+  Provides `jsdbcTemplateStarter()`, `jsdbcStarter()`, `jsdbcAutoConfiguration()`,
+  `DataSourceBuilder` (secondary datasources), `ConfiguredDataSource`, and `SchemaInitializer`.
+
+- **`@alt-javascript/flyway`** — Standalone Flyway-inspired migration engine (no Boot/CDI
+  dependency). Implements the Flyway OSS feature set (Apache 2.0 attribution): versioned
+  migrations (`V{version}__{description}.sql`), CRC32 checksum verification, schema history
+  tracking (`flyway_schema_history`), `migrate()`, `info()`, `validate()`, `baseline()`,
+  `repair()`, and `clean()`.
+
+- **`@alt-javascript/boot-flyway`** — CDI starter for `@alt-javascript/flyway`. Registers a
+  `managedFlyway` bean that runs `migrate()` during context startup. Reads configuration from
+  `boot.flyway.*`. Exposes `ready()` for dependants to await completion (CDI does not await
+  async `init()`). Supports custom history table name, baseline-on-migrate, out-of-order
+  migrations, and secondary datasource wiring via `datasourceBean` option.
+
+- **`@alt-javascript/boot-jsnosqlc`** — CDI auto-configuration for NoSQL persistence via
+  `@alt-javascript/jsnosqlc`. Registers `nosqlClientDataSource` and `nosqlClient` beans from
+  `boot.nosql.*` config. No template layer — `Collection` is the high-level API. Provides
+  `jsnosqlcStarter()`, `jsnosqlcAutoConfiguration()`, `jsnosqlcBoot()`, `NoSqlClientBuilder`
+  (secondary clients), `ConfiguredClientDataSource`, and `ManagedNosqlClient`.
+
+### New examples
+
+- **`example-5-1-advanced`** — AOP, application events, `BeanPostProcessor`, constructor
+  injection, conditional beans, `setApplicationContext`, and dev-profile configuration.
+
+- **`example-5-2-persistence-jsdbc`** — SQL persistence with `jsdbcTemplateStarter()`;
+  `NoteRepository` backed by `JsdbcTemplate`; schema and seed data loaded from
+  `config/schema.sql` and `config/data.sql` by `SchemaInitializer`.
+
+- **`example-5-3-persistence-flyway`** — Flyway-managed schema evolution: three migration
+  files (`V1` table, `V2` schema change, `V3` seed data); `NoteRepository` carries no DDL;
+  `Application.run()` awaits `managedFlyway.ready()`.
+
+- **`example-5-4-persistence-flyway-multidb`** — Two independent SQL databases in one
+  `ApplicationContext`: primary notes DB with its own `JsdbcTemplate` and Flyway runner,
+  secondary tags DB with its own stack and independent `managedFlywayTags` runner.
+  Application awaits `Promise.all([mf.ready(), mft.ready()])`.
+
+- **`example-5-5-persistence-nosql`** — NoSQL persistence with `jsnosqlcBoot()`; `NoteRepository`
+  uses `Collection` directly (`insert`, `get`, `update`, `delete`, `find`, `for await...of`);
+  `Filter.where().contains()` for tag-based queries.
+
+- **`example-5-6-persistence-nosql-multidb`** — Two independent NoSQL clients in one context:
+  `nosqlClient` (user profiles) and `sessionClient` (session tokens). Store isolation verified.
+
+### New: `@alt-javascript/jsdbc-template` (CDI-free)
+
+- **`JsdbcTemplate` and `NamedParameterJsdbcTemplate` extracted from CDI dependency.**
+  CDI auto-configuration moved to `boot-jsdbc`, leaving `jsdbc-template` dependency-free.
+  `JsdbcTemplate` can now be used standalone without a CDI context.
 
 ### Bug fixes
+
+- **`ConfiguredDataSource.getConnection()` concurrent-init race (boot-jsdbc).** When two CDI
+  beans (e.g. `SchemaInitializer` and `ManagedFlyway`) both called `getConnection()` during
+  context startup before either resolved, `SingleConnectionDataSource` created two separate
+  in-memory databases, silently discarding the first. Fixed with a promise-mutex
+  (`_connectionPromise`) — only one connection is ever created regardless of concurrent callers.
+
+- **`SchemaInitializer` SQL comment stripping (boot-jsdbc).** Statements whose first line was
+  a `--` comment were silently dropped: the filter `!s.startsWith('--')` was applied to the
+  whole chunk after splitting on `;`, so `-- comment\nCREATE TABLE ...` was discarded entirely.
+  Fixed by stripping comment lines per-chunk before filtering empty statements.
+
+- **`SchemaInitializer` async race (boot-jsdbc).** `init()` is async but CDI does not await
+  it, so dependent beans could query the database before schema was applied. Fixed by storing
+  `_initPromise` in `init()` and exposing `ready()` — same pattern as `ManagedFlyway`.
 
 - **Duck-type config check in `Boot.detectConfig()`.** Replaced `instanceof ValueResolvingConfig`
   guard with a `has()`/`get()` interface check, so `ProfileAwareConfig`, `EphemeralConfig`, and
@@ -19,25 +91,27 @@
   Vue integration was creating `ApplicationContext` without first calling `Boot.boot({ config })`,
   so the global root was never populated and component wiring failed in CDN/no-build usage.
 
-### New
+### New features
 
 - **Startup banner inlined into `ApplicationContext`.** The banner is now a string constant
   inside `ApplicationContext.js` — no filesystem access, no async I/O. Works in browser and
   Node without modification. Controlled by `boot.banner-mode`:
-  - `console` (default, matches Spring Boot behaviour) — prints to stdout via `console.log`
+  - `console` (default, matches Spring Boot behaviour) — prints to `stdout`
   - `log` — routes through the configured `@alt-javascript/logger` at `info` level
   - `off` — suppressed entirely
 
 - **Banner version resolved at runtime.** The version line (`@alt-javascript/boot :: x.y.z`) is
-  read from `package.json` at startup using `createRequire(import.meta.url)` — no hardcoded
-  version string. Works from both the source tree and the `dist/` bundle (tries `./package.json`,
-  falls back to `../package.json`). In browser environments the version shows as `(browser)` since
-  `createRequire` is unavailable there.
+  read from `package.json` via `createRequire(import.meta.url)`. In browser environments it
+  shows as `(browser)`.
 
-- **Banner suppressed in test mode.** `Boot.test()` injects `banner-mode: off` via a
-  `PropertySourceChain` overlay on the global root config. Any `ApplicationContext` that does not
-  explicitly set `boot.banner-mode` in its own config will inherit `off` during test runs,
-  keeping test output clean without requiring changes to individual test fixtures.
+- **Banner suppressed in test mode.** `Boot.test()` injects `banner-mode: off` so test output
+  stays clean without changes to individual test fixtures.
+
+### Config key reference
+
+- `boot.datasource.*` — SQL datasource (primary); secondary via `DataSourceBuilder.create().prefix()`
+- `boot.flyway.*` — Flyway migrations (primary); secondary via `flywayStarter({ prefix })`
+- `boot.nosql.*` — NoSQL client (primary); secondary via `NoSqlClientBuilder.create().prefix()`
 
 ## 3.0.3 — 2026-03-21
 
