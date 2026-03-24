@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@alt-javascript/boot — Alpine CDN (local dev)</title>
+
+  <!--
+    Local import map — resolves packages via the dev server's /node_modules/ route.
+    Run: npm run serve  then open http://localhost:3002/dev
+    No internet connection required.
+
+    Alpine + async CDI boot strategy:
+    - A placeholder Alpine.store('cdi', { ready: false }) is registered during
+      'alpine:init' (synchronously), so Alpine tracks $store.cdi.ready reactively
+    - Boot.boot() runs asynchronously while Alpine renders the loading state
+    - When CDI boot completes, store properties are mutated in-place:
+        $store.cdi.todoService = <instance>
+        $store.cdi.ready = true
+    - Alpine's reactivity re-evaluates all expressions watching $store.cdi.ready
+    - This avoids all timing issues — no race between async boot and Alpine.start()
+
+    URL → profile mapping is automatic:
+      localhost:3002  → dev   (green badge)
+      127.0.0.1:3002  → local (blue badge)
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@alt-javascript/common":                "/node_modules/@alt-javascript/common/dist/alt-javascript-common-esm.js",
+      "@alt-javascript/config":                "/node_modules/@alt-javascript/config/dist/alt-javascript-config-esm.js",
+      "@alt-javascript/logger":                "/node_modules/@alt-javascript/logger/dist/alt-javascript-logger-esm.js",
+      "@alt-javascript/cdi":                   "/node_modules/@alt-javascript/cdi/dist/alt-javascript-cdi-esm.js",
+      "@alt-javascript/cdi/context/index.js":  "/node_modules/@alt-javascript/cdi/context/index.js",
+      "@alt-javascript/boot":                  "/node_modules/@alt-javascript/boot/dist/alt-javascript-boot-esm.js",
+      "@alt-javascript/boot-alpine":           "/node_modules/@alt-javascript/boot-alpine/index.js"
+    }
+  }
+  </script>
+
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.4rem; margin: 0; }
+    .title-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem; }
+    .profile-badge {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 3px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+    }
+    .profile-badge.dev     { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .profile-badge.local   { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .profile-badge.default { background: #f5f5f5; color: #555;    border: 1px solid #ccc; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .input-row { display: flex; gap: 0.4rem; }
+    input[type=text] { flex: 1; padding: 0.4rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 0.4rem 0.8rem; font-size: 1rem; cursor: pointer; border-radius: 4px; border: 1px solid #bbb; background: #fff; }
+    button.primary { background: #77c1d2; color: white; border-color: #77c1d2; font-weight: 600; }
+    ul { list-style: none; padding: 0; margin-top: 1rem; }
+    li { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    li span { flex: 1; }
+    li.done span { text-decoration: line-through; color: #aaa; }
+    .banner { font-size: 0.75rem; color: #999; margin-top: 2rem; }
+    [x-cloak] { display: none; }
+  </style>
+</head>
+<body>
+
+  <!--
+    HTML-first Alpine CDN pattern with async CDI boot.
+
+    $store.cdi.ready drives show/hide.
+    $store.cdi.items, activeProfile, appEnv are mutated when boot completes.
+    Alpine reacts to store property mutations automatically.
+  -->
+  <div x-data="{ newTitle: '' }">
+
+    <div x-show="$store.cdi.ready">
+      <div class="title-row">
+        <h1>@alt-javascript/boot — Alpine CDN</h1>
+        <span class="profile-badge"
+          :class="$store.cdi.activeProfile"
+          x-text="$store.cdi.activeProfile"></span>
+      </div>
+
+      <p class="subtitle">
+        Profile: <strong x-text="$store.cdi.activeProfile"></strong> ·
+        env: <em x-text="$store.cdi.appEnv"></em> ·
+        profile resolved automatically by <code>Boot.boot()</code>
+      </p>
+
+      <div class="input-row">
+        <input
+          type="text"
+          x-model="newTitle"
+          placeholder="New todo…"
+          @keyup.enter="if (newTitle.trim()) { $store.cdi.todoService.add(newTitle.trim()); $store.cdi.items = $store.cdi.todoService.getAll(); newTitle = ''; }"
+        />
+        <button class="primary"
+          @click="if (newTitle.trim()) { $store.cdi.todoService.add(newTitle.trim()); $store.cdi.items = $store.cdi.todoService.getAll(); newTitle = ''; }">Add</button>
+      </div>
+
+      <ul>
+        <template x-for="todo in $store.cdi.items" :key="todo.id">
+          <li :class="{ done: todo.done }">
+            <input type="checkbox" :checked="todo.done"
+              @change="$store.cdi.todoService.toggle(todo.id); $store.cdi.items = $store.cdi.todoService.getAll();" />
+            <span x-text="todo.title"></span>
+            <button @click="$store.cdi.todoService.remove(todo.id); $store.cdi.items = $store.cdi.todoService.getAll();">✕</button>
+          </li>
+        </template>
+      </ul>
+
+      <p class="banner">Powered by @alt-javascript/boot · CDI via @alt-javascript/cdi</p>
+    </div>
+
+    <p x-show="!$store.cdi.ready" style="color:#999">Booting CDI…</p>
+  </div>
+
+  <script type="module">
+    import { alpineStarter } from '@alt-javascript/boot-alpine';
+    import { Context, Singleton } from '@alt-javascript/cdi';
+    import { TodoService } from './src/services.js';
+
+    // alpineStarter() registers a placeholder store during 'alpine:init',
+    // boots CDI asynchronously, then mutates the store in-place.
+    // Alpine's reactivity handles the re-render when store.ready = true.
+    // The items list is populated by the TodoService.init() call inside CDI boot.
+    const { applicationContext } = await alpineStarter({
+      contexts: [new Context([new Singleton(TodoService)])],
+      config: {
+        boot: { 'banner-mode': 'console' },
+        app: { name: 'Alpine Todo', version: '1.0.0', env: 'default' },
+        logging: { level: { ROOT: 'info' } },
+        profiles: {
+          urls: {
+            'localhost':  'dev',
+            '127.0.0.1': 'local',
+          },
+          dev: {
+            app: { env: 'development (localhost)' },
+            logging: { level: { ROOT: 'debug' } },
+          },
+          local: {
+            app: { env: 'local (127.0.0.1)' },
+            logging: { level: { ROOT: 'debug' } },
+          },
+        },
+      },
+      setup(Alpine, appCtx) {
+        // Seed the items array in the store after CDI boots.
+        // TodoService.init() already seeded items internally.
+        Alpine.store('cdi').items = appCtx.get('todoService').getAll();
+      },
+    });
+  </script>
+
+  <!-- Alpine loads after the module script has registered the alpine:init listener. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "@alt-javascript/example-4-5-frontend-alpine",
+  "version": "1.0.0",
+  "description": "Alpine.js CDN example — @alt-javascript/boot with no build step",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "serve": "node server.js",
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot-alpine": "*"
+  },
+  "devDependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/config": "*",
+    "@alt-javascript/logger": "*",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  }
+}

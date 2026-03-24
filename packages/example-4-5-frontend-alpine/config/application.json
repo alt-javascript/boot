@@ -1,0 +1,24 @@
+{
+  "app": {
+    "name":    "Alpine Todo",
+    "version": "1.0.0",
+    "env":     "default"
+  },
+  "logging": {
+    "level": { "ROOT": "info" }
+  },
+  "profiles": {
+    "urls": {
+      "localhost":  "dev",
+      "127.0.0.1": "local"
+    },
+    "dev": {
+      "app": { "env": "development (localhost)" },
+      "logging": { "level": { "ROOT": "debug" } }
+    },
+    "local": {
+      "app": { "env": "local (127.0.0.1)" },
+      "logging": { "level": { "ROOT": "debug" } }
+    }
+  }
+}

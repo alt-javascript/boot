@@ -1,10 +1,5 @@
-import _ from 'https://cdn.jsdelivr.net/npm/lodash-es/lodash.min.js';
 import { LoggerFactory } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/logger@3/dist/alt-javascript-logger-esm.js';
-import { ConfigFactory } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js';
-import { getGlobalRoot, detectBrowser } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js';
-// createRequire is Node-only; replaced with a no-op for browser ESM builds
-// The buildBanner() function below guards with detectBrowser() before calling createRequire()
-const createRequire = () => { throw new Error('createRequire is not available in browser'); };
+import { EphemeralConfig } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js';
 
 /* eslint-disable import/extensions */
 
@@ -18,7 +13,7 @@ const createRequire = () => { throw new Error('createRequire is not available in
 class Context {
     constructor(components,profile) {
         this.components = (components || []) ;
-        this.components = (_.isArray(this.components) ? this.components : [this.components]) ;
+        this.components = (Array.isArray(this.components) ? this.components : [this.components]) ;
         this.profile = profile;
     }
 }
@@ -40,6 +35,7 @@ class Component {
         this.scope = options?.scope;
         this.properties = options?.properties;
         this.profiles = options?.profiles;
+        this.primary = options?.primary;
         this.factory = options?.factory;
         this.factoryFunction = options?.factoryFunction;
         this.factoryArgs = options?.factoryArgs;
@@ -285,6 +281,23 @@ class ContextClosedEvent extends ApplicationEvent {
 
 /* eslint-disable import/extensions */
 
+// ---------------------------------------------------------------------------
+// Lodash-free helpers (replaced lodash dependency with native equivalents)
+// ---------------------------------------------------------------------------
+
+/** Lowercase the first character of a string. Equivalent to _.lowerFirst(). */
+function lowerFirst(str) {
+  if (!str) return str;
+  return str[0].toLowerCase() + str.slice(1);
+}
+
+/** Return elements in a that are also in b. Equivalent to _.intersection(). */
+function intersection(a, b) {
+  return a.filter((x) => b.includes(x));
+}
+
+// ---------------------------------------------------------------------------
+
 /**
  * Spring-inspired IoC application context for JavaScript.
  *
@@ -343,7 +356,7 @@ class ApplicationContext {
     this.configContextPath = options?.configContextPath
         || (typeof (process) !== 'undefined' && process?.env?.NODE_CONFIG_CONTEXT_PATH)
         || ApplicationContext.DEFAULT_CONFIG_CONTEXT_PATH;
-    this.config = options?.config || ConfigFactory.getConfig({});
+    this.config = options?.config || new EphemeralConfig({});
     if (options?.config) {
       // eslint-disable-next-line no-param-reassign
       delete options.config;
@@ -388,7 +401,6 @@ class ApplicationContext {
   async prepare() {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase started.`);
     await this.parseContexts();
-    this.printBanner();
     this.registerEventPublisher();
     this.createSingletons();
     this.injectSingletonDependencies();
@@ -402,41 +414,6 @@ class ApplicationContext {
     this.logger.verbose(`ApplicationContext (${this.name}) lifecycle prepare phase completed.`);
   }
 
-  /**
-   * Print the startup banner.
-   *
-   * The banner is inlined — no filesystem access required, works in browser and Node.
-   *
-   * Controlled by config key `boot.banner-mode`:
-   * - `console` (default) — print to stdout via console.log
-   * - `log` — print via the context logger (info level)
-   * - `off` — skip banner entirely
-   */
-  printBanner() {
-    // Local config wins. If it doesn't have banner-mode, check the global root
-    // (set by Boot.test() to suppress banner in test processes).
-    const globalConfig = getGlobalRoot('config');
-    const mode = this.config.has('boot.banner-mode')
-      ? this.config.get('boot.banner-mode')
-      : (globalConfig && globalConfig.has('boot.banner-mode'))
-        ? globalConfig.get('boot.banner-mode')
-        : 'console';
-
-    if (mode === 'off') {
-      this.logger.verbose('Banner mode is off, skipping.');
-      return;
-    }
-
-    // eslint-disable-next-line no-use-before-define
-    const banner = buildBanner();
-
-    if (mode === 'log') {
-      this.logger.info(banner);
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(banner);
-    }
-  }
 
   /** Detect and load context component definitions from the config object. */
   detectConfigContext() {
@@ -448,46 +425,6 @@ class ApplicationContext {
       }
     }
     this.logger.verbose('Detecting config contexts completed.');
-  }
-
-  /** Register framework components (config, loggerFactory, loggerCategoryCache, logger, fetch) as context singletons. */
-  detectGlobalContextComponents() {
-    this.logger.verbose('Detecting global context components started.');
-
-    if (!this.components.config && getGlobalRoot('config')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('config'),
-        name: 'config',
-      });
-    }
-    if (!this.components.loggerFactory && getGlobalRoot('loggerFactory')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('loggerFactory'),
-        name: 'loggerFactory',
-      });
-    }
-    if (!this.components.loggerCategoryCache && getGlobalRoot('loggerCategoryCache')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('loggerCategoryCache'),
-        name: 'loggerCategoryCache',
-      });
-    }
-    if (!this.components.logger) {
-      this.deriveContextComponent({
-        scope: Scopes.PROTOTYPE,
-        wireFactory: 'loggerFactory',
-        factoryFunction: 'getLogger',
-        name: 'logger',
-      });
-    }
-    if (!this.components.fetch && getGlobalRoot('fetch')) {
-      this.deriveContextComponent({
-        Reference: getGlobalRoot('fetch'),
-        name: 'fetch',
-      });
-    }
-
-    this.logger.verbose('Detecting global context components completed.');
   }
 
   /** Parse all context definitions: config-driven, explicit, and global framework components. */
@@ -509,7 +446,31 @@ class ApplicationContext {
         throw new Error(msg);
       }
     }
-    this.detectGlobalContextComponents();
+    // Register default infrastructure components so beans with `this.logger = null`,
+    // `this.config = null`, etc. are always autowired — even when no explicit
+    // loggerFactory or config is in the provided contexts.
+    // When Boot.boot() provides these via the root context, those take precedence
+    // (they're parsed first, registration is first-write wins).
+    if (!this.components.loggerFactory) {
+      await this.deriveContextComponent({
+        Reference: LoggerFactory,
+        name: 'loggerFactory',
+      });
+    }
+    if (!this.components.logger) {
+      await this.deriveContextComponent({
+        scope: Scopes.PROTOTYPE,
+        wireFactory: 'loggerFactory',
+        factoryFunction: 'getLogger',
+        name: 'logger',
+      });
+    }
+    if (!this.components.config) {
+      await this.deriveContextComponent({
+        Reference: this.config,
+        name: 'config',
+      });
+    }
     this.logger.verbose('Parsing configured contexts completed.');
   }
 
@@ -563,9 +524,9 @@ class ApplicationContext {
     const $component = {};
     $component.isClass = constructr !== undefined;
 
-    $component.name = _.lowerFirst(component.name) || _.lowerFirst(constructr.name);
-    $component.qualifier = component.qualifier || _.lowerFirst(constructr?.qualifier);
-    $component.scope = component.scope || _.lowerFirst(constructr?.scope) || Scopes.SINGLETON;
+    $component.name = lowerFirst(component.name) || lowerFirst(constructr.name);
+    $component.qualifier = component.qualifier || lowerFirst(constructr?.qualifier);
+    $component.scope = component.scope || lowerFirst(constructr?.scope) || Scopes.SINGLETON;
     $component.Reference = component.Reference;
     $component.factory = component.factory;
     $component.factoryFunction = component.factoryFunction;
@@ -598,12 +559,12 @@ class ApplicationContext {
 
     const activeProfiles = this.profiles?.split(',') || [];
     if (activeProfiles.length > 0 && !$component.isActive) {
-      $component.isActive = _.intersection(activeProfiles, $component.profiles).length > 0;
+      $component.isActive = intersection(activeProfiles, $component.profiles).length > 0;
       if ($component.isActive === false) {
-        let negations = _.filter($component.profiles, (profile) => profile.startsWith('!'));
-        negations = _.map(negations, (profile) => profile.substring(1));
+        let negations = $component.profiles.filter((profile) => profile.startsWith('!'));
+        negations = negations.map((profile) => profile.substring(1));
         $component.isActive = negations.length > 0
-            && _.intersection(activeProfiles, negations).length === 0;
+            && intersection(activeProfiles, negations).length === 0;
       }
     }
 
@@ -708,10 +669,13 @@ class ApplicationContext {
     const placeholder = placeholderArg.substring(2, placeholderArg.length - 1);
     const tuple = placeholder.split(':');
     const path = tuple[0];
-    const defaultValue = tuple[1] || undefined;
+    const rawDefault = tuple[1] || undefined;
+    const defaultValue = rawDefault !== undefined
+      ? (() => { try { return JSON.parse(rawDefault); } catch { return rawDefault; } })()
+      : undefined;
     let returnValue = null;
     try {
-      returnValue = this.config.get(path, defaultValue ? JSON.parse(defaultValue) : defaultValue);
+      returnValue = this.config.get(path, defaultValue);
     } catch (e) {
       const msg = `Failed to resolve placeholder component property value (${path}) from config.`;
       this.logger.error(msg);
@@ -732,7 +696,7 @@ class ApplicationContext {
     for (let j = 0; j < insKeys.length; j++) {
       const property = instance[insKeys[j]];
       const autowire = property?.name === 'Autowired'
-          || (typeof property === 'string' && _.lowerCase(property)) === 'autowired';
+          || (typeof property === 'string' && property.toLowerCase()) === 'autowired';
       if (autowire) {
         // eslint-disable-next-line no-param-reassign
         instance[insKeys[j]] = this.get(insKeys[j], undefined, component);
@@ -1180,8 +1144,8 @@ class ApplicationContext {
         const factory = this.get(this.components[reference].wireFactory);
         prototype = factory[this.components[reference].factoryFunction](...args);
       } else {
-        this.logger.verbose(`Component (${reference}) is scoped as (${Scopes.PROTOTYPE}), returning deep clone.`);
-        prototype = _.cloneDeep(this.components[reference].Reference);
+        this.logger.verbose(`Component (${reference}) is scoped as (${Scopes.PROTOTYPE}), returning reference.`);
+        prototype = this.components[reference].Reference;
       }
       this.autowireComponentDependencies(prototype, this.components[reference]);
       return prototype;
@@ -1192,32 +1156,6 @@ class ApplicationContext {
       throw new Error(msg);
     }
     return defaultValue;
-  }
-}
-
-const BANNER_ART = `  ____        _ _        _                                _       _    ____  
- / / /   __ _| | |_     (_) __ ___   ____ _ ___  ___ _ __(_)_ __ | |_  \\ \\ \\
-/ / /   / _\` | | __|____| |/ _\` \\ \\ / / _\` / __|/ __| '__| | '_ \\| __|  \\ \\ \\
-\\ \\ \\  | (_| | | ||_____| | (_| |\\ V / (_| \\__ \\ (__| |  | | |_) | |_   / / /
- \_\_\  \__,_|_|\__|   _/ |\__,_| \_/ \__,_|___/\___|_|  |_| .__/ \__| /_/_/
-                       |__/                                  |_|`;
-
-/**
- * Build the banner string, resolving the package version at runtime via createRequire.
- * Synchronous — no async I/O. In a browser environment the version shows as "(browser)".
- */
-function buildBanner() {
-  if (detectBrowser()) {
-    return `${BANNER_ART}\n@alt-javascript/boot :: (browser)`;
-  }
-  try {
-    const require = createRequire(import.meta.url);
-    // ./package.json works when running from source; ../package.json when running from dist/.
-    let pkg;
-    try { pkg = require('./package.json'); } catch { pkg = require('../package.json'); }
-    return `${BANNER_ART}\n@alt-javascript/boot :: ${pkg.version || '(unknown)'}`;
-  } catch {
-    return `${BANNER_ART}\n@alt-javascript/boot :: (unknown)`;
   }
 }
 

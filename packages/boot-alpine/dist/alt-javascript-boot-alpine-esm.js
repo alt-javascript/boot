@@ -1,3 +1,6 @@
+import { Boot } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/boot@3/dist/alt-javascript-boot-esm.js';
+import { ApplicationContext } from 'https://cdn.jsdelivr.net/npm/@alt-javascript/cdi@3/dist/alt-javascript-cdi-esm.js';
+
 /**
  * @alt-javascript/boot-alpine — Alpine.js integration for @alt-javascript/boot.
  *
@@ -46,9 +49,6 @@
  *   at call time (before any await), then boots CDI, then resolves the store into
  *   the listener via a Promise.
  */
-import { Boot } from '@alt-javascript/boot';
-import { ApplicationContext } from '@alt-javascript/cdi';
-import { Context } from '@alt-javascript/cdi/context/index.js';
 
 /**
  * Boot CDI via Boot.boot() and wire all singletons into Alpine.
@@ -72,7 +72,7 @@ import { Context } from '@alt-javascript/cdi/context/index.js';
  *                                            entries that depend on CDI beans.
  * @returns {Promise<{ applicationContext, store }>}
  */
-export async function alpineStarter(options) {
+async function alpineStarter(options) {
   const { contexts, setup: setupFn } = options;
   const storeName = options.storeName || 'cdi';
 
@@ -163,7 +163,7 @@ export async function alpineStarter(options) {
  * @param {string}   [options.storeName] — store name (default: 'cdi')
  * @returns {Promise<{ applicationContext, store }>}
  */
-export async function bootAlpine(options) {
+async function bootAlpine(options) {
   const { contexts, config } = options;
   const storeName = options.storeName || 'cdi';
   const Alpine = options.Alpine
@@ -200,3 +200,5 @@ function _buildStore(appCtx) {
   }
   return store;
 }
+
+export { alpineStarter, bootAlpine };

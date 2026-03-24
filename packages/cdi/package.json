@@ -43,8 +43,7 @@
   "dependencies": {
     "@alt-javascript/common": "3.0.4",
     "@alt-javascript/config": "3.0.4",
-    "@alt-javascript/logger": "3.0.4",
-    "lodash": "^4.17.21"
+    "@alt-javascript/logger": "3.0.4"
   },
   "devDependencies": {
     "@alt-javascript/boot": "3.0.4",

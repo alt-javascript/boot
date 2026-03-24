@@ -1,7 +1,6 @@
 /* eslint-disable import/extensions */
-import _ from 'lodash';
-import { LoggerFactory, loggerFactory as defaultLoggerFactory } from '@alt-javascript/logger';
-import { config as defaultConfig, ConfigFactory } from '@alt-javascript/config';
+import { LoggerFactory } from '@alt-javascript/logger';
+import { ConfigFactory, EphemeralConfig } from '@alt-javascript/config';
 import {
   Context, Component, Property, Scopes,
 } from './context/index.js';
@@ -9,6 +8,23 @@ import BeanPostProcessor from './BeanPostProcessor.js';
 import ApplicationEventPublisher from './events/ApplicationEventPublisher.js';
 import ContextRefreshedEvent from './events/ContextRefreshedEvent.js';
 import ContextClosedEvent from './events/ContextClosedEvent.js';
+
+// ---------------------------------------------------------------------------
+// Lodash-free helpers (replaced lodash dependency with native equivalents)
+// ---------------------------------------------------------------------------
+
+/** Lowercase the first character of a string. Equivalent to _.lowerFirst(). */
+function lowerFirst(str) {
+  if (!str) return str;
+  return str[0].toLowerCase() + str.slice(1);
+}
+
+/** Return elements in a that are also in b. Equivalent to _.intersection(). */
+function intersection(a, b) {
+  return a.filter((x) => b.includes(x));
+}
+
+// ---------------------------------------------------------------------------
 
 /**
  * Spring-inspired IoC application context for JavaScript.
@@ -68,7 +84,7 @@ export default class ApplicationContext {
     this.configContextPath = options?.configContextPath
         || (typeof (process) !== 'undefined' && process?.env?.NODE_CONFIG_CONTEXT_PATH)
         || ApplicationContext.DEFAULT_CONFIG_CONTEXT_PATH;
-    this.config = options?.config || defaultConfig;
+    this.config = options?.config || new EphemeralConfig({});
     if (options?.config) {
       // eslint-disable-next-line no-param-reassign
       delete options.config;
@@ -165,7 +181,7 @@ export default class ApplicationContext {
     // (they're parsed first, registration is first-write wins).
     if (!this.components.loggerFactory) {
       await this.deriveContextComponent({
-        Reference: defaultLoggerFactory,
+        Reference: LoggerFactory,
         name: 'loggerFactory',
       });
     }
@@ -236,9 +252,9 @@ export default class ApplicationContext {
     const $component = {};
     $component.isClass = constructr !== undefined;
 
-    $component.name = _.lowerFirst(component.name) || _.lowerFirst(constructr.name);
-    $component.qualifier = component.qualifier || _.lowerFirst(constructr?.qualifier);
-    $component.scope = component.scope || _.lowerFirst(constructr?.scope) || Scopes.SINGLETON;
+    $component.name = lowerFirst(component.name) || lowerFirst(constructr.name);
+    $component.qualifier = component.qualifier || lowerFirst(constructr?.qualifier);
+    $component.scope = component.scope || lowerFirst(constructr?.scope) || Scopes.SINGLETON;
     $component.Reference = component.Reference;
     $component.factory = component.factory;
     $component.factoryFunction = component.factoryFunction;
@@ -271,12 +287,12 @@ export default class ApplicationContext {
 
     const activeProfiles = this.profiles?.split(',') || [];
     if (activeProfiles.length > 0 && !$component.isActive) {
-      $component.isActive = _.intersection(activeProfiles, $component.profiles).length > 0;
+      $component.isActive = intersection(activeProfiles, $component.profiles).length > 0;
       if ($component.isActive === false) {
-        let negations = _.filter($component.profiles, (profile) => profile.startsWith('!'));
-        negations = _.map(negations, (profile) => profile.substring(1));
+        let negations = $component.profiles.filter((profile) => profile.startsWith('!'));
+        negations = negations.map((profile) => profile.substring(1));
         $component.isActive = negations.length > 0
-            && _.intersection(activeProfiles, negations).length === 0;
+            && intersection(activeProfiles, negations).length === 0;
       }
     }
 
@@ -408,7 +424,7 @@ export default class ApplicationContext {
     for (let j = 0; j < insKeys.length; j++) {
       const property = instance[insKeys[j]];
       const autowire = property?.name === 'Autowired'
-          || (typeof property === 'string' && _.lowerCase(property)) === 'autowired';
+          || (typeof property === 'string' && property.toLowerCase()) === 'autowired';
       if (autowire) {
         // eslint-disable-next-line no-param-reassign
         instance[insKeys[j]] = this.get(insKeys[j], undefined, component);
@@ -856,8 +872,8 @@ export default class ApplicationContext {
         const factory = this.get(this.components[reference].wireFactory);
         prototype = factory[this.components[reference].factoryFunction](...args);
       } else {
-        this.logger.verbose(`Component (${reference}) is scoped as (${Scopes.PROTOTYPE}), returning deep clone.`);
-        prototype = _.cloneDeep(this.components[reference].Reference);
+        this.logger.verbose(`Component (${reference}) is scoped as (${Scopes.PROTOTYPE}), returning reference.`);
+        prototype = this.components[reference].Reference;
       }
       this.autowireComponentDependencies(prototype, this.components[reference]);
       return prototype;
