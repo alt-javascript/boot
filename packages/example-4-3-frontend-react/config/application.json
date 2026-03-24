@@ -1,0 +1,15 @@
+{
+  "app": {
+    "name": "React Todo",
+    "version": "1.0.0",
+    "env": "default"
+  },
+  "boot": {
+    "banner-mode": "log"
+  },
+  "logging": {
+    "level": {
+      "ROOT": "info"
+    }
+  }
+}

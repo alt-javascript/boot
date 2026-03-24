@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "React Todo (dev)",
+    "env": "development (localhost)"
+  },
+  "logging": {
+    "level": {
+      "ROOT": "debug"
+    }
+  }
+}
