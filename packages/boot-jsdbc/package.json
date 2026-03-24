@@ -1,0 +1,57 @@
+{
+  "name": "@alt-javascript/boot-jsdbc",
+  "version": "3.0.4",
+  "description": "JSDBC persistence starter for @alt-javascript boot — auto-configures DataSource and JsdbcTemplate beans from config",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
+  "keywords": [
+    "alt-javascript",
+    "jsdbc",
+    "jdbc",
+    "datasource",
+    "jdbctemplate",
+    "boot",
+    "cdi",
+    "dependency-injection",
+    "persistence",
+    "database"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "3.0.4",
+    "@alt-javascript/jsdbc-core": "^1.0.0",
+    "@alt-javascript/jsdbc-template": "3.0.4"
+  },
+  "devDependencies": {
+    "@alt-javascript/config": "3.0.4",
+    "@alt-javascript/jsdbc-sqljs": "^1.0.0",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/boot-jsdbc"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/boot-jsdbc#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
