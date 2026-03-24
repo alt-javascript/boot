@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "NoSQL Persistence Example",
+    "version": "1.0.0"
+  },
+  "boot": {
+    "banner-mode": "console",
+    "nosql": {
+      "url": "jsnosqlc:memory:"
+    }
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  }
+}

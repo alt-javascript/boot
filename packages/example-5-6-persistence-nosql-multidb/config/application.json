@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "Multi-Client NoSQL Example",
+    "version": "1.0.0"
+  },
+  "boot": {
+    "banner-mode": "console",
+    "nosql": {
+      "url": "jsnosqlc:memory:"
+    },
+    "nosql-sessions": {
+      "url": "jsnosqlc:memory:"
+    }
+  },
+  "logging": {
+    "format": "text",
+    "level": { "ROOT": "info" }
+  }
+}

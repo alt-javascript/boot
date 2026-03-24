@@ -1,0 +1,22 @@
+{
+  "name": "@alt-javascript/example-5-6-persistence-nosql-multidb",
+  "version": "1.0.0",
+  "description": "Step 5.6 — Multi-client NoSQL: two independent jsnosqlc clients in one ApplicationContext",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js",
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/boot-jsnosqlc": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/jsnosqlc-core": "*",
+    "@alt-javascript/jsnosqlc-memory": "*"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "private": true
+}

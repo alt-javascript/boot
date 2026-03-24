@@ -1,0 +1,32 @@
+{
+  "name": "@alt-javascript/boot-jsnosqlc",
+  "version": "1.0.0",
+  "description": "CDI auto-configuration starter for @alt-javascript/jsnosqlc NoSQL access layer",
+  "keywords": [
+    "boot",
+    "nosql",
+    "jsnosqlc",
+    "cdi",
+    "mongodb",
+    "dynamodb",
+    "starter"
+  ],
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "*",
+    "@alt-javascript/cdi": "*",
+    "@alt-javascript/jsnosqlc-core": "*"
+  },
+  "devDependencies": {
+    "@alt-javascript/jsnosqlc-memory": "*",
+    "chai": "^4.3.7",
+    "mocha": "^11.7.5"
+  },
+  "author": "Craig Parravicini",
+  "license": "MIT",
+  "private": true
+}
