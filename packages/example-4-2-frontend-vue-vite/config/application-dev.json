@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "Vue Vite Todo (dev)"
+  },
+  "logging": {
+    "level": {
+      "ROOT": "debug"
+    }
+  }
+}

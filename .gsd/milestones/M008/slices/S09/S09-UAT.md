@@ -48,12 +48,12 @@ npm run serve
 
 ## Acceptance Checklist
 
-- [ ] `npm test` — 5 service tests pass
-- [ ] `npm run serve` + open `http://localhost:3000/dev` — Vue app renders with 2 seeded todos
-- [ ] Add a todo via the input — new item appears reactively
-- [ ] Toggle a todo — strikethrough applied
-- [ ] Remove a todo — item disappears
-- [ ] No build step — page is plain HTML + ES modules
+- [x] `npm test` — 5 service tests pass
+- [x] `npm run serve` + open `http://localhost:3000/dev` — Vue app renders with 2 seeded todos
+- [x] Add a todo via the input — new item appears reactively
+- [x] Toggle a todo — strikethrough applied
+- [x] Remove a todo — item disappears
+- [x] No build step — page is plain HTML + ES modules
 
 ---
 
@@ -85,6 +85,6 @@ The current is a hybrid that satisfies niether the serverside rendered pages or 
 
 ## Sign-Off
 
-- [ ] **I have run the example and all checklist items above are satisfied.**
+- [x] **I have run the example and all checklist items above are satisfied.**
 
-  Signed off by: __________________ Date: __________________
+  Signed off by: craigparra Date: 2026-043-24  

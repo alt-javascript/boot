@@ -1,16 +1,1 @@
-[
-  {
-    "id": "d09ae402",
-    "label": "vue-cdn-server",
-    "command": "cd /Users/craig/src/github/alt-javascript/boot/packages/example-4-1-frontend-vue-cdn && node server.js",
-    "cwd": "/Users/craig/src/github/alt-javascript/boot",
-    "ownerSessionFile": "/Users/craig/.gsd/sessions/--Users-craig-src-github-alt-javascript-boot--/2026-03-21T07-04-41-066Z_9282e3ab-6726-42ad-9b7b-7ed290671f25.jsonl",
-    "persistAcrossSessions": false,
-    "startedAt": 1774322727558,
-    "processType": "server",
-    "group": null,
-    "readyPattern": null,
-    "readyPort": 3000,
-    "pid": 76904
-  }
-]
+[]

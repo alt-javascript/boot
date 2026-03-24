@@ -1,0 +1,27 @@
+{
+  "name": "@alt-javascript/example-4-2-frontend-vue-vite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vue 3 + Vite example — @alt-javascript/boot CDI with SFC components",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@alt-javascript/boot": "3.0.4",
+    "@alt-javascript/boot-vue": "3.0.4",
+    "@alt-javascript/cdi": "3.0.4",
+    "@alt-javascript/config": "3.0.4",
+    "@alt-javascript/logger": "3.0.4",
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/test-utils": "^2.4.4",
+    "jsdom": "^24.0.0",
+    "vitest": "^1.4.0"
+  }
+}
