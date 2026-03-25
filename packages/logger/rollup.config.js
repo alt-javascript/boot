@@ -1,16 +1,17 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import esmImportToUrl from 'rollup-plugin-esm-import-to-url';
 
+const CDN_IMPORTS = {
+  '@alt-javascript/common': 'https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js',
+  '@alt-javascript/config': 'https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js',
+};
+
 export default [
   // Monolithic ESM bundle for browser module implementation.
   {
     input: 'browser/index.js',
     treeshake: true,
-    plugins: [esmImportToUrl({
-      imports: {
-        '@alt-javascript/common': 'https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js',
-      },
-    })],
+    plugins: [esmImportToUrl({ imports: CDN_IMPORTS })],
     output: {
       file: 'dist/alt-javascript-logger-esm.js',
       format: 'esm',
@@ -25,11 +26,7 @@ export default [
   {
     input: 'browser/index.js',
     treeshake: true,
-    plugins: [esmImportToUrl({
-      imports: {
-        '@alt-javascript/common': 'https://cdn.jsdelivr.net/npm/@alt-javascript/common@3/dist/alt-javascript-common-esm.js',
-      },
-    })],
+    plugins: [esmImportToUrl({ imports: CDN_IMPORTS })],
     output: {
       file: 'dist/alt-javascript-loggerfactory-iife.js',
       format: 'iife',
@@ -41,6 +38,7 @@ export default [
       sourcemapExcludeSources: true,
       globals: {
         '@alt-javascript/common': 'AltJavascriptCommon',
+        '@alt-javascript/config': 'AltJavascriptConfig',
       },
     },
   },

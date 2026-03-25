@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/config",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "An extensible wrapper of the popular config package, supporting placeholder resolution, encrypted values and url fetch.",
   "author": "Craig Parravicini",
   "contributors": [
@@ -43,13 +43,13 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.4",
+    "@alt-javascript/common": "3.0.5",
     "@alt-javascript/jasypt": "^1.0.0",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.4",
-    "@alt-javascript/logger": "3.0.4",
+    "@alt-javascript/boot": "3.0.5",
+    "@alt-javascript/logger": "3.0.5",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "config": "^4.4.1",

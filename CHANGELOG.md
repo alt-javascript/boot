@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.5 — 2026-03-25
+
+### Bug fix
+
+- **`@alt-javascript/logger` browser dist: bare specifier for `@alt-javascript/config`.**
+  `LoggerFactory.js` imports `{ config }` from `@alt-javascript/config`. The rollup config
+  rewrote `@alt-javascript/common` to its CDN URL but left `@alt-javascript/config` as a bare
+  specifier in the bundle. Any CDN import of the logger ESM bundle failed with a module
+  resolution error in browser contexts. Fixed by adding `@alt-javascript/config` to the
+  `esmImportToUrl` imports map in `rollup.config.js`, rewriting it to its CDN URL
+  (`https://cdn.jsdelivr.net/npm/@alt-javascript/config@3/dist/alt-javascript-config-esm.js`).
+  Dist rebuilt and committed.
+
 ## 3.0.4 — 2026-03-22
 
 ### New packages
