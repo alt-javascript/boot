@@ -13,20 +13,41 @@
   ],
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
   "scripts": {
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/boot": "*",
-    "@alt-javascript/cdi": "*",
-    "@alt-javascript/jsnosqlc-core": "*"
+    "@alt-javascript/boot": "3.0.4",
+    "@alt-javascript/cdi": "3.0.4",
+    "@alt-javascript/jsnosqlc-core": "^1.0.0"
   },
   "devDependencies": {
-    "@alt-javascript/jsnosqlc-memory": "*",
+    "@alt-javascript/jsnosqlc-memory": "^1.0.0",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "author": "Craig Parravicini",
+  "contributors": [
+    "Claude (Anthropic)"
+  ],
   "license": "MIT",
-  "private": true
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alt-javascript/boot.git",
+    "directory": "packages/boot-jsnosqlc"
+  },
+  "homepage": "https://github.com/alt-javascript/boot/tree/main/packages/boot-jsnosqlc#readme",
+  "bugs": {
+    "url": "https://github.com/alt-javascript/boot/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
