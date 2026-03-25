@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.0.6 — 2026-03-26
+
+### New feature
+
+- **`.env` file support in `@alt-javascript/config`.**
+  `ProfileConfigLoader` now discovers and loads `application.env` and
+  `application-{profile}.env` alongside existing JSON/YAML/properties files.
+  Files are parsed by the new `DotEnvParser` (bare, `export`-prefixed, double/single-quoted
+  values, inline `#` comments, escape sequences) and wrapped in `EnvPropertySource` so relaxed
+  binding (`DB_HOST` → `db.host`, `SPRING__DATASOURCE__URL` → `spring.datasource.url`) applies
+  identically to `process.env` vars. Real environment variables always take precedence over
+  `.env` file values — `.env` slots between `process.env` (layer 2) and profile config files
+  (layer 4) in the 6-layer property source chain. `DotEnvParser` is exported from the package
+  index for direct use.
+
+### Documentation
+
+- **`@alt-javascript/config` README updated.** Property source precedence table expanded from
+  5 to 6 layers to include `.env` files. New `## .env Files` section documents the discovery
+  naming convention, supported format features, relaxed binding table, and the browser
+  limitation (Node.js only — use `EphemeralConfig` for browser targets).
+
 ## 3.0.5 — 2026-03-25
 
 ### Bug fix

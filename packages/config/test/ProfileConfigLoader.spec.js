@@ -233,4 +233,147 @@ describe('ProfileConfigLoader', () => {
       assert.equal(config.get('e'), 'fallback');    // fallback
     });
   });
+
+  describe('.env file loading', () => {
+    it('loads application.env from config/', () => {
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'DATABASE_URL=postgres://localhost:5432/mydb',
+        'APP_PORT=5000',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({ basePath: testDir, env: {} });
+
+      // Accessible by original key
+      assert.equal(config.get('DATABASE_URL'), 'postgres://localhost:5432/mydb');
+      // Accessible via relaxed binding
+      assert.equal(config.get('app.port'), '5000');
+    });
+
+    it('relaxed binding: UPPER_SNAKE → dotted.lower', () => {
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'MY_SERVICE_HOST=localhost',
+        'MY_SERVICE_PORT=8080',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({ basePath: testDir, env: {} });
+
+      assert.equal(config.get('my.service.host'), 'localhost');
+      assert.equal(config.get('my.service.port'), '8080');
+    });
+
+    it('process.env beats .env file', () => {
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'SERVER_PORT=4000',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({
+        basePath: testDir,
+        env: { SERVER_PORT: '9999' },
+      });
+
+      // Real env var wins
+      assert.equal(config.get('server.port'), '9999');
+    });
+
+    it('.env file beats application.json', () => {
+      writeFileSync(join(testDir, 'config', 'application.json'), JSON.stringify({
+        server: { port: 8080 },
+      }));
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'SERVER_PORT=7777',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({ basePath: testDir, env: {} });
+
+      assert.equal(config.get('server.port'), '7777');
+    });
+
+    it('profile .env beats base .env', () => {
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'LOG_LEVEL=info',
+      ].join('\n'));
+      writeFileSync(join(testDir, 'config', 'application-dev.env'), [
+        'LOG_LEVEL=debug',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({
+        basePath: testDir,
+        profiles: 'dev',
+        env: {},
+      });
+
+      assert.equal(config.get('log.level'), 'debug');
+    });
+
+    it('profile .env beats application.json', () => {
+      writeFileSync(join(testDir, 'config', 'application.json'), JSON.stringify({
+        db: { pool: 5 },
+      }));
+      writeFileSync(join(testDir, 'config', 'application-prod.env'), [
+        'DB_POOL=20',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({
+        basePath: testDir,
+        profiles: 'prod',
+        env: {},
+      });
+
+      assert.equal(config.get('db.pool'), '20');
+    });
+
+    it('base .env leaves process.env keys untouched for other paths', () => {
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'ONLY_IN_DOTENV=yes',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({
+        basePath: testDir,
+        env: { ONLY_IN_PROCESS: 'yes' },
+      });
+
+      assert.equal(config.get('ONLY_IN_DOTENV'), 'yes');
+      assert.equal(config.get('ONLY_IN_PROCESS'), 'yes');
+    });
+
+    it('full 7-layer chain: overrides > process.env > profile.env > base.env > profile.json > base.json > fallback', () => {
+      writeFileSync(join(testDir, 'config', 'application.json'), JSON.stringify({
+        a: 'base-json', b: 'base-json', c: 'base-json',
+        d: 'base-json', e: 'base-json', f: 'base-json',
+      }));
+      writeFileSync(join(testDir, 'config', 'application-test.json'), JSON.stringify({
+        a: 'profile-json', b: 'profile-json', c: 'profile-json',
+        d: 'profile-json', e: 'profile-json', f: 'profile-json',
+      }));
+      writeFileSync(join(testDir, 'config', 'application.env'), [
+        'A=base-env',
+        'B=base-env',
+        'C=base-env',
+        'D=base-env',
+        'E=base-env',
+      ].join('\n'));
+      writeFileSync(join(testDir, 'config', 'application-test.env'), [
+        'A=profile-env',
+        'B=profile-env',
+        'C=profile-env',
+        'D=profile-env',
+      ].join('\n'));
+
+      const config = ProfileConfigLoader.load({
+        basePath: testDir,
+        profiles: 'test',
+        overrides: { a: 'override' },
+        env: { B: 'process-env' },
+        fallback: { g: 'fallback' },
+      });
+
+      assert.equal(config.get('a'), 'override');          // 1. programmatic overrides
+      assert.equal(config.get('b'), 'process-env');       // 2. process.env (relaxed: B → b)
+      assert.equal(config.get('c'), 'profile-env');       // 3. profile .env (relaxed: C → c)
+      assert.equal(config.get('d'), 'profile-env');       // 3. profile .env (relaxed: D → d)
+      assert.equal(config.get('e'), 'base-env');          // 4. base .env (relaxed: E → e)
+      assert.equal(config.get('f'), 'profile-json');      // 5. profile .json
+      assert.equal(config.get('g'), 'fallback');          // 7. fallback
+    });
+  });
 });

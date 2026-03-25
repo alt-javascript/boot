@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { createRequire } from 'module';
 import PropertiesParser from './PropertiesParser.js';
+import DotEnvParser from './DotEnvParser.js';
 import EphemeralConfig from './EphemeralConfig.js';
 import EnvPropertySource from './EnvPropertySource.js';
 import PropertySourceChain from './PropertySourceChain.js';
@@ -13,13 +14,17 @@ import PropertySourceChain from './PropertySourceChain.js';
  * Precedence (highest → lowest):
  * 1. Programmatic overrides (passed as object)
  * 2. process.env (with relaxed binding)
- * 3. Profile-specific files: application-{profile}.{json,yaml,yml,properties}
+ * 3. Profile-specific .env files: application-{profile}.env
  *    (later profiles in NODE_ACTIVE_PROFILES override earlier ones)
- * 4. Default files: application.{json,yaml,yml,properties}
- * 5. Fallback config (e.g. node-config, or passed object)
+ * 4. Default .env file: application.env
+ * 5. Profile-specific files: application-{profile}.{json,yaml,yml,properties}
+ *    (later profiles in NODE_ACTIVE_PROFILES override earlier ones)
+ * 6. Default files: application.{json,yaml,yml,properties}
+ * 7. Fallback config (e.g. node-config, or passed object)
  *
  * File search locations (in order): config/, cwd
  * File format priority: .properties, .yaml, .yml, .json (all loaded and merged, not exclusive)
+ * .env files are treated as environment variable sources (relaxed binding applies).
  *
  * NODE_ACTIVE_PROFILES: comma-separated list of active profiles.
  */
@@ -55,13 +60,23 @@ export default class ProfileConfigLoader {
     // 2. Environment variables
     sources.push(new EnvPropertySource(env));
 
-    // 3. Profile-specific files (later profiles = higher priority, so reverse)
+    // 3. Profile-specific .env files (later profiles = higher priority, so reverse)
+    for (let i = profiles.length - 1; i >= 0; i--) {
+      const profileEnvSources = ProfileConfigLoader._loadEnvFiles(basePath, `${configName}-${profiles[i]}`);
+      sources.push(...profileEnvSources);
+    }
+
+    // 4. Default .env file
+    const defaultEnvSources = ProfileConfigLoader._loadEnvFiles(basePath, configName);
+    sources.push(...defaultEnvSources);
+
+    // 5. Profile-specific files (later profiles = higher priority, so reverse)
     for (let i = profiles.length - 1; i >= 0; i--) {
       const profileSources = ProfileConfigLoader._loadFiles(basePath, `${configName}-${profiles[i]}`);
       sources.push(...profileSources);
     }
 
-    // 4. Default application files
+    // 6. Default application files
     const defaultSources = ProfileConfigLoader._loadFiles(basePath, configName);
     sources.push(...defaultSources);
 
@@ -75,6 +90,28 @@ export default class ProfileConfigLoader {
     }
 
     return new PropertySourceChain(sources);
+  }
+
+  /**
+   * Discover and load .env files for a given base name across search directories.
+   * Returns an array of EnvPropertySource instances (one per file found).
+   *
+   * Parsed with DotEnvParser — keys are kept verbatim (UPPER_SNAKE_CASE).
+   * Relaxed binding (MY_APP_PORT → my.app.port) is applied by EnvPropertySource.
+   */
+  static _loadEnvFiles(basePath, baseName) {
+    const sources = [];
+
+    for (const dir of ProfileConfigLoader.SEARCH_DIRS) {
+      const filePath = join(basePath, dir, `${baseName}.env`);
+      if (existsSync(filePath)) {
+        const content = readFileSync(filePath, 'utf-8');
+        const parsed = DotEnvParser.parse(content);
+        sources.push(new EnvPropertySource(parsed));
+      }
+    }
+
+    return sources;
   }
 
   /**

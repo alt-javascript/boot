@@ -71,9 +71,12 @@ When using `ProfileConfigLoader`, sources are checked in this order (highest pri
 |---|---|
 | 1 | Programmatic overrides |
 | 2 | Environment variables (`process.env`) with relaxed binding |
-| 3 | Profile-specific files (last profile wins) |
-| 4 | Default application files |
-| 5 | Fallback (node-config) |
+| 3 | `.env` files (profile-specific last profile wins, then default) |
+| 4 | Profile-specific files (last profile wins) |
+| 5 | Default application files |
+| 6 | Fallback (node-config) |
+
+Real environment variables (layer 2) always win over `.env` file values (layer 3) — `.env` files never override what the shell or container already provides.
 
 ## File Formats
 
@@ -81,6 +84,33 @@ The loader discovers files in `config/` and the current working directory:
 
 - `application.json`, `application.yaml`, `application.yml`, `application.properties`
 - `application-{profile}.json`, `application-{profile}.yaml`, etc.
+
+## .env Files
+
+Standard `.env` files are discovered and loaded alongside other config formats:
+
+- `application.env` — default env file, always loaded
+- `application-{profile}.env` — profile-specific env file, loaded when the profile is active
+
+```bash
+# application.env
+DB_HOST=localhost
+DB_PORT=5432
+export API_KEY=abc123          # export prefix is supported
+SECRET="contains spaces"       # double-quoted values
+NOTE='literal value'           # single-quoted values
+INLINE=value # this is a comment  # inline comments (must be preceded by whitespace)
+```
+
+`.env` values are wrapped in `EnvPropertySource`, so they get the same relaxed binding as `process.env`:
+
+| .env key | Config path |
+|---|---|
+| `DB_HOST` | `db.host` |
+| `MY_APP_PORT` | `my.app.port` |
+| `SPRING__DATASOURCE__URL` | `spring.datasource.url` |
+
+**Note:** `ProfileConfigLoader` requires Node.js (`fs`, `path`). `.env` file loading is not available in the browser — use `EphemeralConfig` directly for browser targets.
 
 ### .properties Format
 
