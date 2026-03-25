@@ -64,8 +64,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@alt-javascript/jsnosqlc-core": "file:../jsnoslqc/packages/core",
-    "@alt-javascript/jsnosqlc-memory": "file:../jsnoslqc/packages/memory",
     "@angular/forms": "^21.2.5"
   }
 }
