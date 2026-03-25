@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { EphemeralConfig } from '@alt-javascript/config';
 import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
-import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
+import { jsdbcAutoConfiguration } from '@alt-javascript/boot-jsdbc';
 import '@alt-javascript/jsdbc-sqljs';
 import { honoStarter, HonoAdapter } from '../index.js';
 
@@ -141,7 +141,7 @@ describe('Hono Adapter', () => {
           { Reference: TodoService, name: 'todoService', scope: 'singleton' },
           { Reference: TodoController, name: 'todoController', scope: 'singleton' },
         ],
-        { jsdbc: { url: 'jsdbc:sqljs:memory' } },
+        { boot: { datasource: { url: 'jsdbc:sqljs:memory' } } },
       );
       await appCtx.get('todoService').createTable();
       const app = appCtx.get('honoAdapter').app;

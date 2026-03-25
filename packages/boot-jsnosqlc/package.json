@@ -21,11 +21,11 @@
   },
   "dependencies": {
     "@alt-javascript/boot": "3.0.4",
-    "@alt-javascript/cdi": "3.0.4",
-    "@alt-javascript/jsnosqlc-core": "^1.0.0"
+    "@alt-javascript/cdi": "3.0.4"
   },
   "devDependencies": {
-    "@alt-javascript/jsnosqlc-memory": "^1.0.0",
+    "@alt-javascript/jsnosqlc-core": "^1.0.1",
+    "@alt-javascript/jsnosqlc-memory": "^1.0.1",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },

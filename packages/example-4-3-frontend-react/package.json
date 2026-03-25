@@ -2,7 +2,7 @@
   "name": "@alt-javascript/example-4-3-frontend-react",
   "version": "1.0.0",
   "private": true,
-  "description": "React + Vite example — @alt-javascript/boot CDI with hooks",
+  "description": "React + Vite example \u2014 @alt-javascript/boot CDI with hooks",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,6 +23,6 @@
     "@testing-library/react": "^14.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "jsdom": "^24.0.0",
-    "vitest": "^1.4.0"
+    "vitest": "^2.1.9"
   }
 }

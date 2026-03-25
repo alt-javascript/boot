@@ -13,7 +13,7 @@
     "build:logger": "npm run build -w packages/logger",
     "build:cdi": "npm run build -w packages/cdi",
     "build:boot": "npm run build -w packages/boot",
-    "test": "npm test --workspaces",
+    "test": "npm test --workspaces --if-present",
     "test:boot": "npm test -w packages/boot",
     "test:cdi": "npm test -w packages/cdi",
     "test:config": "npm test -w packages/config",

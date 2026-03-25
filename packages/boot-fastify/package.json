@@ -38,7 +38,8 @@
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
     "@alt-javascript/logger": "3.0.4",
     "chai": "^4.3.7",
-    "mocha": "^11.7.5"
+    "mocha": "^11.7.5",
+    "@alt-javascript/boot-jsdbc": "3.0.4"
   },
   "license": "MIT",
   "repository": {

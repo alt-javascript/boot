@@ -11,7 +11,7 @@ import supertest from 'supertest';
 import { EphemeralConfig } from '@alt-javascript/config';
 import { ApplicationContext } from '@alt-javascript/cdi';
 import { Context } from '@alt-javascript/cdi/context/index.js';
-import { jsdbcAutoConfiguration } from '@alt-javascript/jsdbc-template';
+import { jsdbcAutoConfiguration } from '@alt-javascript/boot-jsdbc';
 import '@alt-javascript/jsdbc-sqljs'; // self-registers SqlJs driver
 import { expressStarter } from '../index.js';
 
@@ -106,7 +106,7 @@ class TodoController {
 async function buildFullStack() {
   const config = new EphemeralConfig({
     server: { port: 0 },
-    jsdbc: { url: 'jsdbc:sqljs:memory' },
+    boot: { datasource: { url: 'jsdbc:sqljs:memory' } },
   });
 
   const context = new Context([
@@ -209,7 +209,7 @@ describe('Express + JSDBC Integration', () => {
     assert.exists(svc.jsdbcTemplate);
   });
 
-  it('DataSource is auto-configured from jsdbc.url', () => {
+  it('DataSource is auto-configured from boot.datasource.url', () => {
     const ds = appCtx.get('dataSource');
     assert.exists(ds);
   });

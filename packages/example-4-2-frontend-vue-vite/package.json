@@ -2,7 +2,7 @@
   "name": "@alt-javascript/example-4-2-frontend-vue-vite",
   "version": "1.0.0",
   "private": true,
-  "description": "Vue 3 + Vite example — @alt-javascript/boot CDI with SFC components",
+  "description": "Vue 3 + Vite example \u2014 @alt-javascript/boot CDI with SFC components",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,6 @@
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/test-utils": "^2.4.4",
     "jsdom": "^24.0.0",
-    "vitest": "^1.4.0"
+    "vitest": "^2.1.9"
   }
 }
