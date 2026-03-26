@@ -1,10 +1,11 @@
 {
   "name": "@alt-javascript/logger",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "A simple configurable logging facade for javascript.",
   "author": "Craig Parravicini",
   "contributors": [
-    "Claude (Anthropic)"
+    "Claude (Anthropic)",
+    "Spring Framework (VMware/Broadcom) — design inspiration and pattern source"
   ],
   "keywords": [
     "log",
@@ -42,10 +43,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/common": "3.0.6"
+    "@alt-javascript/common": "3.0.7"
   },
   "devDependencies": {
-    "@alt-javascript/config": "3.0.6",
+    "@alt-javascript/config": "3.0.7",
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "config": "^4.4.1",

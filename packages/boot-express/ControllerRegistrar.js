@@ -16,7 +16,12 @@
  *        app.get('/users', (req, res) => this.list(req, res));
  *      }
  *    }
+ *
+ * When a middleware pipeline is provided, each declarative route handler is
+ * wrapped so the pipeline runs around every handler invocation.
  */
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
+
 export default class ControllerRegistrar {
   static routeCount = 0;
 
@@ -25,8 +30,9 @@ export default class ControllerRegistrar {
    *
    * @param {express.Application} app
    * @param {ApplicationContext} ctx
+   * @param {Array} [middlewares] — sorted CDI middleware instances (from MiddlewarePipeline.collect)
    */
-  static register(app, ctx) {
+  static register(app, ctx, middlewares = []) {
     ControllerRegistrar.routeCount = 0;
     const components = ctx.components;
 
@@ -49,13 +55,46 @@ export default class ControllerRegistrar {
             );
           }
 
-          // Bind handler to instance so 'this' works
           const boundHandler = instance[handler].bind(instance);
 
-          // Wrap in async error handler
+          // Build the pipeline-wrapped Express route handler
           app[httpMethod](path, async (req, res, next) => {
+            const request = {
+              method: req.method,
+              path: req.path,
+              params: req.params,
+              query: req.query,
+              headers: req.headers,
+              body: req.body,
+              ctx,
+              req,
+              res,
+            };
+
             try {
-              await boundHandler(req, res, next);
+              // Inner dispatch: call the controller handler
+              const dispatch = async (r) => {
+                const result = await boundHandler(r.req ?? req, r.res ?? res, next);
+                if (result === null || result === undefined) return { statusCode: 204 };
+                return result;
+              };
+
+              const result = await MiddlewarePipeline.compose(middlewares, dispatch)(request);
+
+              // If the handler already wrote the response directly (Express style), skip
+              if (res.headersSent) return;
+
+              if (result === null || result === undefined) {
+                return res.status(204).send('');
+              }
+              if (result.statusCode !== undefined) {
+                res.status(result.statusCode);
+                if (result.body !== undefined) {
+                  return res.json(result.body);
+                }
+                return res.send('');
+              }
+              return res.json(result);
             } catch (err) {
               next(err);
             }

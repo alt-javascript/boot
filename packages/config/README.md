@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
 
-Hierarchical, profile-aware configuration for the `@alt-javascript` framework. Supports JSON, YAML, and Java `.properties` files, environment variable binding, placeholder resolution, and layered property sources with Spring Boot-aligned precedence.
+Hierarchical, profile-aware configuration for the `@alt-javascript` framework. Supports JSON, YAML, Java `.properties`, and `.env` files, environment variable binding, `${placeholder:default}` resolution, and layered property sources — all following [Spring Boot](https://docs.spring.io/spring-boot/reference/features/external-config.html)'s externalized configuration conventions.
 
 **Part of the [@alt-javascript](https://github.com/alt-javascript/boot) monorepo.**
 
@@ -17,172 +17,118 @@ npm install @alt-javascript/config
 
 ## Quick Start
 
-### In-Memory Config 
+### In-Memory Config
 
 ```javascript
 import { EphemeralConfig } from '@alt-javascript/config';
-import { ConfigFactory } from '@alt-javascript/config';
 
-// simple config (basic lookup)
 const config = new EphemeralConfig({
   db: { host: 'localhost', port: 5432 },
-  logging: { level: { ROOT: 'info' } }, 
-  secret: 'ENC(Ho8XdYf6/r+FdJ/ZC55BBA==)',
+  logging: { level: { ROOT: 'info' } },
 });
 
 config.get('db.host');        // 'localhost'
-config.get('db.port');        // 5432
 config.get('missing', 'def'); // 'def'
-config.get('secret');         // 'ENC(Ho8XdYf6/r+FdJ/ZC55BBA==)'
 config.has('db.host');        // true
-
-// wrap for extended features, placeholder resolution, encrypted properties, etc 
-const extended = ConfigFactory.getConfig(config);
-
-config.get('secret');         // 'secret'
-
 ```
 
-### Profile-Based Config (Spring-Aligned)
+### File-Based Config (Spring Boot conventions)
 
-```javascript
-// Reads NODE_ACTIVE_PROFILES from env, discovers config files
-import  { config } from '@alt-javascript/config' ;
+Place `application.json`, `application.yaml`, or `application.properties` in the project root or `config/` directory. Activate profiles via `NODE_ACTIVE_PROFILES=production`:
 
-config.get('server.port');  // from application-{profile}.json or process.env.SERVER_PORT
+```bash
+NODE_ACTIVE_PROFILES=production node app.js
 ```
 
-### node-config Integration (Traditional)
+Profile-specific files (`application-production.json`) override the base file. This maps directly to Spring Boot's `spring.profiles.active` and `application-{profile}.properties` conventions.
 
 ```javascript
-//  node-config based discovery and formats
-import nodeconfig from 'config';
 import { ConfigFactory } from '@alt-javascript/config';
 
-// enhance node-config, with alt features
-const config = ConfigFactory.getConfig(nodeconfig); 
+const config = ConfigFactory.loadConfig(); // discovers files automatically
+config.get('db.url'); // from application-production.json
 ```
 
-## Property Source Precedence
+### Environment Variables
 
-When using `ProfileConfigLoader`, sources are checked in this order (highest priority first):
+Environment variables bind to config keys automatically. `MY_APP_PORT` becomes `my.app.port` and `my_app_port` (relaxed binding, same as Spring Boot):
 
-| Priority | Source |
-|---|---|
-| 1 | Programmatic overrides |
-| 2 | Environment variables (`process.env`) with relaxed binding |
-| 3 | `.env` files (profile-specific last profile wins, then default) |
-| 4 | Profile-specific files (last profile wins) |
-| 5 | Default application files |
-| 6 | Fallback (node-config) |
+```javascript
+// process.env.MY_APP_PORT = '8080'
+config.get('my.app.port'); // '8080'
+```
 
-Real environment variables (layer 2) always win over `.env` file values (layer 3) — `.env` files never override what the shell or container already provides.
+### `.env` File Support
 
-## File Formats
+`application.env` and `application-{profile}.env` are loaded automatically by `ProfileConfigLoader`:
 
-The loader discovers files in `config/` and the current working directory:
-
-- `application.json`, `application.yaml`, `application.yml`, `application.properties`
-- `application-{profile}.json`, `application-{profile}.yaml`, etc.
-
-## .env Files
-
-Standard `.env` files are discovered and loaded alongside other config formats:
-
-- `application.env` — default env file, always loaded
-- `application-{profile}.env` — profile-specific env file, loaded when the profile is active
-
-```bash
+```
 # application.env
-DB_HOST=localhost
-DB_PORT=5432
-export API_KEY=abc123          # export prefix is supported
-SECRET="contains spaces"       # double-quoted values
-NOTE='literal value'           # single-quoted values
-INLINE=value # this is a comment  # inline comments (must be preceded by whitespace)
+APP_NAME=MyApp
+DATABASE_URL=postgres://localhost:5432/mydb
+SECRET_KEY="super secret value"
 ```
 
-`.env` values are wrapped in `EnvPropertySource`, so they get the same relaxed binding as `process.env`:
-
-| .env key | Config path |
-|---|---|
-| `DB_HOST` | `db.host` |
-| `MY_APP_PORT` | `my.app.port` |
-| `SPRING__DATASOURCE__URL` | `spring.datasource.url` |
-
-**Note:** `ProfileConfigLoader` requires Node.js (`fs`, `path`). `.env` file loading is not available in the browser — use `EphemeralConfig` directly for browser targets.
-
-### .properties Format
-
-Full Java `.properties` support:
-
-```properties
-db.host=localhost
-db.port=5432
-security.roles[0]=USER
-security.roles[1]=ADMIN
-servers[0].host=web1.example.com
-servers[0].port=8080
-```
-
-Supports `key=value`, `key:value`, `key value` separators, `#`/`!` comments, `\` line continuation, escape sequences, and `\uXXXX` unicode.
-
-## Environment Variable Binding
-
-Environment variables are available with relaxed binding:
-
-| Environment Variable | Config Path |
-|---|---|
-| `MY_APP_PORT` | `my.app.port` |
-| `DB_HOST` | `db.host` |
-| `SPRING__DATASOURCE__URL` | `spring.datasource.url` |
-
-## Profiles
-
-Set `NODE_ACTIVE_PROFILES` (comma-separated):
-
-```bash
-NODE_ACTIVE_PROFILES=dev,local node app.js
-```
-
-## Placeholder Resolution
+### Placeholder Resolution
 
 ```javascript
-import { ValueResolvingConfig } from '@alt-javascript/config';
+import { ConfigFactory, EphemeralConfig } from '@alt-javascript/config';
 
-// Config values like "${app.name} v${app.version}" resolve to other config paths
-// Syntax: ${path} or ${path:default}
+const config = ConfigFactory.getConfig(new EphemeralConfig({
+  app: { name: 'MyApp', timeout: '30' },
+  service: { label: '${app.name} Service' },
+}));
+
+config.get('service.label'); // 'MyApp Service'
 ```
 
-## All Exports
+CDI components use placeholder strings in their constructors (equivalent to Spring `@Value`):
 
 ```javascript
-import {
-  EphemeralConfig,
-  ConfigFactory,
-  ProfileConfigLoader,
-  PropertySourceChain,
-  EnvPropertySource,
-  PropertiesParser,
-  ValueResolvingConfig,
-  DelegatingConfig,
-  DelegatingResolver,
-  PlaceHolderResolver,
-  PlaceHolderSelector,
-  PrefixSelector,
-  ParenthesisSelector,
-  SelectiveResolver,
-  Selector,
-  URLResolver,
-  Resolver,
-  JasyptDecryptor,
-  config,  // auto-created singleton via ConfigFactory.getConfig()
-} from '@alt-javascript/config';
+class MyService {
+  constructor() {
+    this.appName = '${app.name:DefaultApp}'; // resolved during CDI wiring
+    this.timeout = '${app.timeout:60}';
+  }
+}
 ```
 
-## Browser
+## Property Sources (Spring Precedence Order)
 
-Use `EphemeralConfig` directly — `ProfileConfigLoader` requires Node.js (`fs`, `path`). A browser-safe `ConfigFactory` is available at `browser/ConfigFactory.js`.
+`ProfileConfigLoader.load()` builds a `PropertySourceChain` following Spring Boot's precedence (highest wins):
+
+1. Programmatic overrides
+2. `process.env` (with relaxed binding)
+3. Profile-specific `.env` files (`application-{profile}.env`)
+4. Default `.env` file (`application.env`)
+5. Profile-specific config files (`application-{profile}.{json,yaml,yml,properties}`)
+6. Default config files (`application.{json,yaml,yml,properties}`)
+7. Fallback config (e.g. node-config)
+
+## API
+
+| Class | Description |
+|---|---|
+| `EphemeralConfig` | In-memory config from a plain object |
+| `ConfigFactory` | Wraps a config with placeholder resolution and encryption support |
+| `ProfileConfigLoader` | File-based config with Spring Boot-aligned precedence |
+| `PropertySourceChain` | Ordered chain of property sources |
+| `EnvPropertySource` | `process.env` with Spring-style relaxed binding |
+| `DotEnvParser` | Parses `.env` file format |
+| `PropertiesParser` | Parses Java `.properties` file format |
+
+## Spring Attribution
+
+This package deliberately mirrors [Spring Boot's Externalized Configuration](https://docs.spring.io/spring-boot/reference/features/external-config.html):
+
+| Spring Boot concept | @alt-javascript/config equivalent |
+|---|---|
+| `spring.profiles.active` | `NODE_ACTIVE_PROFILES` |
+| `application.properties` / `.yaml` | `application.json` / `.yaml` / `.properties` |
+| `application-{profile}.properties` | `application-{profile}.json` / `.yaml` / `.properties` / `.env` |
+| `Environment` / `PropertySource` | `PropertySourceChain` / `EnvPropertySource` |
+| `@Value("${key:default}")` | Placeholder strings in CDI component constructors |
+| Relaxed binding (`my.app.port` ↔ `MY_APP_PORT`) | `EnvPropertySource` relaxed binding |
 
 ## License
 

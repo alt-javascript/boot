@@ -18,6 +18,7 @@
 - ⬜ **M010:** Technical Documentation
 - ⬜ **M011:** M011 Roadmap — NoSQL Persistence
 - ✅ **M012:** M012: .env File Support in Config Package
+- ✅ **M013:** M013: Cross-Cutting Middleware Pipeline
 
 ## Recent Decisions
 - None recorded

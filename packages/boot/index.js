@@ -2,6 +2,8 @@
 import Boot from './Boot.js';
 
 export { default as Application } from './Application.js';
+export { default as MiddlewarePipeline } from './MiddlewarePipeline.js';
+export { RequestLoggerMiddleware, ErrorHandlerMiddleware, NotFoundMiddleware } from './middleware/index.js';
 export { Boot };
 
 export const { boot } = Boot;

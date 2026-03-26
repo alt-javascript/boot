@@ -7,18 +7,23 @@
 import { assert } from 'chai';
 import { handler } from '../handler.js';
 
-function makeEvent(method, path, params = {}, body = null) {
+function makeEvent(method, path, params = {}, body = null, authToken = null) {
   return {
     version: '2.0',
     routeKey: `${method} ${path}`,
     rawPath: path,
     pathParameters: params,
     queryStringParameters: {},
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
+    },
     body: body ? JSON.stringify(body) : null,
     isBase64Encoded: false,
   };
 }
+
+const TOKEN = 'test-token';
 
 describe('Lambda handler', () => {
   it('GET /health → 200 with status ok', async () => {
@@ -30,20 +35,20 @@ describe('Lambda handler', () => {
   });
 
   it('GET /greet/{name} → 200 with greeting', async () => {
-    const res = await handler(makeEvent('GET', '/greet/{name}', { name: 'World' }), {});
+    const res = await handler(makeEvent('GET', '/greet/{name}', { name: 'World' }, null, TOKEN), {});
     assert.equal(res.statusCode, 200);
     const body = JSON.parse(res.body);
     assert.equal(body.message, 'Hello, World!');
   });
 
   it('GET /greet/{name} → 200 with Alt-JavaScript', async () => {
-    const res = await handler(makeEvent('GET', '/greet/{name}', { name: 'Alt-JavaScript' }), {});
+    const res = await handler(makeEvent('GET', '/greet/{name}', { name: 'Alt-JavaScript' }, null, TOKEN), {});
     assert.equal(res.statusCode, 200);
     assert.equal(JSON.parse(res.body).message, 'Hello, Alt-JavaScript!');
   });
 
   it('unmatched route → 404', async () => {
-    const res = await handler(makeEvent('GET', '/nonexistent'), {});
+    const res = await handler(makeEvent('GET', '/nonexistent', {}, null, TOKEN), {});
     assert.equal(res.statusCode, 404);
   });
 
@@ -52,5 +57,16 @@ describe('Lambda handler', () => {
     const res2 = await handler(makeEvent('GET', '/health'), {});
     assert.equal(res1.statusCode, 200);
     assert.equal(res2.statusCode, 200);
+  });
+
+  it('GET /greet/{name} without auth → 401', async () => {
+    const res = await handler(makeEvent('GET', '/greet/{name}', { name: 'World' }), {});
+    assert.equal(res.statusCode, 401);
+  });
+
+  it('GET /secret with auth → 200', async () => {
+    const res = await handler(makeEvent('GET', '/secret', {}, null, TOKEN), {});
+    assert.equal(res.statusCode, 200);
+    assert.equal(JSON.parse(res.body).secret, 'You found it!');
   });
 });

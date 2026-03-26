@@ -11,6 +11,7 @@
  * Makes the ApplicationContext available to route handlers via app.locals.ctx.
  */
 import express from 'express';
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 import ControllerRegistrar from './ControllerRegistrar.js';
 
 export default class ExpressAdapter {
@@ -56,8 +57,11 @@ export default class ExpressAdapter {
     this._app.use(express.json());
     this._app.locals.ctx = this._applicationContext;
 
-    // Register controllers
-    ControllerRegistrar.register(this._app, this._applicationContext);
+    // Collect CDI middleware sorted by order
+    const middlewares = MiddlewarePipeline.collect(this._applicationContext);
+
+    // Register controllers with the middleware pipeline
+    ControllerRegistrar.register(this._app, this._applicationContext, middlewares);
 
     if (this._logger) {
       this._logger.verbose(`Express app created, ${ControllerRegistrar.routeCount} routes registered`);

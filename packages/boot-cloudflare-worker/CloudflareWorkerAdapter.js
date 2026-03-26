@@ -1,23 +1,23 @@
 /**
  * CloudflareWorkerAdapter — CDI-managed Cloudflare Workers handler.
  *
- * Boots CDI once, then dispatches incoming fetch events to controller
- * methods via the same __routes convention. Returns Web Standards
- * Response objects.
+ * Boots CDI once, then dispatches incoming fetch events through the CDI
+ * middleware pipeline to controller methods via the __routes convention.
+ * Returns Web Standards Response objects.
  *
  * Cloudflare Workers handler signature:
  *   export default { fetch(request, env, ctx) { ... } }
- *
- * `env` carries secrets and bindings (KV, D1, etc.) — surfaced to
- * controllers via request.env. Config values can be seeded from env
- * at boot time.
  */
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 
 export default class CloudflareWorkerAdapter {
   constructor(applicationContext) {
     this._applicationContext = applicationContext;
     this._routes = new Map();
     this._buildRoutes();
+
+    // Collect CDI middleware instances sorted by __middleware.order
+    this._middlewares = MiddlewarePipeline.collect(applicationContext);
   }
 
   get applicationContext() {
@@ -66,23 +66,14 @@ export default class CloudflareWorkerAdapter {
    * Handle a Cloudflare Workers fetch event.
    *
    * @param {Request} webRequest — Web Standards Request
-   * @param {object} [env] — Cloudflare env bindings (secrets, KV, D1)
-   * @param {object} [workerCtx] — Cloudflare execution context (waitUntil, etc.)
+   * @param {object} [env] — Cloudflare env bindings
+   * @param {object} [workerCtx] — Cloudflare execution context
    * @returns {Promise<Response>} Web Standards Response
    */
   async fetch(webRequest, env = {}, workerCtx = {}) {
     const url = new URL(webRequest.url);
     const method = webRequest.method;
     const path = url.pathname;
-
-    const match = this._matchRoute(method, path);
-
-    if (!match) {
-      return new Response(JSON.stringify({ error: `Not found: ${method} ${path}` }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
 
     let body = undefined;
     const contentType = webRequest.headers.get('content-type') || '';
@@ -95,7 +86,9 @@ export default class CloudflareWorkerAdapter {
     }
 
     const request = {
-      params: match.params,
+      method,
+      path,
+      params: {},
       query: Object.fromEntries(url.searchParams.entries()),
       headers: Object.fromEntries(webRequest.headers.entries()),
       body,
@@ -105,16 +98,26 @@ export default class CloudflareWorkerAdapter {
       rawRequest: webRequest,
     };
 
-    try {
-      const result = await match.handler(request);
-      return this._toResponse(result);
-    } catch (err) {
-      const status = err.statusCode || 500;
-      return new Response(JSON.stringify({ error: err.message }), {
-        status,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const result = await MiddlewarePipeline.compose(
+      this._middlewares,
+      this._dispatch.bind(this),
+    )(request);
+
+    return this._toResponse(result);
+  }
+
+  /**
+   * Dispatch to the matching controller handler.
+   * Returns null when no route matches (NotFoundMiddleware converts to 404).
+   */
+  async _dispatch(request) {
+    const match = this._matchRoute(request.method, request.path);
+    if (!match) return null; // NotFoundMiddleware converts to 404
+    request.params = match.params;
+    const result = await match.handler(request);
+    // Handler returned nothing → 204 No Content
+    if (result === null || result === undefined) return { statusCode: 204 };
+    return result;
   }
 
   _matchRoute(method, path) {
@@ -146,13 +149,20 @@ export default class CloudflareWorkerAdapter {
 
   _toResponse(result) {
     if (result === null || result === undefined) {
-      return new Response('', { status: 204 });
+      // null from _dispatch means no route matched; produce 404 directly
+      return new Response(JSON.stringify({ error: 'Not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
     if (result.statusCode !== undefined) {
-      const body = result.body !== undefined
-        ? (typeof result.body === 'string' ? result.body : JSON.stringify(result.body))
-        : '';
-      return new Response(body, {
+      const noBody = result.statusCode === 204 || result.statusCode === 304;
+      const responseBody = noBody
+        ? null
+        : (result.body !== undefined
+          ? (typeof result.body === 'string' ? result.body : JSON.stringify(result.body))
+          : '');
+      return new Response(responseBody, {
         status: result.statusCode,
         headers: { 'Content-Type': 'application/json', ...(result.headers || {}) },
       });

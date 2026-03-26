@@ -1,7 +1,7 @@
 {
   "name": "@alt-javascript/boot-lambda",
-  "version": "3.0.6",
-  "description": "AWS Lambda adapter for @alt-javascript boot \u2014 CDI-managed serverless with controller auto-registration",
+  "version": "3.0.7",
+  "description": "AWS Lambda adapter for @alt-javascript boot — CDI-managed serverless with controller auto-registration",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -9,7 +9,8 @@
   },
   "author": "Craig Parravicini",
   "contributors": [
-    "Claude (Anthropic)"
+    "Claude (Anthropic)",
+    "Spring Framework (VMware/Broadcom) — design inspiration and pattern source"
   ],
   "keywords": [
     "alt-javascript",
@@ -30,17 +31,17 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.6"
+    "@alt-javascript/cdi": "3.0.7"
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.6",
-    "@alt-javascript/config": "3.0.6",
+    "@alt-javascript/boot": "3.0.7",
+    "@alt-javascript/config": "3.0.7",
     "@alt-javascript/jsdbc-template": "*",
     "@alt-javascript/jsdbc-sqljs": "^1.0.0",
-    "@alt-javascript/logger": "3.0.6",
+    "@alt-javascript/logger": "3.0.7",
     "chai": "^4.3.7",
     "mocha": "^11.7.5",
-    "@alt-javascript/boot-jsdbc": "3.0.6"
+    "@alt-javascript/boot-jsdbc": "3.0.7"
   },
   "license": "MIT",
   "repository": {

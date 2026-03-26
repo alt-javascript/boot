@@ -19,11 +19,14 @@ import { Context, Singleton } from '@alt-javascript/cdi';
 import { lambdaStarter } from '@alt-javascript/boot-lambda';
 import { GreetingService } from './src/services.js';
 import { GreetingController } from './src/controllers.js';
+import { AuthMiddleware } from './src/middleware/AuthMiddleware.js';
 
 const context = new Context([
   ...lambdaStarter(),
   new Singleton(GreetingService),
   new Singleton(GreetingController),
+  // Middleware — registers itself via static __middleware = { order: 5 }
+  new Singleton(AuthMiddleware),
 ]);
 
 // Boot once — CDI wires and inits all beans; run phase skipped (no HTTP server).

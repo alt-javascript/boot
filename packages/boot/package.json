@@ -1,10 +1,11 @@
 {
   "name": "@alt-javascript/boot",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "An Extensible Config & Logging Application Bootstrap Function",
   "author": "Craig Parravicini",
   "contributors": [
-    "Claude (Anthropic)"
+    "Claude (Anthropic)",
+    "Spring Framework (VMware/Broadcom) — design inspiration and pattern source"
   ],
   "keywords": [
     "logging",
@@ -24,10 +25,13 @@
     ".": {
       "browser": "./index-browser.js",
       "default": "./index.js"
-    }
+    },
+    "./MiddlewarePipeline.js": "./MiddlewarePipeline.js",
+    "./middleware/*": "./middleware/*.js"
   },
   "files": [
     "*.js",
+    "middleware/",
     "dist/"
   ],
   "scripts": {
@@ -41,10 +45,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@alt-javascript/cdi": "3.0.6",
-    "@alt-javascript/common": "3.0.6",
-    "@alt-javascript/config": "3.0.6",
-    "@alt-javascript/logger": "3.0.6"
+    "@alt-javascript/cdi": "3.0.7",
+    "@alt-javascript/common": "3.0.7",
+    "@alt-javascript/config": "3.0.7",
+    "@alt-javascript/logger": "3.0.7"
   },
   "devDependencies": {
     "chai": "^4.3.4",

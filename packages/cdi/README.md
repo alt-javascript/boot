@@ -5,7 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
 
-IoC container and dependency injection for the `@alt-javascript` framework. Provides component definitions, autowiring, constructor injection, lifecycle management, application events, AOP, conditional beans, and auto-discovery — all in pure JavaScript ES modules.
+IoC container and dependency injection for the `@alt-javascript` framework. Provides component definitions, autowiring, lifecycle management, application events, AOP, and conditional beans — all in pure JavaScript ES modules.
+
+**The design is a direct port of the [Spring Framework](https://spring.io/projects/spring-framework)'s `ApplicationContext` and component model to idiomatic JavaScript.**
 
 **Part of the [@alt-javascript](https://github.com/alt-javascript/boot) monorepo.**
 
@@ -18,7 +20,7 @@ npm install @alt-javascript/cdi
 ## Quick Start
 
 ```javascript
-import { ApplicationContext, Context, Singleton, Service, Property } from '@alt-javascript/cdi';
+import { ApplicationContext, Context, Singleton } from '@alt-javascript/cdi';
 import { Boot } from '@alt-javascript/boot';
 import { EphemeralConfig } from '@alt-javascript/config';
 
@@ -44,151 +46,122 @@ const context = new Context([
 const appCtx = new ApplicationContext({ contexts: [context], config });
 await appCtx.start();
 
-const svc = appCtx.get('userService');
-svc.createUser('Craig');
+appCtx.get('userService').createUser('Craig');
+console.log(appCtx.get('userRepository').findAll()); // [{ name: 'Craig' }]
 ```
 
-## Scopes
+## Component Definition
 
-| Helper | Scope | Behaviour |
-|---|---|---|
-| `Singleton(Class)` | singleton | One shared instance |
-| `Service(Class)` | singleton | Semantic alias for Singleton |
-| `Prototype(Class)` | prototype | New instance per `get()` call |
-| `Transient(Class)` | prototype | Alias for Prototype |
-
-## Autowiring
-
-Properties initialised to `null` in the constructor are matched to registered component names and injected automatically:
+### Class-based (recommended)
 
 ```javascript
+import { Singleton, Service, Property } from '@alt-javascript/cdi/context/index.js';
+
+// Null-property naming → autowired by name (equivalent to Spring @Autowired)
 class OrderService {
   constructor() {
-    this.orderRepository = null;  // → injected from context
-    this.emailService = null;     // → injected from context
+    this.orderRepository = null;  // autowired
+    this.emailService = null;     // autowired
+    this.logger = null;           // autowired
+
+    // Property injection — resolved from config (equivalent to Spring @Value)
+    this.maxRetries = '${order.maxRetries:3}';
+    this.currency   = '${app.currency:USD}';
   }
+
+  init() { /* called after wiring — @PostConstruct equivalent */ }
+  destroy() { /* called on shutdown — @PreDestroy equivalent */ }
 }
 ```
 
-### Constructor Injection
+### Object literal
 
 ```javascript
-{ Reference: OrderService, name: 'orderService', constructorArgs: ['orderRepository', 'emailService'] }
-```
-
-## Config Property Injection
-
-```javascript
-new Property({ name: 'myService', property: 'port', config: 'server.port', value: 8080 })
+const context = new Context([
+  {
+    name: 'myService',
+    Reference: MyService,
+    scope: 'singleton',
+    condition: (config, components) => config.has('feature.enabled'),
+  },
+]);
 ```
 
 ## Lifecycle
 
-Components can implement any combination of:
+The `ApplicationContext` lifecycle mirrors Spring's `refresh()` → `start()` → `stop()` sequence:
 
-| Method | Phase | Purpose |
+| Phase | Method | Spring equivalent |
 |---|---|---|
-| `setApplicationContext(ctx)` | init | Receive context reference |
-| `init()` | init | Post-injection setup |
-| `start()` | run | Start services |
-| `run()` | run | Execute main logic |
-| `stop()` | shutdown | Stop services |
-| `destroy()` | shutdown | Cleanup |
+| Wire + init | `appCtx.prepare()` | `refresh()` |
+| Run | `appCtx.run()` | `start()` |
+| Both | `appCtx.start()` | `run()` (SpringApplication) |
+| Shutdown | `appCtx.stop()` | `close()` |
 
-## Profiles
+## Conditional Beans
 
 ```javascript
-{ Reference: MockService, name: 'emailService', profiles: ['test'] }
-{ Reference: SmtpService, name: 'emailService', profiles: ['production'] }
-```
+import {
+  conditionalOnProperty,
+  conditionalOnMissingBean,
+  conditionalOnProfile,
+  allOf,
+} from '@alt-javascript/cdi';
 
-## Primary Beans
-
-```javascript
-{ Reference: RedisCache, name: 'cache', primary: true }
-```
-
-## DependsOn
-
-```javascript
-{ Reference: CacheWarmer, name: 'cacheWarmer', dependsOn: ['cache', 'database'] }
-```
-
-Topological sort ensures correct initialisation order.
-
-## Application Events
-
-```javascript
-import { ApplicationEvent, ContextRefreshedEvent, ContextClosedEvent } from '@alt-javascript/cdi';
-
-class MyListener {
-  onApplicationEvent(event) {
-    if (event instanceof ContextRefreshedEvent) {
-      console.log('Context ready');
-    }
-  }
-}
+// Register only when config property is set to 'true'
+const context = new Context([{
+  name: 'cacheService',
+  Reference: RedisCache,
+  condition: conditionalOnProperty('cache.enabled'),
+}]);
 ```
 
 ## AOP
 
 ```javascript
-import { createProxy } from '@alt-javascript/cdi';
+import { createProxy, matchMethod } from '@alt-javascript/cdi';
 
-const proxied = createProxy(target, [
-  { pointcut: 'save', before: (args) => console.log('saving...') },
-]);
+const proxy = createProxy(myService, {
+  before: (ctx) => console.log(`Calling ${ctx.method}`),
+  after:  (ctx) => console.log(`Done ${ctx.method} → ${ctx.result}`),
+  around: (ctx) => { /* intercept */ return ctx.proceed(); },
+  throws: (ctx) => console.error(`Error in ${ctx.method}`, ctx.error),
+}, matchMethod(/^find/));
 ```
 
-Advice types: `before`, `after`, `afterReturning`, `afterThrowing`, `around`.
-
-## Auto-Discovery
+## Application Events
 
 ```javascript
-import { scan, discover } from '@alt-javascript/cdi';
+import { ApplicationEvent, ApplicationEventPublisher } from '@alt-javascript/cdi';
 
-class MyService {
-  static __component = { scope: 'singleton' };
+class OrderCreatedEvent extends ApplicationEvent {
+  constructor(order) { super('order.created'); this.order = order; }
 }
 
-const defs = scan([MyService]);
-```
-
-## Conditional Beans
-
-```javascript
-import { conditionalOnProperty, conditionalOnProfile, conditionalOnMissingBean, allOf } from '@alt-javascript/cdi';
-
-{
-  Reference: RedisCache,
-  name: 'cache',
-  condition: conditionalOnProperty('cache.type', 'redis'),
-}
-
-// Analogous to Spring's @Profile — profiles auto-detected from NODE_ACTIVE_PROFILES
-{
-  Reference: ProdDataSource,
-  name: 'dataSource',
-  condition: conditionalOnProfile('production'),
-}
-```
-
-## BeanPostProcessor
-
-```javascript
-import { BeanPostProcessor } from '@alt-javascript/cdi';
-
-class AuditProcessor extends BeanPostProcessor {
-  postProcessAfterInitialization(instance, name) {
-    console.log(`Initialized: ${name}`);
-    return instance;
+class OrderListener {
+  onApplicationEvent(event) {
+    if (event.type === 'order.created') {
+      this.emailService.send(event.order.customer, 'Your order is confirmed');
+    }
   }
 }
 ```
 
-## Browser
+## Spring Attribution
 
-A pre-built ESM bundle is available at `dist/alt-javascript-cdi-esm.js` for browser use via `<script type="module">` or import maps.
+| Spring concept | @alt-javascript/cdi equivalent |
+|---|---|
+| `@Component`, `@Service`, `@Repository` | `Singleton`, `Service` |
+| `@Autowired` (field injection) | Null-property naming convention |
+| `@Value("${key:default}")` | Placeholder strings in constructor |
+| `@PostConstruct` | `init()` method |
+| `@PreDestroy` | `destroy()` method |
+| `ApplicationContext.refresh()` | `appCtx.prepare()` |
+| `ApplicationContext.start()` | `appCtx.run()` |
+| `ApplicationEvent` / `ApplicationListener` | `ApplicationEvent` + event bus |
+| `@Conditional` / `@ConditionalOnProperty` | `conditionalOnProperty()` etc. |
+| `BeanPostProcessor` | `BeanPostProcessor` |
+| `@Aspect` (Spring AOP) | `createProxy()` |
 
 ## License
 

@@ -2,22 +2,23 @@
  * AzureFunctionAdapter — CDI-managed Azure Functions handler.
  *
  * Boots CDI once, then dispatches Azure Functions HTTP trigger
- * requests to controller methods via the __routes convention.
+ * requests through the CDI middleware pipeline to controller methods
+ * via the __routes convention.
  *
  * Azure Functions v4 programming model:
  *   app.http('functionName', { methods: ['GET'], route: 'path', handler })
  *   handler(request, context) → { status, jsonBody, headers }
- *
- * The adapter simulates this by matching method + route against __routes.
- * In production, each route would be registered as a separate Azure Function
- * or dispatched through a single catch-all proxy function.
  */
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 
 export default class AzureFunctionAdapter {
   constructor(applicationContext) {
     this._applicationContext = applicationContext;
     this._routes = new Map();
     this._buildRoutes();
+
+    // Collect CDI middleware instances sorted by __middleware.order
+    this._middlewares = MiddlewarePipeline.collect(applicationContext);
   }
 
   get applicationContext() {
@@ -75,18 +76,10 @@ export default class AzureFunctionAdapter {
     const url = azureRequest.url || '/';
     const path = url.startsWith('http') ? new URL(url).pathname : url;
 
-    const match = this._matchRoute(method, path);
-
-    if (!match) {
-      return {
-        status: 404,
-        jsonBody: { error: `Not found: ${method} ${path}` },
-        headers: { 'Content-Type': 'application/json' },
-      };
-    }
-
     const request = {
-      params: { ...(azureRequest.params || {}), ...match.params },
+      method,
+      path,
+      params: { ...(azureRequest.params || {}) },
       query: azureRequest.query || {},
       headers: azureRequest.headers || {},
       body: azureRequest.body,
@@ -94,16 +87,26 @@ export default class AzureFunctionAdapter {
       ctx: this._applicationContext,
     };
 
-    try {
-      const result = await match.handler(request);
-      return this._toResponse(result);
-    } catch (err) {
-      return {
-        status: err.statusCode || 500,
-        jsonBody: { error: err.message },
-        headers: { 'Content-Type': 'application/json' },
-      };
-    }
+    const result = await MiddlewarePipeline.compose(
+      this._middlewares,
+      this._dispatch.bind(this),
+    )(request);
+
+    return this._toResponse(result);
+  }
+
+  /**
+   * Dispatch to the matching controller handler.
+   * Returns null when no route matches (NotFoundMiddleware converts to 404).
+   */
+  async _dispatch(request) {
+    const match = this._matchRoute(request.method, request.path);
+    if (!match) return null; // NotFoundMiddleware converts to 404
+    request.params = { ...request.params, ...match.params };
+    const result = await match.handler(request);
+    // Handler returned nothing → 204 No Content
+    if (result === null || result === undefined) return { statusCode: 204 };
+    return result;
   }
 
   _matchRoute(method, path) {
@@ -135,7 +138,8 @@ export default class AzureFunctionAdapter {
 
   _toResponse(result) {
     if (result === null || result === undefined) {
-      return { status: 204, headers: { 'Content-Type': 'application/json' } };
+      // null from _dispatch means no route matched; produce 404 directly
+      return { status: 404, jsonBody: { error: 'Not found' }, headers: { 'Content-Type': 'application/json' } };
     }
     if (result.statusCode !== undefined) {
       return {

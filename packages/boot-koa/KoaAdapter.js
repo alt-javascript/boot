@@ -13,6 +13,7 @@
  *   server.host — listen host (default: '0.0.0.0')
  */
 import Koa from 'koa';
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 import KoaControllerRegistrar from './KoaControllerRegistrar.js';
 
 export default class KoaAdapter {
@@ -78,6 +79,9 @@ export default class KoaAdapter {
     this._routes = new Map();
     KoaControllerRegistrar.register(this._routes, this._applicationContext);
 
+    // Collect CDI middleware sorted by order
+    this._middlewares = MiddlewarePipeline.collect(this._applicationContext);
+
     this._app.use(this._routingMiddleware());
 
     if (this._logger) {
@@ -87,49 +91,49 @@ export default class KoaAdapter {
 
   /**
    * Returns a Koa middleware that dispatches to controller handlers
-   * based on method + path matching.
+   * through the CDI middleware pipeline.
    */
   _routingMiddleware() {
     const routes = this._routes;
+    const middlewares = this._middlewares;
+    const appCtx = this._applicationContext;
 
     return async (koaCtx) => {
       const method = koaCtx.method;
       const path = koaCtx.path;
 
-      // Try exact match, then parametric match
-      const match = this._matchRoute(method, path, routes);
-
-      if (!match) {
-        koaCtx.status = 404;
-        koaCtx.body = { error: `Not found: ${method} ${path}` };
-        return;
-      }
-
       const request = {
-        params: match.params,
+        method,
+        path,
+        params: {},
         query: koaCtx.query,
         headers: koaCtx.headers,
         body: koaCtx.request.body,
-        ctx: this._applicationContext,
+        ctx: appCtx,
         koaCtx,
       };
 
-      try {
-        const result = await match.handler(request);
+      const dispatch = async (r) => {
+        const match = this._matchRoute(r.method ?? method, r.path ?? path, routes);
+        if (!match) return null; // NotFoundMiddleware converts to 404
+        r.params = match.params;
+        const result = await match.handler(r);
+        if (result === null || result === undefined) return { statusCode: 204 };
+        return result;
+      };
 
-        if (result === null || result === undefined) {
-          koaCtx.status = 204;
-          koaCtx.body = '';
-        } else if (result.statusCode !== undefined) {
-          koaCtx.status = result.statusCode;
-          koaCtx.body = result.body !== undefined ? result.body : '';
-        } else {
-          koaCtx.status = 200;
-          koaCtx.body = result;
-        }
-      } catch (err) {
-        koaCtx.status = err.statusCode || 500;
-        koaCtx.body = { error: err.message };
+      const result = await MiddlewarePipeline.compose(middlewares, dispatch)(request);
+
+      // Write result to Koa context
+      if (result === null || result === undefined) {
+        koaCtx.status = 404;
+        koaCtx.body = { error: `Not found: ${method} ${path}` };
+      } else if (result.statusCode !== undefined) {
+        koaCtx.status = result.statusCode;
+        koaCtx.body = result.body !== undefined ? result.body : '';
+      } else {
+        koaCtx.status = 200;
+        koaCtx.body = result;
       }
     };
   }

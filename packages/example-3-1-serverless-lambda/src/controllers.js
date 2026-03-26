@@ -16,6 +16,7 @@ export class GreetingController {
   static __routes = [
     { method: 'GET', path: '/health',         handler: 'health' },
     { method: 'GET', path: '/greet/{name}',   handler: 'greet' },
+    { method: 'GET', path: '/secret',         handler: 'secret' },
   ];
 
   constructor() {
@@ -39,5 +40,9 @@ export class GreetingController {
     const message = this.greetingService.greet(name);
     this.logger.debug(`GET /greet/${name} → ${message}`);
     return { message };
+  }
+
+  secret(request) {
+    return { secret: 'You found it!', user: request.user };
   }
 }

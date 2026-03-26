@@ -2,16 +2,20 @@
  * HonoControllerRegistrar — scans CDI components for route metadata
  * and registers them on the Hono app using Hono's native routing.
  *
- * Hono uses Web Standards API: handlers receive a Hono context (c)
- * and return a Response via c.json(), c.text(), etc.
- *
- * Controller handlers receive a normalized request object (same shape
- * as other adapters) and return plain objects or { statusCode, body }.
+ * When a middleware pipeline is provided, each declarative route handler is
+ * wrapped so the pipeline runs around every handler invocation.
  */
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
+
 export default class HonoControllerRegistrar {
   static routeCount = 0;
 
-  static register(app, appCtx) {
+  /**
+   * @param {import('hono').Hono} app
+   * @param {ApplicationContext} appCtx
+   * @param {Array} [middlewares] — sorted CDI middleware instances
+   */
+  static register(app, appCtx, middlewares = []) {
     HonoControllerRegistrar.routeCount = 0;
     const components = appCtx.components;
 
@@ -35,7 +39,6 @@ export default class HonoControllerRegistrar {
 
           const boundHandler = instance[handler].bind(instance);
 
-          // Convert :param to Hono's :param format (same convention)
           app[httpMethod](path, async (c) => {
             let body = undefined;
             if (c.req.header('content-type')?.includes('application/json')) {
@@ -47,6 +50,8 @@ export default class HonoControllerRegistrar {
             }
 
             const request = {
+              method: c.req.method,
+              path: new URL(c.req.url).pathname,
               params: c.req.param(),
               query: c.req.query(),
               headers: Object.fromEntries(c.req.raw.headers.entries()),
@@ -55,20 +60,21 @@ export default class HonoControllerRegistrar {
               honoCtx: c,
             };
 
-            try {
-              const result = await boundHandler(request);
+            const dispatch = async (r) => {
+              const result = await boundHandler(r);
+              if (result === null || result === undefined) return { statusCode: 204 };
+              return result;
+            };
 
-              if (result === null || result === undefined) {
-                return c.body('', 204);
-              }
-              if (result.statusCode !== undefined) {
-                return c.json(result.body !== undefined ? result.body : '', result.statusCode);
-              }
-              return c.json(result);
-            } catch (err) {
-              const status = err.statusCode || 500;
-              return c.json({ error: err.message }, status);
+            const result = await MiddlewarePipeline.compose(middlewares, dispatch)(request);
+
+            if (result === null || result === undefined) {
+              return c.body('', 204);
             }
+            if (result.statusCode !== undefined) {
+              return c.json(result.body !== undefined ? result.body : '', result.statusCode);
+            }
+            return c.json(result);
           });
 
           HonoControllerRegistrar.routeCount++;

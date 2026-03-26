@@ -12,6 +12,7 @@
  * fastify.ctx (decorated) and request.ctx (request decorator).
  */
 import Fastify from 'fastify';
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 import FastifyControllerRegistrar from './FastifyControllerRegistrar.js';
 
 export default class FastifyAdapter {
@@ -63,8 +64,11 @@ export default class FastifyAdapter {
       request.ctx = this._applicationContext;
     });
 
-    // Register controllers
-    FastifyControllerRegistrar.register(this._fastify, this._applicationContext);
+    // Collect CDI middleware sorted by order
+    const middlewares = MiddlewarePipeline.collect(this._applicationContext);
+
+    // Register controllers with the middleware pipeline
+    FastifyControllerRegistrar.register(this._fastify, this._applicationContext, middlewares);
 
     if (this._logger) {
       this._logger.verbose(`Fastify instance created, ${FastifyControllerRegistrar.routeCount} routes registered`);

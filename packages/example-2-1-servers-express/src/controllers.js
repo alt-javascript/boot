@@ -17,6 +17,7 @@ export class GreetingController {
   static __routes = [
     { method: 'GET', path: '/',            handler: 'health' },
     { method: 'GET', path: '/greet/:name', handler: 'greet' },
+    { method: 'GET', path: '/secret',      handler: 'secret' },
   ];
 
   constructor() {
@@ -44,5 +45,11 @@ export class GreetingController {
     const message = this.greetingService.greet(name);
     this.logger.debug(`GET /greet/${name} → ${message}`);
     res.json({ message });
+  }
+
+  secret(req, res) {
+    // req.user is set by AuthMiddleware when a valid token is present
+    const user = req.user || (req.request?.user);
+    res.json({ secret: 'You found it!', user });
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/boot-react",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "React integration for @alt-javascript boot \u2014 CDI services via React Context and hooks",
   "type": "module",
   "main": "index.js",
@@ -28,8 +28,8 @@
     "test": "mocha --recursive test/**/*.spec.js"
   },
   "dependencies": {
-    "@alt-javascript/boot": "3.0.6",
-    "@alt-javascript/cdi": "3.0.6"
+    "@alt-javascript/boot": "3.0.7",
+    "@alt-javascript/cdi": "3.0.7"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
@@ -40,9 +40,9 @@
     }
   },
   "devDependencies": {
-    "@alt-javascript/boot": "3.0.6",
-    "@alt-javascript/config": "3.0.6",
-    "@alt-javascript/logger": "3.0.6",
+    "@alt-javascript/boot": "3.0.7",
+    "@alt-javascript/config": "3.0.7",
+    "@alt-javascript/logger": "3.0.7",
     "chai": "^4.3.7",
     "mocha": "^11.7.5"
   },

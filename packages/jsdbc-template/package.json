@@ -1,6 +1,6 @@
 {
   "name": "@alt-javascript/jsdbc-template",
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Spring JdbcTemplate for JSDBC \u2014 queryForObject, queryForList, update, batchUpdate, transactions",
   "type": "module",
   "main": "index.js",

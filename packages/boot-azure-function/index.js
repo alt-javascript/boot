@@ -15,6 +15,11 @@
  *     return (await appCtx).get('azureFunctionAdapter').handle(request, ctx);
  *   }
  */
+import {
+  RequestLoggerMiddleware,
+  ErrorHandlerMiddleware,
+  NotFoundMiddleware,
+} from '@alt-javascript/boot';
 import AzureFunctionAdapter from './AzureFunctionAdapter.js';
 
 /**
@@ -22,6 +27,9 @@ import AzureFunctionAdapter from './AzureFunctionAdapter.js';
  *
  * Registers:
  * - `azureFunctionAdapter` — CDI-managed Azure Functions handler with route dispatch
+ * - `requestLoggerMiddleware` — per-request logging (order: 10)
+ * - `errorHandlerMiddleware` — exception → structured response (order: 20)
+ * - `notFoundMiddleware` — null route result → 404 (order: 30)
  *
  * @returns {Array} component definitions for CDI Context
  */
@@ -32,6 +40,24 @@ export function azureFunctionStarter() {
       Reference: AzureFunctionAdapterFactory,
       scope: 'singleton',
       condition: (config, components) => !components.azureFunctionAdapter,
+    },
+    {
+      name: 'requestLoggerMiddleware',
+      Reference: RequestLoggerMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.requestLoggerMiddleware,
+    },
+    {
+      name: 'errorHandlerMiddleware',
+      Reference: ErrorHandlerMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.errorHandlerMiddleware,
+    },
+    {
+      name: 'notFoundMiddleware',
+      Reference: NotFoundMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.notFoundMiddleware,
     },
   ];
 }

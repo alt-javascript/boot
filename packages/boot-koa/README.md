@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
 
-Koa adapter for the `@alt-javascript` framework. Bridges CDI-managed controllers to Koa routes with a built-in JSON body parser.
+Koa adapter for the `@alt-javascript` framework. Bridges CDI-managed controllers to Koa routes with a built-in JSON body parser and CDI middleware pipeline.
 
 **Part of the [@alt-javascript](https://github.com/alt-javascript/boot) monorepo.**
 
@@ -18,16 +18,68 @@ npm install @alt-javascript/boot-koa koa
 ## Usage
 
 ```javascript
-import { koaAutoConfiguration } from '@alt-javascript/boot-koa';
+import { Boot } from '@alt-javascript/boot';
+import { Context, Singleton } from '@alt-javascript/cdi';
+import { koaStarter } from '@alt-javascript/boot-koa';
+
+class TodoController {
+  static __routes = [
+    { method: 'GET',  path: '/todos',     handler: 'list'   },
+    { method: 'POST', path: '/todos',     handler: 'create' },
+    { method: 'GET',  path: '/todos/:id', handler: 'get'    },
+  ];
+
+  constructor() { this.todoService = null; } // autowired
+
+  async list(request)   { return this.todoService.findAll(); }
+  async create(request) { return this.todoService.create(request.body); }
+  async get(request)    { return this.todoService.findById(request.params.id); }
+}
 
 const context = new Context([
-  ...koaAutoConfiguration(),
-  new Singleton(TodoController), // has static __routes
+  ...koaStarter(),
   new Singleton(TodoService),
+  new Singleton(TodoController),
 ]);
+
+await Boot.boot({ contexts: [context] });
 ```
 
-The adapter includes a built-in JSON body parser — no need for `koa-bodyparser`. The CDI context is available as `ctx.cdiContext` in Koa middleware.
+Controllers receive a normalised request object `{ params, query, headers, body, ctx, koaCtx }`. The built-in JSON body parser handles `application/json` content — no need for `koa-bodyparser`. The CDI context is available as `koaCtx.cdiContext`.
+
+## Middleware Pipeline
+
+`koaStarter()` registers three built-in middleware components automatically:
+
+| Component | Order | Behaviour |
+|---|---|---|
+| `RequestLoggerMiddleware` | 10 | Logs `[METHOD] /path → status (Xms)` |
+| `ErrorHandlerMiddleware` | 20 | Converts thrown errors to JSON error responses |
+| `NotFoundMiddleware` | 30 | Returns 404 for unmatched routes |
+
+Add custom middleware by declaring `static __middleware = { order: N }`:
+
+```javascript
+class AuthMiddleware {
+  static __middleware = { order: 5 };
+
+  async handle(request, next) {
+    const token = request.headers.authorization?.replace('Bearer ', '');
+    if (!token) return { statusCode: 401, body: { error: 'Unauthorized' } };
+    return next({ ...request, user: { token } });
+  }
+}
+```
+
+## Configuration
+
+| Key | Default | Description |
+|---|---|---|
+| `server.port` | `3000` | Port to listen on |
+| `server.host` | `0.0.0.0` | Host to bind |
+| `middleware.requestLogger.enabled` | `true` | Enable request logging |
+| `middleware.errorHandler.enabled` | `true` | Enable error handler |
+| `middleware.notFound.enabled` | `true` | Enable 404 handler |
 
 ## License
 

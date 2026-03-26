@@ -18,8 +18,11 @@
  *      }
  *    }
  *
- * Note: Fastify handlers receive (request, reply) not (req, res).
+ * When a middleware pipeline is provided, each declarative route handler is
+ * wrapped so the pipeline runs around every handler invocation.
  */
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
+
 export default class FastifyControllerRegistrar {
   static routeCount = 0;
 
@@ -27,11 +30,12 @@ export default class FastifyControllerRegistrar {
    * Scan all CDI components and register routes on the Fastify instance.
    *
    * @param {import('fastify').FastifyInstance} fastify
-   * @param {ApplicationContext} ctx
+   * @param {ApplicationContext} appCtx
+   * @param {Array} [middlewares] — sorted CDI middleware instances
    */
-  static register(fastify, ctx) {
+  static register(fastify, appCtx, middlewares = []) {
     FastifyControllerRegistrar.routeCount = 0;
-    const components = ctx.components;
+    const components = appCtx.components;
 
     for (const name of Object.keys(components)) {
       const component = components[name];
@@ -52,10 +56,44 @@ export default class FastifyControllerRegistrar {
             );
           }
 
-          // Bind handler to instance so 'this' works
           const boundHandler = instance[handler].bind(instance);
 
-          fastify[httpMethod](path, async (request, reply) => boundHandler(request, reply));
+          fastify[httpMethod](path, async (fRequest, reply) => {
+            let body = undefined;
+            if (fRequest.headers['content-type']?.includes('application/json')) {
+              body = fRequest.body;
+            }
+
+            const request = {
+              method: fRequest.method,
+              path: fRequest.url.split('?')[0],
+              params: fRequest.params,
+              query: fRequest.query,
+              headers: fRequest.headers,
+              body,
+              ctx: appCtx,
+              fastifyRequest: fRequest,
+              reply,
+            };
+
+            const dispatch = async (r) => {
+              const result = await boundHandler(r.fastifyRequest ?? fRequest, reply);
+              if (result === null || result === undefined) return { statusCode: 204 };
+              return result;
+            };
+
+            const result = await MiddlewarePipeline.compose(middlewares, dispatch)(request);
+
+            if (result === null || result === undefined) {
+              return reply.code(204).send('');
+            }
+            if (result.statusCode !== undefined) {
+              return reply.code(result.statusCode).send(
+                result.body !== undefined ? result.body : '',
+              );
+            }
+            return reply.send(result);
+          });
 
           FastifyControllerRegistrar.routeCount++;
         }
@@ -63,7 +101,7 @@ export default class FastifyControllerRegistrar {
 
       // Pattern 2: imperative routes(fastify, ctx)
       if (typeof instance.routes === 'function' && !Reference?.__routes) {
-        instance.routes(fastify, ctx);
+        instance.routes(fastify, appCtx);
       }
     }
   }

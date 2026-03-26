@@ -14,6 +14,7 @@
  */
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import MiddlewarePipeline from '@alt-javascript/boot/MiddlewarePipeline.js';
 import HonoControllerRegistrar from './HonoControllerRegistrar.js';
 
 export default class HonoAdapter {
@@ -49,8 +50,11 @@ export default class HonoAdapter {
 
     this._app = new Hono();
 
-    // Register controllers — uses Hono's native routing
-    HonoControllerRegistrar.register(this._app, this._applicationContext);
+    // Collect CDI middleware sorted by order
+    const middlewares = MiddlewarePipeline.collect(this._applicationContext);
+
+    // Register controllers with the middleware pipeline
+    HonoControllerRegistrar.register(this._app, this._applicationContext, middlewares);
 
     if (this._logger) {
       this._logger.verbose(`Hono app created, ${HonoControllerRegistrar.routeCount} routes registered`);

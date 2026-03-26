@@ -14,6 +14,11 @@
  *   export const handler = (event, ctx) => appCtx.get('lambdaAdapter').handle(event, ctx);
  */
 import { ApplicationContext } from '@alt-javascript/cdi';
+import {
+  RequestLoggerMiddleware,
+  ErrorHandlerMiddleware,
+  NotFoundMiddleware,
+} from '@alt-javascript/boot';
 import LambdaAdapter from './LambdaAdapter.js';
 import LambdaControllerRegistrar from './LambdaControllerRegistrar.js';
 
@@ -55,6 +60,12 @@ export function createLambdaHandler(options) {
  * The adapter is created during init() after CDI wiring is complete.
  * Access the handler via: `ctx.get('lambdaAdapter').handle(event, lambdaContext)`
  *
+ * Registers:
+ * - `lambdaAdapter` — CDI-managed Lambda handler with route dispatch
+ * - `requestLoggerMiddleware` — per-request logging (order: 10)
+ * - `errorHandlerMiddleware` — exception → structured response (order: 20)
+ * - `notFoundMiddleware` — null route result → 404 (order: 30)
+ *
  * @returns {Array} component definitions for CDI Context
  */
 export function lambdaStarter() {
@@ -64,6 +75,24 @@ export function lambdaStarter() {
       Reference: LambdaAdapterFactory,
       scope: 'singleton',
       condition: (config, components) => !components.lambdaAdapter,
+    },
+    {
+      name: 'requestLoggerMiddleware',
+      Reference: RequestLoggerMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.requestLoggerMiddleware,
+    },
+    {
+      name: 'errorHandlerMiddleware',
+      Reference: ErrorHandlerMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.errorHandlerMiddleware,
+    },
+    {
+      name: 'notFoundMiddleware',
+      Reference: NotFoundMiddleware,
+      scope: 'singleton',
+      condition: (config, components) => !components.notFoundMiddleware,
     },
   ];
 }

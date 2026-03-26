@@ -1,5 +1,54 @@
 # Changelog
 
+## 3.0.7 — 2026-03-26
+
+### New feature
+
+- **Cross-cutting middleware pipeline across all 7 HTTP and serverless adapters.**
+  A framework-agnostic `MiddlewarePipeline` (Koa-style onion compose) is now the
+  dispatch layer for every adapter — Express, Fastify, Koa, Hono, Lambda, Cloudflare
+  Workers, and Azure Functions. Any CDI component that declares
+  `static __middleware = { order: N }` participates automatically; lower order = outermost.
+  Three built-in middleware components are registered by every `*Starter()`:
+  `RequestLoggerMiddleware` (order 10, logs `[METHOD] /path → status (Xms)`),
+  `ErrorHandlerMiddleware` (order 20, converts throws to structured JSON error responses),
+  and `NotFoundMiddleware` (order 30, returns 404 when no route matches). All three are
+  disableable via config flags (`middleware.requestLogger.enabled`, etc.) and individually
+  replaceable via CDI's `conditionalOnMissingBean` pattern. `MiddlewarePipeline`,
+  `RequestLoggerMiddleware`, `ErrorHandlerMiddleware`, and `NotFoundMiddleware` are exported
+  from `@alt-javascript/boot`. All duplicate `try/catch` and inline 404 blocks have been
+  removed from adapter internals — they are now handled uniformly by the pipeline.
+  The normalised request shape `{ method, path, params, query, headers, body, ctx }` is
+  consistent across all seven adapters so middleware written once works everywhere.
+
+- **Node.js minimum version raised to 20.**
+  Dependencies including `config@4.4.1`, `chokidar@5`, `listr2@9`, and `cliui@9`
+  require Node.js ≥ 20. The `engines` field in all packages has been updated to
+  `"node": ">=20"` and the CI matrix now tests 20.x, 22.x, and 24.x only.
+
+### Documentation
+
+- **All publishable package READMEs updated.** Every adapter README now documents the
+  middleware pipeline with a built-in component table, a custom `AuthMiddleware` example,
+  and the config flags for disabling built-ins. Core package READMEs (`@alt-javascript/cdi`,
+  `@alt-javascript/config`, `@alt-javascript/logger`) updated with Spring Framework / SLF4J
+  attribution tables. Root monorepo README updated with a comprehensive Spring concept
+  mapping table and the full middleware pipeline quick-start.
+
+- **Spring Framework attributed as design collaborator.** The `contributors` field in all
+  publishable package.json files now credits Spring Framework (VMware/Broadcom) as the
+  design inspiration and pattern source. A full concept-to-concept mapping table is
+  included in the root README and each relevant package README.
+
+### Examples
+
+- **`example-2-1-servers-express` and `example-3-1-serverless-lambda` updated** to
+  demonstrate the middleware pipeline end-to-end: a custom `AuthMiddleware` CDI component
+  protects routes, `RequestLoggerMiddleware` logs every request, and
+  `ErrorHandlerMiddleware` converts handler throws to structured error responses.
+  The Lambda example test suite extended with explicit 401 (no token) and 200
+  (valid token) assertions.
+
 ## 3.0.6 — 2026-03-26
 
 ### New feature
