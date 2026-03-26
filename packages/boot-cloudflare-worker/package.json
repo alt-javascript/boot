@@ -51,6 +51,6 @@
     "url": "https://github.com/alt-javascript/boot/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }
