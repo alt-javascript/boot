@@ -200,4 +200,4 @@ and subsequent port and is not affiliated with, endorsed by, or associated with 
 
 >The design of `@alt-javascript/flyway` is directly influenced by the Java project. 
 > Flyway is a registered trademark of Boxfuse GmbH, which is owned by Red Gate Software.
-> This project is independent and not affiliated with Boxfuse GmbH, which is owned by Red Gate Software, or the Flyway team.
+> This project is independent and not affiliated with Boxfuse GmbH, Red Gate Software, or the Flyway team.
