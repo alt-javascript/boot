@@ -195,3 +195,9 @@ and subsequent port and is not affiliated with, endorsed by, or associated with 
 
 > Spring Framework and Spring Boot are trademarks of VMware, Inc. / Broadcom.
 > This project is independent and not affiliated with VMware, Broadcom, or the Spring team.
+
+## Flyway Attribution
+
+>The design of `@alt-javascript/flyway` is directly influenced by the Java project. 
+> Flyway is a registered trademark of Boxfuse GmbH, which is owned by Red Gate Software.
+> This project is independent and not affiliated with Boxfuse GmbH, which is owned by Red Gate Software, or the Flyway team.
