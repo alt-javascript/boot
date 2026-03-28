@@ -4,38 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml/badge.svg)](https://github.com/alt-javascript/boot/actions/workflows/node.js.yml)
 
-A Spring Framework-inspired IoC / DI application framework for pure JavaScript.
+A Spring Framework inspired lite IoC / DI application framework for pure JavaScript.
 
 Dependency injection, hierarchical configuration, structured logging, lifecycle management, application events, AOP, profile-based activation, and a CDI middleware pipeline — all in ES modules that run identically in Node.js and the browser, with no TypeScript and no build step required.
-
-## Spring Framework Attribution
-
-The design of `@alt-javascript` is heavily and deliberately influenced by the [Spring Framework](https://spring.io/projects/spring-framework) and [Spring Boot](https://spring.io/projects/spring-boot). Spring is credited as a collaborator in this project, not merely an inspiration.
-
-Specific concepts ported from Spring:
-
-| Spring concept | @alt-javascript equivalent |
-|---|---|
-| `ApplicationContext` | `@alt-javascript/cdi` `ApplicationContext` |
-| `@Component`, `@Service`, `@Repository` | `Singleton`, `Service`, `ComponentRegistry` |
-| `@Autowired` (field injection) | Null-property naming convention (`this.service = null`) |
-| `@Value("${key:default}")` | Property placeholder strings in component constructors |
-| `@PostConstruct` / `@PreDestroy` | `init()` / `destroy()` lifecycle methods |
-| `BeanPostProcessor` | `BeanPostProcessor` |
-| `ApplicationEvent` / `ApplicationListener` | `ApplicationEvent`, event bus in `ApplicationContext` |
-| `@Conditional` / `@ConditionalOnProperty` | `conditionalOnProperty`, `conditionalOnMissingBean` etc. |
-| `@EnableAutoConfiguration` / starters | `expressStarter()`, `fastifyStarter()`, etc. |
-| `@Aspect` / AOP Alliance | `createProxy()`, `matchMethod()`, advice functions |
-| `Environment` / `PropertySource` | `PropertySourceChain`, `EnvPropertySource` |
-| `application.properties` / `application.yml` | `ProfileConfigLoader` — same file conventions |
-| `spring.profiles.active` | `NODE_ACTIVE_PROFILES` |
-| `@Profile` | `conditionalOnProfile()` |
-| `JdbcTemplate` / `NamedParameterJdbcTemplate` | `JsdbcTemplate` / `NamedParameterJsdbcTemplate` |
-| `Flyway` integration | `@alt-javascript/boot-flyway` / `@alt-javascript/flyway` |
-| Spring MVC `@RestController` / `@RequestMapping` | `static __routes` metadata on controller classes |
-| Spring Security filter chain | `MiddlewarePipeline` — `static __middleware = { order: N }` |
-
-The Spring Framework is copyright VMware, Inc. / Broadcom. `@alt-javascript` is an independent port and is not affiliated with, endorsed by, or associated with VMware, Broadcom, or the Spring team.
 
 ## Why
 
@@ -191,6 +162,36 @@ Disable any built-in via config: `middleware.requestLogger.enabled: false`.
 ## License
 
 MIT — Copyright (c) 2021–2026 Craig Parravicini
+
+## Spring Framework Attribution
+
+The design of `@alt-javascript` is directly influenced by the [Spring Framework](https://spring.io/projects/spring-framework) and [Spring Boot](https://spring.io/projects/spring-boot).
+
+Specific concepts ported from Spring:
+
+| Spring concept | @alt-javascript equivalent |
+|---|---|
+| `ApplicationContext` | `@alt-javascript/cdi` `ApplicationContext` |
+| `@Component`, `@Service`, `@Repository` | `Singleton`, `Service`, `ComponentRegistry` |
+| `@Autowired` (field injection) | Null-property naming convention (`this.service = null`) |
+| `@Value("${key:default}")` | Property placeholder strings in component constructors |
+| `@PostConstruct` / `@PreDestroy` | `init()` / `destroy()` lifecycle methods |
+| `BeanPostProcessor` | `BeanPostProcessor` |
+| `ApplicationEvent` / `ApplicationListener` | `ApplicationEvent`, event bus in `ApplicationContext` |
+| `@Conditional` / `@ConditionalOnProperty` | `conditionalOnProperty`, `conditionalOnMissingBean` etc. |
+| `@EnableAutoConfiguration` / starters | `expressStarter()`, `fastifyStarter()`, etc. |
+| `@Aspect` / AOP Alliance | `createProxy()`, `matchMethod()`, advice functions |
+| `Environment` / `PropertySource` | `PropertySourceChain`, `EnvPropertySource` |
+| `application.properties` / `application.yml` | `ProfileConfigLoader` — same file conventions |
+| `spring.profiles.active` | `NODE_ACTIVE_PROFILES` |
+| `@Profile` | `conditionalOnProfile()` |
+| `JdbcTemplate` / `NamedParameterJdbcTemplate` | `JsdbcTemplate` / `NamedParameterJsdbcTemplate` |
+| `Flyway` integration | `@alt-javascript/boot-flyway` / `@alt-javascript/flyway` |
+| Spring MVC `@RestController` / `@RequestMapping` | `static __routes` metadata on controller classes |
+| Spring Security filter chain | `MiddlewarePipeline` — `static __middleware = { order: N }` |
+
+The Spring Framework is copyright VMware, Inc. / Broadcom. `@alt-javascript` began as an independent re-implementation, 
+and subsequent port and is not affiliated with, endorsed by, or associated with VMware, Broadcom, or the Spring team.
 
 > Spring Framework and Spring Boot are trademarks of VMware, Inc. / Broadcom.
 > This project is independent and not affiliated with VMware, Broadcom, or the Spring team.
